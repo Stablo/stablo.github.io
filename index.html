@@ -8,7 +8,7 @@
       font-family: monospace;
       background: #111;
       color: #eee;
-      max-width: 700px;
+      max-width: 1100px;
       margin: 40px auto;
       line-height: 1.5;
     }
@@ -31,6 +31,12 @@
       cursor: not-allowed;
     }
 
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 290px;
+      gap: 20px;
+    }
+
     .box {
       border: 1px solid #555;
       padding: 15px;
@@ -45,17 +51,11 @@
       user-select: none;
     }
 
-    .sectionHeader h2 {
-      margin: 0;
-    }
+    .sectionHeader h2 { margin: 0; }
 
-    .sectionContent {
-      margin-top: 10px;
-    }
+    .sectionContent { margin-top: 10px; }
 
-    .hidden {
-      display: none;
-    }
+    .hidden { display: none; }
 
     .progressOuter {
       width: 100%;
@@ -70,129 +70,281 @@
       background: #eee;
     }
 
-    .warning {
-      color: #ffaaaa;
+    .warning { color: #ffaaaa; }
+
+    .good { color: #aaffaa; }
+
+    .statLine {
+      border-bottom: 1px dotted #333;
+      padding: 5px 0;
+    }
+
+    .kelaProblem {
+      border: 1px dashed #888;
+      padding: 10px;
+      margin: 10px 0;
+      background: #181818;
+    }
+
+    .formButton {
+      min-width: 160px;
     }
   </style>
 </head>
 <body>
   <h1>🍺 Villisika-Sepon juomapeli 🍺</h1>
 
-  <div class="box">
-    <div class="sectionHeader" onclick="toggleSection('mainContent', 'mainToggle')">
-      <h2>Peli</h2>
-      <button id="mainToggle">Piilota</button>
-    </div>
+  <div class="layout">
+    <main>
+      <div class="box">
+        <div class="sectionHeader" onclick="toggleSection('mainContent', 'mainToggle')">
+          <h2>Peli</h2>
+          <button id="mainToggle">Piilota</button>
+        </div>
 
-    <div class="sectionContent" id="mainContent">
-      <p>Oluet: <span id="beers">0</span></p>
-      <p>Eurot: <span id="euros">10</span> €</p>
-      <p>Ryypyt: <span id="sips">0</span></p>
-      <p>Oluita per ryyppy: <span id="beersPerSip">1</span></p>
-      <p>Yksi olut maksaa: <span id="beerEuroCost">1</span> €</p>
-
-      <p id="moneyWarning" class="warning"></p>
-
-      <button id="sipButton" onclick="takeSip()">Ota ryyppy</button>
-    </div>
-  </div>
-
-  <div class="box">
-    <div class="sectionHeader" onclick="toggleSection('timeContent', 'timeToggle')">
-      <h2>Aika</h2>
-      <button id="timeToggle">Piilota</button>
-    </div>
-
-    <div class="sectionContent" id="timeContent">
-      <p>Päivä: <span id="day">1</span></p>
-      <p>Päivän eteneminen: <span id="dayProgressText">0</span>%</p>
-
-      <div class="progressOuter">
-        <div class="progressInner" id="dayProgressBar"></div>
+        <div class="sectionContent" id="mainContent">
+          <p>Oluet: <span id="beers">0</span></p>
+          <p>Eurot: <span id="euros">10.00</span> €</p>
+          <p>Tyhjät tölkit: <span id="emptyCans">0</span></p>
+          <p>Ryypyt: <span id="sips">0</span></p>
+          <p>Oluita per ryyppy: <span id="beersPerSip">1</span></p>
+          <p>Yksi olut maksaa: <span id="beerEuroCost">1</span> €</p>
+          <p id="moneyWarning" class="warning"></p>
+          <button id="sipButton" onclick="takeSip()">Ota ryyppy</button>
+        </div>
       </div>
-    </div>
-  </div>
 
-  <div class="box">
-    <div class="sectionHeader" onclick="toggleSection('helpersContent', 'helpersToggle')">
-      <h2>Apurit</h2>
-      <button id="helpersToggle">Piilota</button>
-    </div>
+      <div class="box">
+        <div class="sectionHeader" onclick="toggleSection('timeContent', 'timeToggle')">
+          <h2>Aika</h2>
+          <button id="timeToggle">Piilota</button>
+        </div>
 
-    <div class="sectionContent" id="helpersContent">
-      <button id="lauriButton" onclick="buyHelper('lauri')">
-        Osta Lauri — Hinta: <span id="lauriCost">15</span> olutta
-      </button>
-      <p>Lauri lisää +3 olutta per päivä.</p>
-      <p>Laurit: <span id="lauris">0</span></p>
+        <div class="sectionContent" id="timeContent">
+          <p>Päivä: <span id="day">1</span></p>
+          <p>Päivän pituus: 20 sekuntia</p>
+          <p>Päivän eteneminen: <span id="dayProgressText">0</span>%</p>
+          <div class="progressOuter">
+            <div class="progressInner" id="dayProgressBar"></div>
+          </div>
+        </div>
+      </div>
 
-      <hr>
+      <div class="box">
+        <div class="sectionHeader" onclick="toggleSection('helpersContent', 'helpersToggle')">
+          <h2>Apurit</h2>
+          <button id="helpersToggle">Piilota</button>
+        </div>
 
-      <button id="jarskiButton" onclick="buyHelper('jarski')">
-        Osta Jarski — Hinta: <span id="jarskiCost">100</span> olutta
-      </button>
-      <p>Jarski lisää +20 olutta per päivä.</p>
-      <p>Jarskit: <span id="jarskis">0</span></p>
+        <div class="sectionContent" id="helpersContent">
+          <button id="lauriButton" onclick="buyHelper('lauri')">
+            Osta Lauri — Hinta: <span id="lauriCost">15</span> olutta
+          </button>
+          <p>Lauri lisää +3 olutta per päivä.</p>
+          <p>Laurit: <span id="lauris">0</span></p>
 
-      <hr>
+          <hr>
 
-      <p>Oluita per päivä yhteensä: <span id="beersPerDay">0</span></p>
-      <p>Tarvittavat eurot per päivä: <span id="eurosNeededPerDay">0</span> €</p>
-    </div>
-  </div>
+          <button id="jarskiButton" onclick="buyHelper('jarski')">
+            Osta Jarski — Hinta: <span id="jarskiCost">100</span> olutta
+          </button>
+          <p>Jarski lisää +20 olutta per päivä.</p>
+          <p>Jarskit: <span id="jarskis">0</span></p>
 
-  <div class="box">
-    <div class="sectionHeader" onclick="toggleSection('saveContent', 'saveToggle')">
-      <h2>Tallennus</h2>
-      <button id="saveToggle">Piilota</button>
-    </div>
+          <hr>
 
-    <div class="sectionContent" id="saveContent">
-      <button onclick="saveGame()">Tallenna peli</button>
-      <button onclick="loadGame()">Lataa peli</button>
-      <button onclick="resetGame()">Nollaa peli</button>
-    </div>
+          <p>Oluita per päivä yhteensä: <span id="beersPerDay">0</span></p>
+          <p>Oluita per minuutti: <span id="drinksPerMinute">0</span></p>
+          <p>Tarvittavat eurot per päivä: <span id="eurosNeededPerDay">0</span> €</p>
+        </div>
+      </div>
+
+      <div class="box">
+        <div class="sectionHeader" onclick="toggleSection('moneyContent', 'moneyToggle')">
+          <h2>Eurojen tienaaminen</h2>
+          <button id="moneyToggle">Piilota</button>
+        </div>
+
+        <div class="sectionContent" id="moneyContent">
+          <p>Palautusarvo: <span id="canValue">0.20</span> € / tölkki</p>
+
+          <button id="puulantoriButton" onclick="startReturn('puulantori')">
+            Palauta Puulantorille — 5 sekuntia, max 5 tölkkiä
+          </button>
+
+          <button id="kilinakoneButton" onclick="startReturn('kilinakone')">
+            Palauta Kilinäkoneeseen — 60 sekuntia, kaikki tölkit
+          </button>
+
+          <p id="returnStatus">Et ole palauttamassa tölkkejä.</p>
+          <div class="progressOuter">
+            <div class="progressInner" id="returnProgressBar"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="box">
+        <div class="sectionHeader" onclick="toggleSection('kelaContent', 'kelaToggle')">
+          <h2>Kela</h2>
+          <button id="kelaToggle">Piilota</button>
+        </div>
+
+        <div class="sectionContent" id="kelaContent">
+          <button id="toimeentulotukiButton" onclick="applyKela('toimeentulotuki')">
+            Hae Toimeentulotuki
+          </button>
+          <p>56 €, käsittelyaika 25–35 päivää.</p>
+          <p id="toimeentulotukiStatus"></p>
+
+          <hr>
+
+          <button id="yleistukiButton" onclick="applyKela('yleistuki')">
+            Hae Yleistuki
+          </button>
+          <p>595 €, käsittelyaika 25–35 päivää.</p>
+          <p id="yleistukiStatus"></p>
+
+          <hr>
+
+          <button id="asumistukiButton" onclick="applyKela('asumistuki')">
+            Hae Asumistuki
+          </button>
+          <p>262 €, käsittelyaika 25–35 päivää.</p>
+          <p id="asumistukiStatus"></p>
+
+          <div id="kelaProblemBox" class="kelaProblem hidden">
+            <h3>Kelan ongelma</h3>
+            <p id="kelaProblemText"></p>
+            <p id="kelaProblemHint"></p>
+            <div id="kelaProblemActions"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="box">
+        <div class="sectionHeader" onclick="toggleSection('saveContent', 'saveToggle')">
+          <h2>Tallennus</h2>
+          <button id="saveToggle">Piilota</button>
+        </div>
+
+        <div class="sectionContent" id="saveContent">
+          <button onclick="saveGame()">Tallenna peli</button>
+          <button onclick="loadGame()">Lataa peli</button>
+          <button onclick="resetGame()">Nollaa peli</button>
+        </div>
+      </div>
+    </main>
+
+    <aside class="box">
+      <h2>Pikatilastot</h2>
+      <div class="statLine">Oluet: <span id="sideBeers">0</span></div>
+      <div class="statLine">Eurot: <span id="sideEuros">10.00</span> €</div>
+      <div class="statLine">Tyhjät tölkit: <span id="sideEmptyCans">0</span></div>
+      <div class="statLine">Tölkkien arvo: <span id="sideCanValue">0.00</span> €</div>
+      <div class="statLine">Oluita / päivä: <span id="sideDrinksPerDay">0</span></div>
+      <div class="statLine">Oluita / minuutti: <span id="sideDrinksPerMinute">0</span></div>
+      <div class="statLine">Päivä: <span id="sideDay">1</span></div>
+      <div class="statLine">Ryypyt yhteensä: <span id="sideSips">0</span></div>
+      <div class="statLine">Apureita yhteensä: <span id="sideHelpers">0</span></div>
+      <div class="statLine">Kela-hakemuksia: <span id="sideKelaApplications">0</span></div>
+      <div class="statLine">Avoimia ongelmia: <span id="sideKelaProblems">0</span></div>
+    </aside>
   </div>
 
   <script>
     let beers = 0;
     let euros = 10;
+    let emptyCans = 0;
     let sips = 0;
     let beersPerSip = 1;
 
     const beerEuroCost = 1;
+    const canValue = 0.20;
 
     let day = 1;
     let secondsIntoDay = 0;
-    const secondsPerDay = 30;
+    const secondsPerDay = 20;
+
+    let returning = false;
+    let returnType = "";
+    let returnSecondsTotal = 0;
+    let returnSecondsLeft = 0;
+    let cansBeingReturned = 0;
+
+    let activeKelaProblem = null;
+    let activeCall = null;
 
     const helpers = {
-      lauri: {
-        count: 0,
-        cost: 15,
-        production: 3,
-        costMultiplier: 1.5
+      lauri: { count: 0, cost: 15, production: 3, costMultiplier: 1.5 },
+      jarski: { count: 0, cost: 100, production: 20, costMultiplier: 1.6 }
+    };
+
+    const kelaBenefits = {
+      toimeentulotuki: {
+        name: "Toimeentulotuki",
+        amount: 56,
+        applied: false,
+        payDay: null,
+        baseDays: randomInt(25, 35),
+        problems: []
       },
-      jarski: {
-        count: 0,
-        cost: 100,
-        production: 20,
-        costMultiplier: 1.6
+      yleistuki: {
+        name: "Yleistuki",
+        amount: 595,
+        applied: false,
+        payDay: null,
+        baseDays: randomInt(25, 35),
+        problems: []
+      },
+      asumistuki: {
+        name: "Asumistuki",
+        amount: 262,
+        applied: false,
+        payDay: null,
+        baseDays: randomInt(25, 35),
+        problems: []
       }
     };
+
+    const formNames = [
+      "Lisäselvitys 17B",
+      "Liite K-404",
+      "Unohtunut kuitti",
+      "Vuokranantajan vahvistus",
+      "Tulotietoruutu",
+      "Pankkitilin varmistus",
+      "Takautuva epäselvyys",
+      "Sähköinen allekirjoitus",
+      "Päätöksen esipäätös",
+      "Kysymys, johon vastasit jo"
+    ];
+
+    const problemTexts = [
+      "Hakemuksesta puuttuu outo liite, jota kukaan ei maininnut aiemmin.",
+      "Kela pyytää lisäselvitystä asiasta, joka oli jo hakemuksessa.",
+      "Järjestelmä haluaa sinun täyttävän muutaman satunnaisen lomakkeen.",
+      "Hakemus jäi käsittelyjonon sivuraiteelle.",
+      "Virkailija tarvitsee vielä yhden varmistuksen."
+    ];
 
     function toggleSection(contentId, buttonId) {
       const content = document.getElementById(contentId);
       const button = document.getElementById(buttonId);
-
       content.classList.toggle("hidden");
-      button.textContent = content.classList.contains("hidden")
-        ? "Näytä"
-        : "Piilota";
+      button.textContent = content.classList.contains("hidden") ? "Näytä" : "Piilota";
+    }
+
+    function randomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
     function canAffordDrinks(amount) {
       return euros >= amount * beerEuroCost;
+    }
+
+    function produceDrinks(amount) {
+      beers += amount;
+      emptyCans += amount;
     }
 
     function takeSip() {
@@ -202,9 +354,8 @@
       }
 
       euros -= beersPerSip * beerEuroCost;
-      beers += beersPerSip;
+      produceDrinks(beersPerSip);
       sips += 1;
-
       updateDisplay();
     }
 
@@ -221,11 +372,21 @@
 
     function getBeersPerDay() {
       let total = 0;
-
       for (const type in helpers) {
         total += helpers[type].count * helpers[type].production;
       }
+      return total;
+    }
 
+    function getDrinksPerMinute() {
+      return getBeersPerDay() * (60 / secondsPerDay);
+    }
+
+    function getTotalHelpers() {
+      let total = 0;
+      for (const type in helpers) {
+        total += helpers[type].count;
+      }
       return total;
     }
 
@@ -237,19 +398,309 @@
       const affordableDrinks = Math.floor(euros / beerEuroCost);
       const drinksReceived = Math.min(drinksFromHelpers, affordableDrinks);
 
-      beers += drinksReceived;
       euros -= drinksReceived * beerEuroCost;
+      produceDrinks(drinksReceived);
+
+      maybeCreateKelaProblems();
+      checkKelaPayments();
+      updateDisplay();
+    }
+
+    function applyKela(type) {
+      const benefit = kelaBenefits[type];
+      if (benefit.applied) return;
+
+      benefit.applied = true;
+      benefit.problems = [];
+      benefit.baseDays = randomInt(25, 35);
+      benefit.payDay = day + benefit.baseDays;
+
+      maybeCreateProblemForBenefit(type, true);
+      updateDisplay();
+    }
+
+    function maybeCreateKelaProblems() {
+      for (const type in kelaBenefits) {
+        const benefit = kelaBenefits[type];
+
+        if (!benefit.applied) continue;
+        if (benefit.problems.length > 0) continue;
+
+        const daysUntilPayment = benefit.payDay - day;
+
+        if (daysUntilPayment > 2 && Math.random() < 0.18) {
+          maybeCreateProblemForBenefit(type, false);
+        }
+      }
+    }
+
+    function maybeCreateProblemForBenefit(type, fromApplication) {
+      const benefit = kelaBenefits[type];
+      const chance = fromApplication ? 0.7 : 1;
+
+      if (Math.random() > chance) return;
+
+      const needsCall = Math.random() < 0.45;
+      const formCount = randomInt(3, 7);
+
+      const forms = [];
+      for (let i = 0; i < formCount; i++) {
+        forms.push({
+          label: formNames[randomInt(0, formNames.length - 1)],
+          clicked: false
+        });
+      }
+
+      const problem = {
+        id: Date.now() + Math.random(),
+        text: problemTexts[randomInt(0, problemTexts.length - 1)],
+        forms,
+        needsCall,
+        callDone: !needsCall,
+        callSecondsTotal: needsCall ? randomInt(3, 30) : 0,
+        callSecondsLeft: 0,
+        callActive: false,
+        solved: false
+      };
+
+      benefit.problems.push(problem);
+
+      if (!activeKelaProblem) {
+        activeKelaProblem = { benefitType: type, problemId: problem.id };
+      }
+    }
+
+    function getCurrentProblem() {
+      if (!activeKelaProblem) return null;
+
+      const benefit = kelaBenefits[activeKelaProblem.benefitType];
+      return benefit.problems.find(p => p.id === activeKelaProblem.problemId) || null;
+    }
+
+    function clickKelaForm(index) {
+      const problem = getCurrentProblem();
+      if (!problem || problem.solved) return;
+
+      problem.forms[index].clicked = true;
+      checkProblemSolved();
+      updateDisplay();
+    }
+
+    function startKelaCall() {
+      const problem = getCurrentProblem();
+      if (!problem || problem.callDone || problem.callActive) return;
+
+      problem.callActive = true;
+      problem.callSecondsLeft = problem.callSecondsTotal;
+      activeCall = problem.id;
 
       updateDisplay();
     }
 
+    function updateKelaCallTimer() {
+      const problem = getCurrentProblem();
+      if (!problem || !problem.callActive) return;
+
+      problem.callSecondsLeft -= 1;
+
+      if (problem.callSecondsLeft <= 0) {
+        problem.callActive = false;
+        problem.callDone = true;
+        activeCall = null;
+        checkProblemSolved();
+      }
+    }
+
+    function checkProblemSolved() {
+      const problem = getCurrentProblem();
+      if (!problem) return;
+
+      const allFormsClicked = problem.forms.every(form => form.clicked);
+
+      if (allFormsClicked && problem.callDone) {
+        problem.solved = true;
+
+        const benefit = kelaBenefits[activeKelaProblem.benefitType];
+        benefit.problems = benefit.problems.filter(p => p.id !== problem.id);
+
+        activeKelaProblem = findNextKelaProblem();
+      }
+    }
+
+    function findNextKelaProblem() {
+      for (const type in kelaBenefits) {
+        const benefit = kelaBenefits[type];
+        const problem = benefit.problems.find(p => !p.solved);
+
+        if (problem) {
+          return { benefitType: type, problemId: problem.id };
+        }
+      }
+
+      return null;
+    }
+
+    function checkKelaPayments() {
+      for (const type in kelaBenefits) {
+        const benefit = kelaBenefits[type];
+
+        if (!benefit.applied) continue;
+        if (benefit.problems.length > 0) continue;
+
+        if (day >= benefit.payDay) {
+          euros += benefit.amount;
+
+          benefit.applied = false;
+          benefit.payDay = null;
+          benefit.problems = [];
+
+          benefit.baseDays = randomInt(25, 35);
+        }
+      }
+
+      if (!activeKelaProblem) {
+        activeKelaProblem = findNextKelaProblem();
+      }
+    }
+
+    function getKelaStatus(type) {
+      const benefit = kelaBenefits[type];
+
+      if (!benefit.applied) {
+        return `Ei hakemusta käsittelyssä. Seuraava perusaika: ${benefit.baseDays} päivää.`;
+      }
+
+      const daysLeft = Math.max(benefit.payDay - day, 0);
+      const problems = benefit.problems.length;
+
+      if (problems > 0) {
+        return `Hakemus jumissa. Ongelmat ratkaisematta: ${problems}. Maksupäivä olisi päivä ${benefit.payDay}, mutta maksu ei tule ennen selvityksiä.`;
+      }
+
+      return `Hakemus käsittelyssä. Arvioitu maksupäivä: päivä ${benefit.payDay}. Päiviä jäljellä: ${daysLeft}.`;
+    }
+
+    function startReturn(type) {
+      if (returning || emptyCans <= 0) return;
+
+      returning = true;
+      returnType = type;
+
+      if (type === "puulantori") {
+        cansBeingReturned = Math.min(5, emptyCans);
+        returnSecondsTotal = 5;
+      }
+
+      if (type === "kilinakone") {
+        cansBeingReturned = emptyCans;
+        returnSecondsTotal = 60;
+      }
+
+      emptyCans -= cansBeingReturned;
+      returnSecondsLeft = returnSecondsTotal;
+      updateDisplay();
+    }
+
+    function finishReturn() {
+      euros += cansBeingReturned * canValue;
+
+      returning = false;
+      returnType = "";
+      returnSecondsTotal = 0;
+      returnSecondsLeft = 0;
+      cansBeingReturned = 0;
+
+      updateDisplay();
+    }
+
+    function updateReturnTimer() {
+      if (!returning) return;
+
+      returnSecondsLeft -= 1;
+
+      if (returnSecondsLeft <= 0) {
+        finishReturn();
+      }
+    }
+
+    function countActiveKelaApplications() {
+      let count = 0;
+      for (const type in kelaBenefits) {
+        if (kelaBenefits[type].applied) count++;
+      }
+      return count;
+    }
+
+    function countKelaProblems() {
+      let count = 0;
+      for (const type in kelaBenefits) {
+        count += kelaBenefits[type].problems.length;
+      }
+      return count;
+    }
+
+    function renderKelaProblem() {
+      const box = document.getElementById("kelaProblemBox");
+      const text = document.getElementById("kelaProblemText");
+      const hint = document.getElementById("kelaProblemHint");
+      const actions = document.getElementById("kelaProblemActions");
+
+      const problem = getCurrentProblem();
+
+      if (!problem) {
+        box.classList.add("hidden");
+        actions.innerHTML = "";
+        return;
+      }
+
+      const benefit = kelaBenefits[activeKelaProblem.benefitType];
+
+      box.classList.remove("hidden");
+      text.textContent = `${benefit.name}: ${problem.text}`;
+
+      const clickedForms = problem.forms.filter(form => form.clicked).length;
+      hint.textContent = `Lomakkeet: ${clickedForms}/${problem.forms.length}. Puhelu: ${problem.callDone ? "valmis" : "kesken tai tekemättä"}.`;
+
+      actions.innerHTML = "";
+
+      problem.forms.forEach((form, index) => {
+        const button = document.createElement("button");
+        button.className = "formButton";
+        button.textContent = form.clicked ? `✓ ${form.label}` : form.label;
+        button.disabled = form.clicked || problem.callActive;
+        button.onclick = () => clickKelaForm(index);
+        actions.appendChild(button);
+      });
+
+      if (problem.needsCall) {
+        const callButton = document.createElement("button");
+
+        if (problem.callDone) {
+          callButton.textContent = "✓ Puhelu hoidettu";
+          callButton.disabled = true;
+        } else if (problem.callActive) {
+          callButton.textContent = `Puhelu käynnissä... ${problem.callSecondsLeft} s`;
+          callButton.disabled = true;
+        } else {
+          callButton.textContent = `Soita Kelaan (${problem.callSecondsTotal} s)`;
+          callButton.onclick = startKelaCall;
+        }
+
+        actions.appendChild(document.createElement("br"));
+        actions.appendChild(callButton);
+      }
+    }
+
     function updateDisplay() {
       const beersPerDay = getBeersPerDay();
+      const drinksPerMinute = getDrinksPerMinute();
       const progressPercent = Math.floor((secondsIntoDay / secondsPerDay) * 100);
       const eurosNeededPerDay = beersPerDay * beerEuroCost;
+      const totalCanValue = emptyCans * canValue;
 
       document.getElementById("beers").textContent = Math.floor(beers);
-      document.getElementById("euros").textContent = euros.toFixed(0);
+      document.getElementById("euros").textContent = euros.toFixed(2);
+      document.getElementById("emptyCans").textContent = emptyCans;
       document.getElementById("sips").textContent = sips;
       document.getElementById("beersPerSip").textContent = beersPerSip;
       document.getElementById("beerEuroCost").textContent = beerEuroCost;
@@ -260,37 +711,89 @@
 
       document.getElementById("lauris").textContent = helpers.lauri.count;
       document.getElementById("lauriCost").textContent = helpers.lauri.cost;
-
       document.getElementById("jarskis").textContent = helpers.jarski.count;
       document.getElementById("jarskiCost").textContent = helpers.jarski.cost;
 
       document.getElementById("beersPerDay").textContent = beersPerDay;
+      document.getElementById("drinksPerMinute").textContent = drinksPerMinute.toFixed(1);
       document.getElementById("eurosNeededPerDay").textContent = eurosNeededPerDay;
 
       document.getElementById("sipButton").disabled = !canAffordDrinks(beersPerSip);
       document.getElementById("lauriButton").disabled = beers < helpers.lauri.cost;
       document.getElementById("jarskiButton").disabled = beers < helpers.jarski.cost;
 
+      document.getElementById("puulantoriButton").disabled = returning || emptyCans <= 0;
+      document.getElementById("kilinakoneButton").disabled = returning || emptyCans <= 0;
+
+      document.getElementById("toimeentulotukiButton").disabled = kelaBenefits.toimeentulotuki.applied;
+      document.getElementById("yleistukiButton").disabled = kelaBenefits.yleistuki.applied;
+      document.getElementById("asumistukiButton").disabled = kelaBenefits.asumistuki.applied;
+
+      document.getElementById("toimeentulotukiStatus").textContent = getKelaStatus("toimeentulotuki");
+      document.getElementById("yleistukiStatus").textContent = getKelaStatus("yleistuki");
+      document.getElementById("asumistukiStatus").textContent = getKelaStatus("asumistuki");
+
+      document.getElementById("sideBeers").textContent = Math.floor(beers);
+      document.getElementById("sideEuros").textContent = euros.toFixed(2);
+      document.getElementById("sideEmptyCans").textContent = emptyCans;
+      document.getElementById("sideCanValue").textContent = totalCanValue.toFixed(2);
+      document.getElementById("sideDrinksPerDay").textContent = beersPerDay;
+      document.getElementById("sideDrinksPerMinute").textContent = drinksPerMinute.toFixed(1);
+      document.getElementById("sideDay").textContent = day;
+      document.getElementById("sideSips").textContent = sips;
+      document.getElementById("sideHelpers").textContent = getTotalHelpers();
+      document.getElementById("sideKelaApplications").textContent = countActiveKelaApplications();
+      document.getElementById("sideKelaProblems").textContent = countKelaProblems();
+
       const warning = document.getElementById("moneyWarning");
 
-      if (euros <= 0) {
+      if (euros < beerEuroCost) {
         warning.textContent = "Eurot loppu! Et voi juoda tai saada oluita apureilta.";
       } else if (euros < eurosNeededPerDay && beersPerDay > 0) {
         warning.textContent = "Varoitus: eurot eivät riitä koko päivän apurituotantoon.";
       } else {
         warning.textContent = "";
       }
+
+      const returnStatus = document.getElementById("returnStatus");
+      const returnProgressBar = document.getElementById("returnProgressBar");
+
+      if (returning) {
+        const place = returnType === "puulantori" ? "Puulantorille" : "Kilinäkoneeseen";
+        const donePercent = Math.floor(
+          ((returnSecondsTotal - returnSecondsLeft) / returnSecondsTotal) * 100
+        );
+
+        returnStatus.textContent =
+          `Palautetaan ${cansBeingReturned} tölkkiä ${place}. Aikaa jäljellä: ${returnSecondsLeft} s.`;
+
+        returnProgressBar.style.width = donePercent + "%";
+      } else {
+        returnStatus.textContent = "Et ole palauttamassa tölkkejä.";
+        returnProgressBar.style.width = "0%";
+      }
+
+      renderKelaProblem();
     }
 
     function saveGame() {
       const saveData = {
         beers,
         euros,
+        emptyCans,
         sips,
         beersPerSip,
         day,
         secondsIntoDay,
-        helpers
+        helpers,
+        kelaBenefits,
+        returning,
+        returnType,
+        returnSecondsTotal,
+        returnSecondsLeft,
+        cansBeingReturned,
+        activeKelaProblem,
+        activeCall
       };
 
       localStorage.setItem("villisikaSeppoSave", JSON.stringify(saveData));
@@ -305,18 +808,40 @@
 
         beers = saveData.beers ?? 0;
         euros = saveData.euros ?? 10;
+        emptyCans = saveData.emptyCans ?? 0;
         sips = saveData.sips ?? 0;
         beersPerSip = saveData.beersPerSip ?? 1;
         day = saveData.day ?? 1;
         secondsIntoDay = saveData.secondsIntoDay ?? 0;
 
+        returning = saveData.returning ?? false;
+        returnType = saveData.returnType ?? "";
+        returnSecondsTotal = saveData.returnSecondsTotal ?? 0;
+        returnSecondsLeft = saveData.returnSecondsLeft ?? 0;
+        cansBeingReturned = saveData.cansBeingReturned ?? 0;
+
+        activeKelaProblem = saveData.activeKelaProblem ?? null;
+        activeCall = saveData.activeCall ?? null;
+
         if (saveData.helpers) {
           helpers.lauri.count = saveData.helpers.lauri?.count ?? 0;
           helpers.lauri.cost = saveData.helpers.lauri?.cost ?? 15;
-
           helpers.jarski.count = saveData.helpers.jarski?.count ?? 0;
           helpers.jarski.cost = saveData.helpers.jarski?.cost ?? 100;
         }
+
+        if (saveData.kelaBenefits) {
+          for (const type in kelaBenefits) {
+            kelaBenefits[type].applied = saveData.kelaBenefits[type]?.applied ?? false;
+            kelaBenefits[type].payDay = saveData.kelaBenefits[type]?.payDay ?? null;
+            kelaBenefits[type].baseDays = saveData.kelaBenefits[type]?.baseDays ?? randomInt(25, 35);
+            kelaBenefits[type].problems = saveData.kelaBenefits[type]?.problems ?? [];
+          }
+        }
+      }
+
+      if (!activeKelaProblem) {
+        activeKelaProblem = findNextKelaProblem();
       }
 
       updateDisplay();
@@ -326,16 +851,32 @@
       if (confirm("Haluatko varmasti aloittaa alusta?")) {
         beers = 0;
         euros = 10;
+        emptyCans = 0;
         sips = 0;
         beersPerSip = 1;
         day = 1;
         secondsIntoDay = 0;
 
+        returning = false;
+        returnType = "";
+        returnSecondsTotal = 0;
+        returnSecondsLeft = 0;
+        cansBeingReturned = 0;
+
+        activeKelaProblem = null;
+        activeCall = null;
+
         helpers.lauri.count = 0;
         helpers.lauri.cost = 15;
-
         helpers.jarski.count = 0;
         helpers.jarski.cost = 100;
+
+        for (const type in kelaBenefits) {
+          kelaBenefits[type].applied = false;
+          kelaBenefits[type].payDay = null;
+          kelaBenefits[type].baseDays = randomInt(25, 35);
+          kelaBenefits[type].problems = [];
+        }
 
         localStorage.removeItem("villisikaSeppoSave");
         updateDisplay();
@@ -349,6 +890,8 @@
         newDay();
       }
 
+      updateReturnTimer();
+      updateKelaCallTimer();
       updateDisplay();
     }, 1000);
 
