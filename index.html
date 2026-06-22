@@ -16,11 +16,14 @@ button:disabled{color:#666;border-color:#333;cursor:not-allowed}
 .hidden{display:none}
 .progressOuter{width:100%;height:20px;border:1px solid #666;background:#222}
 .progressInner{height:100%;width:0%;background:#eee}
+.hangoverOuter{height:8px;background:#333;border:1px solid #555}
+.hangoverInner{height:100%;width:0%;background:lime}
 .warning{color:#ffaaaa}
 .statLine{border-bottom:1px dotted #333;padding:5px 0}
 .kelaProblem{border:1px dashed #888;padding:10px;margin:10px 0;background:#181818}
 .formButton{min-width:160px}
-.beerRow{display:grid;grid-template-columns:140px 1fr 260px;gap:10px;align-items:center;border-top:1px dotted #444;padding:8px 0}
+.beerRow,.marketRow{display:grid;grid-template-columns:140px 1fr 260px;gap:10px;align-items:center;border-top:1px dotted #444;padding:8px 0}
+.marketRow{grid-template-columns:190px 1fr 130px}
 .packButtons button{font-size:12px;padding:6px}
 canvas{background:#181818;border:1px solid #333}
 footer{text-align:center;color:#777;margin:30px 0}
@@ -36,13 +39,16 @@ footer{text-align:center;color:#777;margin:30px 0}
 <div class="sectionHeader" onclick="toggleSection('mainContent','mainToggle')"><h2>Peli</h2><button id="mainToggle">Piilota</button></div>
 <div class="sectionContent" id="mainContent">
 <p>Ryypyt: <span id="ryypyt">0</span></p>
-<p>Eurot: <span id="euros">10.00</span> €</p>
+<p>Eurot: <span id="euros">200.00</span> €</p>
 <p>Täydet tölkit: <span id="fullCans">0</span></p>
 <p>Tyhjät tölkit: <span id="emptyCans">0</span></p>
 <p>Juodut oluet: <span id="oluet">0</span></p>
 <p>Ryypyt per olut: <span id="ryypytPerOlut">1</span></p>
+<p>Krapula: <span id="hangoverStatus">0</span>/100</p>
+<div class="hangoverOuter"><div class="hangoverInner" id="hangoverBar"></div></div>
 <p id="drinkWarning" class="warning"></p>
 <button id="drinkButton" onclick="drinkBeer()">Juo olut</button>
+<button id="smokeButton" onclick="smokeCigarette()">Polta tupakka</button>
 </div>
 </div>
 
@@ -60,7 +66,7 @@ footer{text-align:center;color:#777;margin:30px 0}
 <div class="box">
 <div class="sectionHeader" onclick="toggleSection('beerShopContent','beerShopToggle')"><h2>Olutkauppa</h2><button id="beerShopToggle">Piilota</button></div>
 <div class="sectionContent" id="beerShopContent">
-<p>Hinnat muuttuvat 7 päivän välein. Isot pakkaukset ovat yleensä halvempia per tölkki, mutta eivät aina.</p>
+<p>Hinnat muuttuvat 7 päivän välein.</p>
 <h3>Keskihinta / tölkki</h3>
 <canvas id="averagePriceGraph" width="260" height="80"></canvas>
 <div id="beerShopList"></div>
@@ -68,14 +74,22 @@ footer{text-align:center;color:#777;margin:30px 0}
 </div>
 
 <div class="box">
+<div class="sectionHeader" onclick="toggleSection('marketContent','marketToggle')"><h2>Supermarket</h2><button id="marketToggle">Piilota</button></div>
+<div class="sectionContent" id="marketContent">
+<p>Osta ruokaa, limua ja tarvikkeita. Kaikki vähentävät krapulaa eli vievät sitä kohti nollaa.</p>
+<div id="marketList"></div>
+</div>
+</div>
+
+<div class="box">
 <div class="sectionHeader" onclick="toggleSection('helpersContent','helpersToggle')"><h2>Apurit</h2><button id="helpersToggle">Piilota</button></div>
 <div class="sectionContent" id="helpersContent">
 <button id="lauriButton" onclick="buyHelper('lauri')">Osta Lauri — Hinta: <span id="lauriCost">15</span> ryyppyä</button>
-<p>Lauri juo +3 täyttä tölkkiä per päivä ja muuttaa ne ryypyiksi.</p>
+<p>Lauri juo +3 täyttä tölkkiä per päivä.</p>
 <p>Laurit: <span id="lauris">0</span></p>
 <hr>
 <button id="jarskiButton" onclick="buyHelper('jarski')">Osta Jarski — Hinta: <span id="jarskiCost">100</span> ryyppyä</button>
-<p>Jarski juo +20 täyttä tölkkiä per päivä ja muuttaa ne ryypyiksi.</p>
+<p>Jarski juo +20 täyttä tölkkiä per päivä.</p>
 <p>Jarskit: <span id="jarskis">0</span></p>
 <hr>
 <p>Apurien tölkit per päivä: <span id="cansPerDay">0</span></p>
@@ -99,21 +113,13 @@ footer{text-align:center;color:#777;margin:30px 0}
 <div class="sectionHeader" onclick="toggleSection('kelaContent','kelaToggle')"><h2>Kela</h2><button id="kelaToggle">Piilota</button></div>
 <div class="sectionContent" id="kelaContent">
 <button id="toimeentulotukiButton" onclick="applyKela('toimeentulotuki')">Hae Toimeentulotuki</button>
-<p>56 €, käsittelyaika 25–35 päivää.</p>
-<p id="toimeentulotukiStatus"></p>
-<hr>
+<p>56 €, käsittelyaika 25–35 päivää.</p><p id="toimeentulotukiStatus"></p><hr>
 <button id="yleistukiButton" onclick="applyKela('yleistuki')">Hae Yleistuki</button>
-<p>595 €, käsittelyaika 25–35 päivää.</p>
-<p id="yleistukiStatus"></p>
-<hr>
+<p>595 €, käsittelyaika 25–35 päivää.</p><p id="yleistukiStatus"></p><hr>
 <button id="asumistukiButton" onclick="applyKela('asumistuki')">Hae Asumistuki</button>
-<p>262 €, käsittelyaika 25–35 päivää. Ongelmat ovat harvinaisempia.</p>
-<p id="asumistukiStatus"></p>
+<p>262 €, käsittelyaika 25–35 päivää. Ongelmat ovat harvinaisempia.</p><p id="asumistukiStatus"></p>
 <div id="kelaProblemBox" class="kelaProblem hidden">
-<h3>Kelan ongelma</h3>
-<p id="kelaProblemText"></p>
-<p id="kelaProblemHint"></p>
-<div id="kelaProblemActions"></div>
+<h3>Kelan ongelma</h3><p id="kelaProblemText"></p><p id="kelaProblemHint"></p><div id="kelaProblemActions"></div>
 </div>
 </div>
 </div>
@@ -132,7 +138,9 @@ footer{text-align:center;color:#777;margin:30px 0}
 <aside class="box">
 <h2>Pikatilastot</h2>
 <div class="statLine">Ryypyt: <span id="sideRyypyt">0</span></div>
-<div class="statLine">Eurot: <span id="sideEuros">10.00</span> €</div>
+<div class="statLine">Eurot: <span id="sideEuros">200.00</span> €</div>
+<div class="statLine">Krapula: <span id="sideHangover">0</span>/100</div>
+<div class="statLine">Tupakat: <span id="sideCigarettes">0</span></div>
 <div class="statLine">Täydet tölkit: <span id="sideFullCans">0</span></div>
 <div class="statLine">Tyhjät tölkit: <span id="sideEmptyCans">0</span></div>
 <div class="statLine">Tyhjien arvo: <span id="sideCanValue">0.00</span> €</div>
@@ -148,10 +156,11 @@ footer{text-align:center;color:#777;margin:30px 0}
 </aside>
 </div>
 
-<footer>Villisika-Sepon juomapeli — versio 0.1.1</footer>
+<footer>Villisika-Sepon juomapeli — versio 0.1.3</footer>
 
 <script>
-let ryypyt=0,euros=10,oluet=0,fullCans=0,emptyCans=0,ryypytPerOlut=1;
+let ryypyt=0,euros=200,oluet=0,fullCans=0,emptyCans=0,ryypytPerOlut=1;
+let hangover=0,cigarettes=0;
 const canValue=0.20;
 let day=1,secondsIntoDay=0;
 const secondsPerDay=15,priceChangeIntervalDays=7;
@@ -163,45 +172,39 @@ lauri:{count:0,cost:15,production:3,costMultiplier:1.5},
 jarski:{count:0,cost:100,production:20,costMultiplier:1.6}
 };
 
+const marketItems=[
+{name:"Banaani",price:0.30,effect:4,owned:0,type:"food"},
+{name:"Kivennäisvesi 0,5 l",price:1.25,effect:6,owned:0,type:"drink"},
+{name:"Coca-Cola 0,5 l",price:2.35,effect:5,owned:0,type:"drink"},
+{name:"Battery energiajuoma 0,33 l",price:2.99,effect:7,owned:0,type:"drink"},
+{name:"Mikropizza",price:2.89,effect:8,owned:0,type:"food"},
+{name:"Sipsipussi 175 g",price:2.49,effect:5,owned:0,type:"food"},
+{name:"Ruisleipä",price:1.79,effect:7,owned:0,type:"food"},
+{name:"Lenkkimakkara",price:3.29,effect:9,owned:0,type:"food"},
+{name:"Kahvijuoma",price:2.19,effect:6,owned:0,type:"drink"},
+{name:"Tupakka-aski",price:9.50,effect:2,owned:0,type:"cigarette"}
+];
+
 const beerBrands=[
-{name:"Karhu III",single:1.45},
-{name:"Karjala III",single:1.35},
-{name:"Koff",single:1.30},
-{name:"Lapin Kulta",single:1.55},
-{name:"Olvi III",single:1.25},
-{name:"Sandels",single:1.60},
-{name:"Lahden Erikois",single:1.70},
-{name:"Aura",single:1.40}
+{name:"Karhu III",single:1.45},{name:"Karjala III",single:1.35},{name:"Koff",single:1.30},
+{name:"Lapin Kulta",single:1.55},{name:"Olvi III",single:1.25},{name:"Sandels",single:1.60},
+{name:"Lahden Erikois",single:1.70},{name:"Aura",single:1.40}
 ];
 
 let beerPackages=[];
-
 function createBeerPackages(){
 beerPackages=[];
 beerBrands.forEach(brand=>{
 [1,6,12].forEach(cans=>{
 let discount=cans===1?1:cans===6?0.88:0.80;
 let basePrice=Number((brand.single*cans*discount).toFixed(2));
-beerPackages.push({
-name:brand.name,
-size:cans===1?"1 tölkki":cans+"-pack",
-cans,
-basePrice,
-currentPrice:basePrice,
-history:[basePrice]
-});
+beerPackages.push({name:brand.name,size:cans===1?"1 tölkki":cans+"-pack",cans,basePrice,currentPrice:basePrice,history:[basePrice]});
 });
 });
 }
-
 createBeerPackages();
 
-function getAveragePricePerCan(){
-let total=0;
-beerPackages.forEach(pkg=>total+=pkg.currentPrice/pkg.cans);
-return total/beerPackages.length;
-}
-
+function getAveragePricePerCan(){let total=0;beerPackages.forEach(p=>total+=p.currentPrice/p.cans);return total/beerPackages.length}
 let averagePriceHistory=[getAveragePricePerCan()];
 
 const kelaBenefits={
@@ -214,532 +217,177 @@ const formNames=["Lisäselvitys 17B","Liite K-404","Unohtunut kuitti","Vuokranan
 const problemTexts=["Hakemuksesta puuttuu outo liite, jota kukaan ei maininnut aiemmin.","Kela pyytää lisäselvitystä asiasta, joka oli jo hakemuksessa.","Järjestelmä haluaa sinun täyttävän muutaman satunnaisen lomakkeen.","Hakemus jäi käsittelyjonon sivuraiteelle.","Virkailija tarvitsee vielä yhden varmistuksen."];
 
 function toggleSection(contentId,buttonId){
-const content=document.getElementById(contentId),button=document.getElementById(buttonId);
-content.classList.toggle("hidden");
-button.textContent=content.classList.contains("hidden")?"Näytä":"Piilota";
+const c=document.getElementById(contentId),b=document.getElementById(buttonId);
+c.classList.toggle("hidden");b.textContent=c.classList.contains("hidden")?"Näytä":"Piilota";
 }
-
 function randomInt(min,max){return Math.floor(Math.random()*(max-min+1))+min}
 function randomFloat(min,max){return Math.random()*(max-min)+min}
+function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
+function changeHangover(amount){hangover=clamp(hangover+amount,0,100)}
 
-function getNextPriceChangeDay(){
-return Math.floor((day-1)/priceChangeIntervalDays)*priceChangeIntervalDays+priceChangeIntervalDays+1;
-}
-
-function getPackVolatility(cans){
-if(cans===1)return randomFloat(0.75,1.45);
-if(cans===6)return randomFloat(0.72,1.35);
-return randomFloat(0.70,1.30);
-}
-
+function getNextPriceChangeDay(){return Math.floor((day-1)/priceChangeIntervalDays)*priceChangeIntervalDays+priceChangeIntervalDays+1}
+function getPackVolatility(cans){if(cans===1)return randomFloat(0.75,1.45);if(cans===6)return randomFloat(0.72,1.35);return randomFloat(0.70,1.30)}
 function updateBeerPrices(){
-beerPackages.forEach(pkg=>{
-let multiplier=getPackVolatility(pkg.cans);
-let rareBadBulkDeal=Math.random()<0.12;
-if(rareBadBulkDeal&&pkg.cans>1)multiplier+=randomFloat(0.10,0.28);
-pkg.currentPrice=Math.max(0.50,Number((pkg.basePrice*multiplier).toFixed(2)));
-pkg.history.push(pkg.currentPrice);
+beerPackages.forEach(p=>{
+let m=getPackVolatility(p.cans);
+if(Math.random()<0.12&&p.cans>1)m+=randomFloat(0.10,0.28);
+p.currentPrice=Math.max(0.50,Number((p.basePrice*m).toFixed(2)));
+p.history.push(p.currentPrice);
 });
 averagePriceHistory.push(getAveragePricePerCan());
 }
 
-function buyBeerPackage(index){
-const pkg=beerPackages[index];
-if(euros<pkg.currentPrice)return;
-euros-=pkg.currentPrice;
-fullCans+=pkg.cans;
+function buyBeerPackage(i){const p=beerPackages[i];if(euros<p.currentPrice)return;euros-=p.currentPrice;fullCans+=p.cans;updateDisplay()}
+function drinkBeer(){if(fullCans<=0){updateDisplay();return}fullCans--;emptyCans++;oluet++;ryypyt+=ryypytPerOlut;changeHangover(10);updateDisplay()}
+function buyMarketItem(i){const item=marketItems[i];if(euros<item.price)return;euros-=item.price;item.owned++;if(item.type==="cigarette")cigarettes++;updateDisplay()}
+function useMarketItem(i){
+const item=marketItems[i];if(item.owned<=0)return;
+item.owned--;
+if(item.type==="cigarette")cigarettes=Math.max(0,cigarettes-1);
+changeHangover(-item.effect);
 updateDisplay();
 }
-
-function drinkBeer(){
-if(fullCans<=0){updateDisplay();return}
-fullCans--;
-emptyCans++;
-oluet++;
-ryypyt+=ryypytPerOlut;
-updateDisplay();
-}
+function smokeCigarette(){const i=marketItems.findIndex(x=>x.type==="cigarette");if(cigarettes<=0)return;useMarketItem(i)}
 
 function buyHelper(type){
 const h=helpers[type];
-if(ryypyt>=h.cost){
-ryypyt-=h.cost;
-h.count++;
-h.cost=Math.floor(h.cost*h.costMultiplier);
-updateDisplay();
+if(ryypyt>=h.cost){ryypyt-=h.cost;h.count++;h.cost=Math.floor(h.cost*h.costMultiplier);updateDisplay()}
 }
-}
-
-function getHelperDrinksPerDay(){
-let total=0;
-for(const type in helpers)total+=helpers[type].count*helpers[type].production;
-return total;
-}
-
+function getHelperDrinksPerDay(){let t=0;for(const type in helpers)t+=helpers[type].count*helpers[type].production;return t}
 function getRyypytPerDay(){return getHelperDrinksPerDay()*ryypytPerOlut}
 function getRyypytPerMinute(){return getRyypytPerDay()*(60/secondsPerDay)}
-function getTotalHelpers(){let total=0;for(const type in helpers)total+=helpers[type].count;return total}
-
-function getCheapestCanPrice(){
-let cheapest=Infinity;
-beerPackages.forEach(pkg=>{
-let perCan=pkg.currentPrice/pkg.cans;
-if(perCan<cheapest)cheapest=perCan;
-});
-return cheapest;
-}
+function getTotalHelpers(){let t=0;for(const type in helpers)t+=helpers[type].count;return t}
+function getCheapestCanPrice(){let c=Infinity;beerPackages.forEach(p=>{let pc=p.currentPrice/p.cans;if(pc<c)c=pc});return c}
 
 function newDay(){
-day++;
-secondsIntoDay=0;
-
-const helperDemand=getHelperDrinksPerDay();
-const beersDrunkByHelpers=Math.min(fullCans,helperDemand);
-fullCans-=beersDrunkByHelpers;
-emptyCans+=beersDrunkByHelpers;
-oluet+=beersDrunkByHelpers;
-ryypyt+=beersDrunkByHelpers*ryypytPerOlut;
-
+day++;secondsIntoDay=0;
+changeHangover(-3);
+const demand=getHelperDrinksPerDay();
+const drunk=Math.min(fullCans,demand);
+fullCans-=drunk;emptyCans+=drunk;oluet+=drunk;ryypyt+=drunk*ryypytPerOlut;
+changeHangover(drunk*4);
 if((day-1)%priceChangeIntervalDays===0)updateBeerPrices();
-
-maybeCreateKelaProblems();
-checkKelaPayments();
-updateDisplay();
+maybeCreateKelaProblems();checkKelaPayments();updateDisplay();
 }
 
-function applyKela(type){
-const b=kelaBenefits[type];
-if(b.applied)return;
-b.applied=true;
-b.problems=[];
-b.baseDays=randomInt(25,35);
-b.payDay=day+b.baseDays;
-maybeCreateProblemForBenefit(type,true);
-updateDisplay();
-}
-
+function applyKela(type){const b=kelaBenefits[type];if(b.applied)return;b.applied=true;b.problems=[];b.baseDays=randomInt(25,35);b.payDay=day+b.baseDays;maybeCreateProblemForBenefit(type,true);updateDisplay()}
 function getKelaTroubleMultiplier(type){return type==="asumistuki"?0.10:1}
-
 function maybeCreateKelaProblems(){
-for(const type in kelaBenefits){
-const b=kelaBenefits[type];
-if(!b.applied||b.problems.length>0)continue;
-const daysUntilPayment=b.payDay-day;
-const chance=0.12*getKelaTroubleMultiplier(type);
-if(daysUntilPayment>2&&Math.random()<chance)maybeCreateProblemForBenefit(type,false);
+for(const type in kelaBenefits){const b=kelaBenefits[type];if(!b.applied||b.problems.length>0)continue;
+if(b.payDay-day>2&&Math.random()<0.12*getKelaTroubleMultiplier(type))maybeCreateProblemForBenefit(type,false)}
 }
-}
-
 function maybeCreateProblemForBenefit(type,fromApplication){
-const b=kelaBenefits[type];
-const chance=(fromApplication?0.47:1)*getKelaTroubleMultiplier(type);
-if(Math.random()>chance)return;
+const b=kelaBenefits[type];if(Math.random()>(fromApplication?0.47:1)*getKelaTroubleMultiplier(type))return;
+const needsCall=Math.random()<0.45,forms=[];
+for(let i=0;i<randomInt(3,7);i++)forms.push({label:formNames[randomInt(0,formNames.length-1)],clicked:false});
+const p={id:Date.now()+Math.random(),text:problemTexts[randomInt(0,problemTexts.length-1)],forms,needsCall,callDone:!needsCall,callSecondsTotal:needsCall?randomInt(2,10):0,callSecondsLeft:0,callActive:false,solved:false};
+b.problems.push(p);if(!activeKelaProblem)activeKelaProblem={benefitType:type,problemId:p.id};
+}
+function getCurrentProblem(){if(!activeKelaProblem)return null;const b=kelaBenefits[activeKelaProblem.benefitType];return b.problems.find(p=>p.id===activeKelaProblem.problemId)||null}
+function clickKelaForm(i){const p=getCurrentProblem();if(!p||p.solved)return;p.forms[i].clicked=true;checkProblemSolved();updateDisplay()}
+function startKelaCall(){const p=getCurrentProblem();if(!p||p.callDone||p.callActive)return;p.callActive=true;p.callSecondsLeft=p.callSecondsTotal;activeCall=p.id;updateDisplay()}
+function updateKelaCallTimer(){const p=getCurrentProblem();if(!p||!p.callActive)return;p.callSecondsLeft--;if(p.callSecondsLeft<=0){p.callActive=false;p.callDone=true;activeCall=null;checkProblemSolved()}}
+function checkProblemSolved(){const p=getCurrentProblem();if(!p)return;if(p.forms.every(f=>f.clicked)&&p.callDone){const b=kelaBenefits[activeKelaProblem.benefitType];b.problems=b.problems.filter(x=>x.id!==p.id);activeKelaProblem=findNextKelaProblem()}}
+function findNextKelaProblem(){for(const type in kelaBenefits){const p=kelaBenefits[type].problems.find(x=>!x.solved);if(p)return{benefitType:type,problemId:p.id}}return null}
+function checkKelaPayments(){for(const type in kelaBenefits){const b=kelaBenefits[type];if(!b.applied||b.problems.length>0)continue;if(day>=b.payDay){euros+=b.amount;b.applied=false;b.payDay=null;b.problems=[];b.baseDays=randomInt(25,35)}}if(!activeKelaProblem)activeKelaProblem=findNextKelaProblem()}
+function getKelaStatus(type){const b=kelaBenefits[type];if(!b.applied)return`Ei hakemusta käsittelyssä. Seuraava perusaika: ${b.baseDays} päivää.`;if(b.problems.length>0)return`Hakemus jumissa. Ongelmat ratkaisematta: ${b.problems.length}. Maksupäivä olisi päivä ${b.payDay}, mutta maksu ei tule ennen selvityksiä.`;return`Hakemus käsittelyssä. Arvioitu maksupäivä: päivä ${b.payDay}. Päiviä jäljellä: ${Math.max(b.payDay-day,0)}.`}
 
-const needsCall=Math.random()<0.45;
-const forms=[];
-for(let i=0;i<randomInt(3,7);i++){
-forms.push({label:formNames[randomInt(0,formNames.length-1)],clicked:false});
-}
-
-const problem={
-id:Date.now()+Math.random(),
-text:problemTexts[randomInt(0,problemTexts.length-1)],
-forms,
-needsCall,
-callDone:!needsCall,
-callSecondsTotal:needsCall?randomInt(2,10):0,
-callSecondsLeft:0,
-callActive:false,
-solved:false
-};
-
-b.problems.push(problem);
-if(!activeKelaProblem)activeKelaProblem={benefitType:type,problemId:problem.id};
-}
-
-function getCurrentProblem(){
-if(!activeKelaProblem)return null;
-const b=kelaBenefits[activeKelaProblem.benefitType];
-return b.problems.find(p=>p.id===activeKelaProblem.problemId)||null;
-}
-
-function clickKelaForm(index){
-const p=getCurrentProblem();
-if(!p||p.solved)return;
-p.forms[index].clicked=true;
-checkProblemSolved();
-updateDisplay();
-}
-
-function startKelaCall(){
-const p=getCurrentProblem();
-if(!p||p.callDone||p.callActive)return;
-p.callActive=true;
-p.callSecondsLeft=p.callSecondsTotal;
-activeCall=p.id;
-updateDisplay();
-}
-
-function updateKelaCallTimer(){
-const p=getCurrentProblem();
-if(!p||!p.callActive)return;
-p.callSecondsLeft--;
-if(p.callSecondsLeft<=0){
-p.callActive=false;
-p.callDone=true;
-activeCall=null;
-checkProblemSolved();
-}
-}
-
-function checkProblemSolved(){
-const p=getCurrentProblem();
-if(!p)return;
-if(p.forms.every(f=>f.clicked)&&p.callDone){
-p.solved=true;
-const b=kelaBenefits[activeKelaProblem.benefitType];
-b.problems=b.problems.filter(x=>x.id!==p.id);
-activeKelaProblem=findNextKelaProblem();
-}
-}
-
-function findNextKelaProblem(){
-for(const type in kelaBenefits){
-const b=kelaBenefits[type];
-const p=b.problems.find(x=>!x.solved);
-if(p)return{benefitType:type,problemId:p.id};
-}
-return null;
-}
-
-function checkKelaPayments(){
-for(const type in kelaBenefits){
-const b=kelaBenefits[type];
-if(!b.applied||b.problems.length>0)continue;
-if(day>=b.payDay){
-euros+=b.amount;
-b.applied=false;
-b.payDay=null;
-b.problems=[];
-b.baseDays=randomInt(25,35);
-}
-}
-if(!activeKelaProblem)activeKelaProblem=findNextKelaProblem();
-}
-
-function getKelaStatus(type){
-const b=kelaBenefits[type];
-if(!b.applied)return`Ei hakemusta käsittelyssä. Seuraava perusaika: ${b.baseDays} päivää.`;
-const daysLeft=Math.max(b.payDay-day,0);
-if(b.problems.length>0)return`Hakemus jumissa. Ongelmat ratkaisematta: ${b.problems.length}. Maksupäivä olisi päivä ${b.payDay}, mutta maksu ei tule ennen selvityksiä.`;
-return`Hakemus käsittelyssä. Arvioitu maksupäivä: päivä ${b.payDay}. Päiviä jäljellä: ${daysLeft}.`;
-}
-
-function startReturn(type){
-if(returning||emptyCans<=0)return;
-returning=true;
-returnType=type;
-if(type==="puulantori"){cansBeingReturned=Math.min(5,emptyCans);returnSecondsTotal=5}
-if(type==="kilinakone"){cansBeingReturned=emptyCans;returnSecondsTotal=60}
-emptyCans-=cansBeingReturned;
-returnSecondsLeft=returnSecondsTotal;
-updateDisplay();
-}
-
-function finishReturn(){
-euros+=cansBeingReturned*canValue;
-returning=false;
-returnType="";
-returnSecondsTotal=0;
-returnSecondsLeft=0;
-cansBeingReturned=0;
-updateDisplay();
-}
-
-function updateReturnTimer(){
-if(!returning)return;
-returnSecondsLeft--;
-if(returnSecondsLeft<=0)finishReturn();
-}
-
+function startReturn(type){if(returning||emptyCans<=0)return;returning=true;returnType=type;if(type==="puulantori"){cansBeingReturned=Math.min(5,emptyCans);returnSecondsTotal=5}else{cansBeingReturned=emptyCans;returnSecondsTotal=60}emptyCans-=cansBeingReturned;returnSecondsLeft=returnSecondsTotal;updateDisplay()}
+function finishReturn(){euros+=cansBeingReturned*canValue;returning=false;returnType="";returnSecondsTotal=0;returnSecondsLeft=0;cansBeingReturned=0;updateDisplay()}
+function updateReturnTimer(){if(!returning)return;returnSecondsLeft--;if(returnSecondsLeft<=0)finishReturn()}
 function countActiveKelaApplications(){let c=0;for(const t in kelaBenefits)if(kelaBenefits[t].applied)c++;return c}
 function countKelaProblems(){let c=0;for(const t in kelaBenefits)c+=kelaBenefits[t].problems.length;return c}
 
-function drawGraph(canvasId,values){
-const canvas=document.getElementById(canvasId);
-if(!canvas||values.length===0)return;
-const ctx=canvas.getContext("2d"),w=canvas.width,h=canvas.height;
-ctx.clearRect(0,0,w,h);
-ctx.strokeStyle="#333";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,h-16);ctx.lineTo(w,h-16);ctx.stroke();
-
+function drawGraph(id,values){
+const canvas=document.getElementById(id);if(!canvas||!values.length)return;
+const ctx=canvas.getContext("2d"),w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);
+ctx.strokeStyle="#333";ctx.beginPath();ctx.moveTo(0,h-16);ctx.lineTo(w,h-16);ctx.stroke();
 const min=Math.min(...values),max=Math.max(...values),range=max-min||1;
 ctx.strokeStyle="#eee";ctx.lineWidth=2;ctx.beginPath();
-values.forEach((value,index)=>{
-const x=values.length===1?8:8+index*((w-16)/(values.length-1));
-const y=8+(1-((value-min)/range))*(h-30);
-if(index===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
-});
-ctx.stroke();
-ctx.fillStyle="#aaa";ctx.font="10px monospace";
-ctx.fillText(min.toFixed(2)+"€",4,h-3);
-ctx.fillText(max.toFixed(2)+"€",4,11);
+values.forEach((v,i)=>{const x=values.length===1?8:8+i*((w-16)/(values.length-1));const y=8+(1-((v-min)/range))*(h-30);if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});
+ctx.stroke();ctx.fillStyle="#aaa";ctx.font="10px monospace";ctx.fillText(min.toFixed(2)+"€",4,h-3);ctx.fillText(max.toFixed(2)+"€",4,11);
 }
 
 function renderBeerShop(){
-const list=document.getElementById("beerShopList");
-list.innerHTML="";
-
-beerBrands.forEach((brand,brandIndex)=>{
-const matching=beerPackages
-.map((pkg,index)=>({...pkg,index}))
-.filter(pkg=>pkg.name===brand.name);
-
-const div=document.createElement("div");
-div.className="beerRow";
-
+const list=document.getElementById("beerShopList");list.innerHTML="";
+beerBrands.forEach((brand,bi)=>{
+const matching=beerPackages.map((p,i)=>({...p,index:i})).filter(p=>p.name===brand.name);
 let buttons="";
-matching.forEach(pkg=>{
-buttons+=`<button onclick="buyBeerPackage(${pkg.index})" ${euros<pkg.currentPrice?"disabled":""}>
-${pkg.size}: ${pkg.currentPrice.toFixed(2)} €<br>${(pkg.currentPrice/pkg.cans).toFixed(2)} €/tlk
-</button>`;
-});
-
-const singlePkg=matching.find(p=>p.cans===1);
-const canvasId="beerGraph"+brandIndex;
-
-div.innerHTML=`
-<div><strong>${brand.name}</strong></div>
-<div class="packButtons">${buttons}</div>
-<div><canvas id="${canvasId}" width="250" height="60"></canvas></div>
-`;
-
+matching.forEach(p=>buttons+=`<button onclick="buyBeerPackage(${p.index})" ${euros<p.currentPrice?"disabled":""}>${p.size}: ${p.currentPrice.toFixed(2)} €<br>${(p.currentPrice/p.cans).toFixed(2)} €/tlk</button>`);
+const div=document.createElement("div");div.className="beerRow";div.innerHTML=`<div><strong>${brand.name}</strong></div><div class="packButtons">${buttons}</div><div><canvas id="beerGraph${bi}" width="250" height="60"></canvas></div>`;
 list.appendChild(div);
-
-const averageBrandHistory=[];
-for(let i=0;i<singlePkg.history.length;i++){
-let sum=0,count=0;
-matching.forEach(pkg=>{
-if(pkg.history[i]!==undefined){
-sum+=pkg.history[i]/pkg.cans;
-count++;
-}
+const hist=[];for(let i=0;i<matching[0].history.length;i++){let s=0,c=0;matching.forEach(p=>{if(p.history[i]!==undefined){s+=p.history[i]/p.cans;c++}});hist.push(s/c)}
+drawGraph("beerGraph"+bi,hist);
 });
-averageBrandHistory.push(sum/count);
-}
-
-drawGraph(canvasId,averageBrandHistory);
-});
-
 drawGraph("averagePriceGraph",averagePriceHistory);
 }
 
-function renderKelaProblem(){
-const box=document.getElementById("kelaProblemBox");
-const text=document.getElementById("kelaProblemText");
-const hint=document.getElementById("kelaProblemHint");
-const actions=document.getElementById("kelaProblemActions");
-const p=getCurrentProblem();
-
-if(!p){box.classList.add("hidden");actions.innerHTML="";return}
-
-const b=kelaBenefits[activeKelaProblem.benefitType];
-box.classList.remove("hidden");
-text.textContent=`${b.name}: ${p.text}`;
-
-const clickedForms=p.forms.filter(f=>f.clicked).length;
-hint.textContent=`Lomakkeet: ${clickedForms}/${p.forms.length}. Puhelu: ${p.callDone?"valmis":"kesken tai tekemättä"}.`;
-actions.innerHTML="";
-
-p.forms.forEach((form,index)=>{
-const btn=document.createElement("button");
-btn.className="formButton";
-btn.textContent=form.clicked?`✓ ${form.label}`:form.label;
-btn.disabled=form.clicked||p.callActive;
-btn.onclick=()=>clickKelaForm(index);
-actions.appendChild(btn);
+function renderMarket(){
+const list=document.getElementById("marketList");list.innerHTML="";
+marketItems.forEach((item,i)=>{
+const div=document.createElement("div");div.className="marketRow";
+div.innerHTML=`<div><strong>${item.name}</strong><br>${item.price.toFixed(2)} €</div><div>Omistat: ${item.owned}<br>Krapula -${item.effect}</div><div><button onclick="buyMarketItem(${i})" ${euros<item.price?"disabled":""}>Osta</button><button onclick="useMarketItem(${i})" ${item.owned<=0?"disabled":""}>Käytä</button></div>`;
+list.appendChild(div);
 });
-
-if(p.needsCall){
-const callButton=document.createElement("button");
-if(p.callDone){callButton.textContent="✓ Puhelu hoidettu";callButton.disabled=true}
-else if(p.callActive){callButton.textContent=`Puhelu käynnissä... ${p.callSecondsLeft} s`;callButton.disabled=true}
-else{callButton.textContent=`Soita Kelaan (${p.callSecondsTotal} s)`;callButton.onclick=startKelaCall}
-actions.appendChild(document.createElement("br"));
-actions.appendChild(callButton);
 }
+
+function renderKelaProblem(){
+const box=document.getElementById("kelaProblemBox"),text=document.getElementById("kelaProblemText"),hint=document.getElementById("kelaProblemHint"),actions=document.getElementById("kelaProblemActions");
+const p=getCurrentProblem();if(!p){box.classList.add("hidden");actions.innerHTML="";return}
+const b=kelaBenefits[activeKelaProblem.benefitType];box.classList.remove("hidden");text.textContent=`${b.name}: ${p.text}`;
+hint.textContent=`Lomakkeet: ${p.forms.filter(f=>f.clicked).length}/${p.forms.length}. Puhelu: ${p.callDone?"valmis":"kesken tai tekemättä"}.`;actions.innerHTML="";
+p.forms.forEach((f,i)=>{const btn=document.createElement("button");btn.className="formButton";btn.textContent=f.clicked?`✓ ${f.label}`:f.label;btn.disabled=f.clicked||p.callActive;btn.onclick=()=>clickKelaForm(i);actions.appendChild(btn)});
+if(p.needsCall){const btn=document.createElement("button");if(p.callDone){btn.textContent="✓ Puhelu hoidettu";btn.disabled=true}else if(p.callActive){btn.textContent=`Puhelu käynnissä... ${p.callSecondsLeft} s`;btn.disabled=true}else{btn.textContent=`Soita Kelaan (${p.callSecondsTotal} s)`;btn.onclick=startKelaCall}actions.appendChild(document.createElement("br"));actions.appendChild(btn)}
 }
 
 function updateDisplay(){
-const helperDrinksPerDay=getHelperDrinksPerDay();
-const ryypytPerDay=getRyypytPerDay();
-const ryypytPerMinute=getRyypytPerMinute();
-const progressPercent=Math.floor((secondsIntoDay/secondsPerDay)*100);
-const totalCanValue=emptyCans*canValue;
-
-document.getElementById("ryypyt").textContent=Math.floor(ryypyt);
-document.getElementById("euros").textContent=euros.toFixed(2);
-document.getElementById("oluet").textContent=oluet;
-document.getElementById("fullCans").textContent=fullCans;
-document.getElementById("emptyCans").textContent=emptyCans;
-document.getElementById("ryypytPerOlut").textContent=ryypytPerOlut;
-
-document.getElementById("day").textContent=day;
-document.getElementById("nextPriceChangeDay").textContent=getNextPriceChangeDay();
-document.getElementById("dayProgressText").textContent=progressPercent;
-document.getElementById("dayProgressBar").style.width=progressPercent+"%";
-
-document.getElementById("lauris").textContent=helpers.lauri.count;
-document.getElementById("lauriCost").textContent=helpers.lauri.cost;
-document.getElementById("jarskis").textContent=helpers.jarski.count;
-document.getElementById("jarskiCost").textContent=helpers.jarski.cost;
-
-document.getElementById("cansPerDay").textContent=helperDrinksPerDay;
-document.getElementById("ryypytPerDay").textContent=ryypytPerDay;
-document.getElementById("ryypytPerMinute").textContent=ryypytPerMinute.toFixed(1);
-
-document.getElementById("drinkButton").disabled=fullCans<=0;
-document.getElementById("lauriButton").disabled=ryypyt<helpers.lauri.cost;
-document.getElementById("jarskiButton").disabled=ryypyt<helpers.jarski.cost;
-
-document.getElementById("puulantoriButton").disabled=returning||emptyCans<=0;
-document.getElementById("kilinakoneButton").disabled=returning||emptyCans<=0;
-
-document.getElementById("toimeentulotukiButton").disabled=kelaBenefits.toimeentulotuki.applied;
-document.getElementById("yleistukiButton").disabled=kelaBenefits.yleistuki.applied;
-document.getElementById("asumistukiButton").disabled=kelaBenefits.asumistuki.applied;
-
-document.getElementById("toimeentulotukiStatus").textContent=getKelaStatus("toimeentulotuki");
-document.getElementById("yleistukiStatus").textContent=getKelaStatus("yleistuki");
-document.getElementById("asumistukiStatus").textContent=getKelaStatus("asumistuki");
-
-document.getElementById("sideRyypyt").textContent=Math.floor(ryypyt);
-document.getElementById("sideEuros").textContent=euros.toFixed(2);
-document.getElementById("sideFullCans").textContent=fullCans;
-document.getElementById("sideEmptyCans").textContent=emptyCans;
-document.getElementById("sideCanValue").textContent=totalCanValue.toFixed(2);
-document.getElementById("sideOluet").textContent=oluet;
-document.getElementById("sideCansPerDay").textContent=helperDrinksPerDay;
-document.getElementById("sideRyypytPerDay").textContent=ryypytPerDay;
-document.getElementById("sideRyypytPerMinute").textContent=ryypytPerMinute.toFixed(1);
-document.getElementById("sideCheapestBeer").textContent=getCheapestCanPrice().toFixed(2);
-document.getElementById("sideDay").textContent=day;
-document.getElementById("sideHelpers").textContent=getTotalHelpers();
-document.getElementById("sideKelaApplications").textContent=countActiveKelaApplications();
-document.getElementById("sideKelaProblems").textContent=countKelaProblems();
-
-const warning=document.getElementById("drinkWarning");
-if(fullCans<=0)warning.textContent="Ei täysiä tölkkejä. Osta olutta ennen kuin voit juoda.";
-else if(helperDrinksPerDay>fullCans)warning.textContent="Varoitus: apurit juovat enemmän kuin sinulla on täysiä tölkkejä.";
-else warning.textContent="";
-
-const returnStatus=document.getElementById("returnStatus");
-const returnProgressBar=document.getElementById("returnProgressBar");
-
-if(returning){
-const place=returnType==="puulantori"?"Puulantorille":"Kilinäkoneeseen";
-const donePercent=Math.floor(((returnSecondsTotal-returnSecondsLeft)/returnSecondsTotal)*100);
-returnStatus.textContent=`Palautetaan ${cansBeingReturned} tölkkiä ${place}. Aikaa jäljellä: ${returnSecondsLeft} s.`;
-returnProgressBar.style.width=donePercent+"%";
-}else{
-returnStatus.textContent="Et ole palauttamassa tölkkejä.";
-returnProgressBar.style.width="0%";
-}
-
-renderBeerShop();
-renderKelaProblem();
+const helperDrinksPerDay=getHelperDrinksPerDay(),rpd=getRyypytPerDay(),rpm=getRyypytPerMinute(),progress=Math.floor((secondsIntoDay/secondsPerDay)*100),emptyValue=emptyCans*canValue;
+document.getElementById("ryypyt").textContent=Math.floor(ryypyt);document.getElementById("euros").textContent=euros.toFixed(2);document.getElementById("oluet").textContent=oluet;document.getElementById("fullCans").textContent=fullCans;document.getElementById("emptyCans").textContent=emptyCans;document.getElementById("ryypytPerOlut").textContent=ryypytPerOlut;
+document.getElementById("hangoverStatus").textContent=Math.floor(hangover);document.getElementById("hangoverBar").style.width=hangover+"%";document.getElementById("hangoverBar").style.background=`rgb(${Math.floor(hangover*2.55)},${Math.floor(255-(hangover*2.55))},0)`;
+document.getElementById("day").textContent=day;document.getElementById("nextPriceChangeDay").textContent=getNextPriceChangeDay();document.getElementById("dayProgressText").textContent=progress;document.getElementById("dayProgressBar").style.width=progress+"%";
+document.getElementById("lauris").textContent=helpers.lauri.count;document.getElementById("lauriCost").textContent=helpers.lauri.cost;document.getElementById("jarskis").textContent=helpers.jarski.count;document.getElementById("jarskiCost").textContent=helpers.jarski.cost;
+document.getElementById("cansPerDay").textContent=helperDrinksPerDay;document.getElementById("ryypytPerDay").textContent=rpd;document.getElementById("ryypytPerMinute").textContent=rpm.toFixed(1);
+document.getElementById("drinkButton").disabled=fullCans<=0;document.getElementById("smokeButton").disabled=cigarettes<=0;document.getElementById("lauriButton").disabled=ryypyt<helpers.lauri.cost;document.getElementById("jarskiButton").disabled=ryypyt<helpers.jarski.cost;
+document.getElementById("puulantoriButton").disabled=returning||emptyCans<=0;document.getElementById("kilinakoneButton").disabled=returning||emptyCans<=0;
+document.getElementById("toimeentulotukiButton").disabled=kelaBenefits.toimeentulotuki.applied;document.getElementById("yleistukiButton").disabled=kelaBenefits.yleistuki.applied;document.getElementById("asumistukiButton").disabled=kelaBenefits.asumistuki.applied;
+document.getElementById("toimeentulotukiStatus").textContent=getKelaStatus("toimeentulotuki");document.getElementById("yleistukiStatus").textContent=getKelaStatus("yleistuki");document.getElementById("asumistukiStatus").textContent=getKelaStatus("asumistuki");
+document.getElementById("sideRyypyt").textContent=Math.floor(ryypyt);document.getElementById("sideEuros").textContent=euros.toFixed(2);document.getElementById("sideHangover").textContent=Math.floor(hangover);document.getElementById("sideCigarettes").textContent=cigarettes;document.getElementById("sideFullCans").textContent=fullCans;document.getElementById("sideEmptyCans").textContent=emptyCans;document.getElementById("sideCanValue").textContent=emptyValue.toFixed(2);document.getElementById("sideOluet").textContent=oluet;document.getElementById("sideCansPerDay").textContent=helperDrinksPerDay;document.getElementById("sideRyypytPerDay").textContent=rpd;document.getElementById("sideRyypytPerMinute").textContent=rpm.toFixed(1);document.getElementById("sideCheapestBeer").textContent=getCheapestCanPrice().toFixed(2);document.getElementById("sideDay").textContent=day;document.getElementById("sideHelpers").textContent=getTotalHelpers();document.getElementById("sideKelaApplications").textContent=countActiveKelaApplications();document.getElementById("sideKelaProblems").textContent=countKelaProblems();
+const warning=document.getElementById("drinkWarning");if(fullCans<=0)warning.textContent="Ei täysiä tölkkejä. Osta olutta ennen kuin voit juoda.";else if(helperDrinksPerDay>fullCans)warning.textContent="Varoitus: apurit juovat enemmän kuin sinulla on täysiä tölkkejä.";else warning.textContent="";
+const rs=document.getElementById("returnStatus"),rb=document.getElementById("returnProgressBar");if(returning){const place=returnType==="puulantori"?"Puulantorille":"Kilinäkoneeseen";const done=Math.floor(((returnSecondsTotal-returnSecondsLeft)/returnSecondsTotal)*100);rs.textContent=`Palautetaan ${cansBeingReturned} tölkkiä ${place}. Aikaa jäljellä: ${returnSecondsLeft} s.`;rb.style.width=done+"%"}else{rs.textContent="Et ole palauttamassa tölkkejä.";rb.style.width="0%"}
+renderBeerShop();renderMarket();renderKelaProblem();
 }
 
 function saveGame(){
-const saveData={ryypyt,euros,oluet,fullCans,emptyCans,ryypytPerOlut,day,secondsIntoDay,helpers,beerPackages,averagePriceHistory,kelaBenefits,returning,returnType,returnSecondsTotal,returnSecondsLeft,cansBeingReturned,activeKelaProblem,activeCall};
-localStorage.setItem("villisikaSeppoSave",JSON.stringify(saveData));
-alert("Peli tallennettu!");
+const saveData={ryypyt,euros,oluet,fullCans,emptyCans,ryypytPerOlut,hangover,cigarettes,marketItems,day,secondsIntoDay,helpers,beerPackages,averagePriceHistory,kelaBenefits,returning,returnType,returnSecondsTotal,returnSecondsLeft,cansBeingReturned,activeKelaProblem,activeCall};
+localStorage.setItem("villisikaSeppoSave",JSON.stringify(saveData));alert("Peli tallennettu!");
 }
 
 function loadGame(){
-const saved=localStorage.getItem("villisikaSeppoSave");
-if(saved){
-const s=JSON.parse(saved);
-ryypyt=s.ryypyt??0;
-euros=s.euros??10;
-oluet=s.oluet??0;
-fullCans=s.fullCans??0;
-emptyCans=s.emptyCans??0;
-ryypytPerOlut=s.ryypytPerOlut??1;
-day=s.day??1;
-secondsIntoDay=s.secondsIntoDay??0;
-returning=s.returning??false;
-returnType=s.returnType??"";
-returnSecondsTotal=s.returnSecondsTotal??0;
-returnSecondsLeft=s.returnSecondsLeft??0;
-cansBeingReturned=s.cansBeingReturned??0;
-activeKelaProblem=s.activeKelaProblem??null;
-activeCall=s.activeCall??null;
-
-if(s.helpers){
-helpers.lauri.count=s.helpers.lauri?.count??0;
-helpers.lauri.cost=s.helpers.lauri?.cost??15;
-helpers.jarski.count=s.helpers.jarski?.count??0;
-helpers.jarski.cost=s.helpers.jarski?.cost??100;
-}
-
-if(s.beerPackages){
-s.beerPackages.forEach((savedPkg,index)=>{
-if(beerPackages[index]){
-beerPackages[index].currentPrice=savedPkg.currentPrice??beerPackages[index].basePrice;
-beerPackages[index].history=savedPkg.history??[beerPackages[index].currentPrice];
-}
-});
-}
-
+const saved=localStorage.getItem("villisikaSeppoSave");if(saved){const s=JSON.parse(saved);
+ryypyt=s.ryypyt??0;euros=s.euros??200;oluet=s.oluet??0;fullCans=s.fullCans??0;emptyCans=s.emptyCans??0;ryypytPerOlut=s.ryypytPerOlut??1;hangover=s.hangover??0;cigarettes=s.cigarettes??0;day=s.day??1;secondsIntoDay=s.secondsIntoDay??0;
+returning=s.returning??false;returnType=s.returnType??"";returnSecondsTotal=s.returnSecondsTotal??0;returnSecondsLeft=s.returnSecondsLeft??0;cansBeingReturned=s.cansBeingReturned??0;activeKelaProblem=s.activeKelaProblem??null;activeCall=s.activeCall??null;
+if(s.marketItems)s.marketItems.forEach((x,i)=>{if(marketItems[i])marketItems[i].owned=x.owned??0});
+if(s.helpers){helpers.lauri.count=s.helpers.lauri?.count??0;helpers.lauri.cost=s.helpers.lauri?.cost??15;helpers.jarski.count=s.helpers.jarski?.count??0;helpers.jarski.cost=s.helpers.jarski?.cost??100}
+if(s.beerPackages)s.beerPackages.forEach((x,i)=>{if(beerPackages[i]){beerPackages[i].currentPrice=x.currentPrice??beerPackages[i].basePrice;beerPackages[i].history=x.history??[beerPackages[i].currentPrice]}});
 averagePriceHistory=s.averagePriceHistory??[getAveragePricePerCan()];
-
-if(s.kelaBenefits){
-for(const type in kelaBenefits){
-kelaBenefits[type].applied=s.kelaBenefits[type]?.applied??false;
-kelaBenefits[type].payDay=s.kelaBenefits[type]?.payDay??null;
-kelaBenefits[type].baseDays=s.kelaBenefits[type]?.baseDays??randomInt(25,35);
-kelaBenefits[type].problems=s.kelaBenefits[type]?.problems??[];
+if(s.kelaBenefits)for(const t in kelaBenefits){kelaBenefits[t].applied=s.kelaBenefits[t]?.applied??false;kelaBenefits[t].payDay=s.kelaBenefits[t]?.payDay??null;kelaBenefits[t].baseDays=s.kelaBenefits[t]?.baseDays??randomInt(25,35);kelaBenefits[t].problems=s.kelaBenefits[t]?.problems??[]}
 }
-}
-}
-if(!activeKelaProblem)activeKelaProblem=findNextKelaProblem();
-updateDisplay();
+if(!activeKelaProblem)activeKelaProblem=findNextKelaProblem();updateDisplay();
 }
 
 function resetGame(){
 if(confirm("Haluatko varmasti aloittaa alusta?")){
-ryypyt=0;euros=10;oluet=0;fullCans=0;emptyCans=0;ryypytPerOlut=1;
-day=1;secondsIntoDay=0;
-returning=false;returnType="";returnSecondsTotal=0;returnSecondsLeft=0;cansBeingReturned=0;
-activeKelaProblem=null;activeCall=null;
-helpers.lauri.count=0;helpers.lauri.cost=15;
-helpers.jarski.count=0;helpers.jarski.cost=100;
-
-createBeerPackages();
-averagePriceHistory=[getAveragePricePerCan()];
-
-for(const type in kelaBenefits){
-kelaBenefits[type].applied=false;
-kelaBenefits[type].payDay=null;
-kelaBenefits[type].baseDays=randomInt(25,35);
-kelaBenefits[type].problems=[];
-}
-
-localStorage.removeItem("villisikaSeppoSave");
-updateDisplay();
+ryypyt=0;euros=200;oluet=0;fullCans=0;emptyCans=0;ryypytPerOlut=1;hangover=0;cigarettes=0;day=1;secondsIntoDay=0;
+returning=false;returnType="";returnSecondsTotal=0;returnSecondsLeft=0;cansBeingReturned=0;activeKelaProblem=null;activeCall=null;
+helpers.lauri.count=0;helpers.lauri.cost=15;helpers.jarski.count=0;helpers.jarski.cost=100;
+marketItems.forEach(i=>i.owned=0);createBeerPackages();averagePriceHistory=[getAveragePricePerCan()];
+for(const t in kelaBenefits){kelaBenefits[t].applied=false;kelaBenefits[t].payDay=null;kelaBenefits[t].baseDays=randomInt(25,35);kelaBenefits[t].problems=[]}
+localStorage.removeItem("villisikaSeppoSave");updateDisplay();
 }
 }
 
-setInterval(()=>{
-secondsIntoDay++;
-if(secondsIntoDay>=secondsPerDay)newDay();
-updateReturnTimer();
-updateKelaCallTimer();
-updateDisplay();
-},1000);
-
-updateDisplay();
-loadGame();
+setInterval(()=>{secondsIntoDay++;if(secondsIntoDay>=secondsPerDay)newDay();updateReturnTimer();updateKelaCallTimer();updateDisplay()},1000);
+updateDisplay();loadGame();
 </script>
 </body>
 </html>
