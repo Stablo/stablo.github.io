@@ -1,10 +1,358 @@
 <!DOCTYPE html>
-<html>
+<html lang="fi">
 <head>
-<title>Testing stuff.</title>
+  <meta charset="UTF-8" />
+  <title>Villisika-Sepon juomapeli</title>
+  <style>
+    body {
+      font-family: monospace;
+      background: #111;
+      color: #eee;
+      max-width: 700px;
+      margin: 40px auto;
+      line-height: 1.5;
+    }
+
+    button {
+      font-family: monospace;
+      padding: 10px;
+      margin: 5px 0;
+      cursor: pointer;
+      background: #222;
+      color: #eee;
+      border: 1px solid #666;
+    }
+
+    button:hover { background: #333; }
+
+    button:disabled {
+      color: #666;
+      border-color: #333;
+      cursor: not-allowed;
+    }
+
+    .box {
+      border: 1px solid #555;
+      padding: 15px;
+      margin: 15px 0;
+    }
+
+    .sectionHeader {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .sectionHeader h2 {
+      margin: 0;
+    }
+
+    .sectionContent {
+      margin-top: 10px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .progressOuter {
+      width: 100%;
+      height: 20px;
+      border: 1px solid #666;
+      background: #222;
+    }
+
+    .progressInner {
+      height: 100%;
+      width: 0%;
+      background: #eee;
+    }
+
+    .warning {
+      color: #ffaaaa;
+    }
+  </style>
 </head>
 <body>
-    <h1>This is a heading.</h1>
-    <p>This is a paragraph.</p>
+  <h1>🍺 Villisika-Sepon juomapeli 🍺</h1>
+
+  <div class="box">
+    <div class="sectionHeader" onclick="toggleSection('mainContent', 'mainToggle')">
+      <h2>Peli</h2>
+      <button id="mainToggle">Piilota</button>
+    </div>
+
+    <div class="sectionContent" id="mainContent">
+      <p>Oluet: <span id="beers">0</span></p>
+      <p>Eurot: <span id="euros">10</span> €</p>
+      <p>Ryypyt: <span id="sips">0</span></p>
+      <p>Oluita per ryyppy: <span id="beersPerSip">1</span></p>
+      <p>Yksi olut maksaa: <span id="beerEuroCost">1</span> €</p>
+
+      <p id="moneyWarning" class="warning"></p>
+
+      <button id="sipButton" onclick="takeSip()">Ota ryyppy</button>
+    </div>
+  </div>
+
+  <div class="box">
+    <div class="sectionHeader" onclick="toggleSection('timeContent', 'timeToggle')">
+      <h2>Aika</h2>
+      <button id="timeToggle">Piilota</button>
+    </div>
+
+    <div class="sectionContent" id="timeContent">
+      <p>Päivä: <span id="day">1</span></p>
+      <p>Päivän eteneminen: <span id="dayProgressText">0</span>%</p>
+
+      <div class="progressOuter">
+        <div class="progressInner" id="dayProgressBar"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="box">
+    <div class="sectionHeader" onclick="toggleSection('helpersContent', 'helpersToggle')">
+      <h2>Apurit</h2>
+      <button id="helpersToggle">Piilota</button>
+    </div>
+
+    <div class="sectionContent" id="helpersContent">
+      <button id="lauriButton" onclick="buyHelper('lauri')">
+        Osta Lauri — Hinta: <span id="lauriCost">15</span> olutta
+      </button>
+      <p>Lauri lisää +3 olutta per päivä.</p>
+      <p>Laurit: <span id="lauris">0</span></p>
+
+      <hr>
+
+      <button id="jarskiButton" onclick="buyHelper('jarski')">
+        Osta Jarski — Hinta: <span id="jarskiCost">100</span> olutta
+      </button>
+      <p>Jarski lisää +20 olutta per päivä.</p>
+      <p>Jarskit: <span id="jarskis">0</span></p>
+
+      <hr>
+
+      <p>Oluita per päivä yhteensä: <span id="beersPerDay">0</span></p>
+      <p>Tarvittavat eurot per päivä: <span id="eurosNeededPerDay">0</span> €</p>
+    </div>
+  </div>
+
+  <div class="box">
+    <div class="sectionHeader" onclick="toggleSection('saveContent', 'saveToggle')">
+      <h2>Tallennus</h2>
+      <button id="saveToggle">Piilota</button>
+    </div>
+
+    <div class="sectionContent" id="saveContent">
+      <button onclick="saveGame()">Tallenna peli</button>
+      <button onclick="loadGame()">Lataa peli</button>
+      <button onclick="resetGame()">Nollaa peli</button>
+    </div>
+  </div>
+
+  <script>
+    let beers = 0;
+    let euros = 10;
+    let sips = 0;
+    let beersPerSip = 1;
+
+    const beerEuroCost = 1;
+
+    let day = 1;
+    let secondsIntoDay = 0;
+    const secondsPerDay = 30;
+
+    const helpers = {
+      lauri: {
+        count: 0,
+        cost: 15,
+        production: 3,
+        costMultiplier: 1.5
+      },
+      jarski: {
+        count: 0,
+        cost: 100,
+        production: 20,
+        costMultiplier: 1.6
+      }
+    };
+
+    function toggleSection(contentId, buttonId) {
+      const content = document.getElementById(contentId);
+      const button = document.getElementById(buttonId);
+
+      content.classList.toggle("hidden");
+      button.textContent = content.classList.contains("hidden")
+        ? "Näytä"
+        : "Piilota";
+    }
+
+    function canAffordDrinks(amount) {
+      return euros >= amount * beerEuroCost;
+    }
+
+    function takeSip() {
+      if (!canAffordDrinks(beersPerSip)) {
+        updateDisplay();
+        return;
+      }
+
+      euros -= beersPerSip * beerEuroCost;
+      beers += beersPerSip;
+      sips += 1;
+
+      updateDisplay();
+    }
+
+    function buyHelper(type) {
+      const helper = helpers[type];
+
+      if (beers >= helper.cost) {
+        beers -= helper.cost;
+        helper.count += 1;
+        helper.cost = Math.floor(helper.cost * helper.costMultiplier);
+        updateDisplay();
+      }
+    }
+
+    function getBeersPerDay() {
+      let total = 0;
+
+      for (const type in helpers) {
+        total += helpers[type].count * helpers[type].production;
+      }
+
+      return total;
+    }
+
+    function newDay() {
+      day += 1;
+      secondsIntoDay = 0;
+
+      const drinksFromHelpers = getBeersPerDay();
+      const affordableDrinks = Math.floor(euros / beerEuroCost);
+      const drinksReceived = Math.min(drinksFromHelpers, affordableDrinks);
+
+      beers += drinksReceived;
+      euros -= drinksReceived * beerEuroCost;
+
+      updateDisplay();
+    }
+
+    function updateDisplay() {
+      const beersPerDay = getBeersPerDay();
+      const progressPercent = Math.floor((secondsIntoDay / secondsPerDay) * 100);
+      const eurosNeededPerDay = beersPerDay * beerEuroCost;
+
+      document.getElementById("beers").textContent = Math.floor(beers);
+      document.getElementById("euros").textContent = euros.toFixed(0);
+      document.getElementById("sips").textContent = sips;
+      document.getElementById("beersPerSip").textContent = beersPerSip;
+      document.getElementById("beerEuroCost").textContent = beerEuroCost;
+
+      document.getElementById("day").textContent = day;
+      document.getElementById("dayProgressText").textContent = progressPercent;
+      document.getElementById("dayProgressBar").style.width = progressPercent + "%";
+
+      document.getElementById("lauris").textContent = helpers.lauri.count;
+      document.getElementById("lauriCost").textContent = helpers.lauri.cost;
+
+      document.getElementById("jarskis").textContent = helpers.jarski.count;
+      document.getElementById("jarskiCost").textContent = helpers.jarski.cost;
+
+      document.getElementById("beersPerDay").textContent = beersPerDay;
+      document.getElementById("eurosNeededPerDay").textContent = eurosNeededPerDay;
+
+      document.getElementById("sipButton").disabled = !canAffordDrinks(beersPerSip);
+      document.getElementById("lauriButton").disabled = beers < helpers.lauri.cost;
+      document.getElementById("jarskiButton").disabled = beers < helpers.jarski.cost;
+
+      const warning = document.getElementById("moneyWarning");
+
+      if (euros <= 0) {
+        warning.textContent = "Eurot loppu! Et voi juoda tai saada oluita apureilta.";
+      } else if (euros < eurosNeededPerDay && beersPerDay > 0) {
+        warning.textContent = "Varoitus: eurot eivät riitä koko päivän apurituotantoon.";
+      } else {
+        warning.textContent = "";
+      }
+    }
+
+    function saveGame() {
+      const saveData = {
+        beers,
+        euros,
+        sips,
+        beersPerSip,
+        day,
+        secondsIntoDay,
+        helpers
+      };
+
+      localStorage.setItem("villisikaSeppoSave", JSON.stringify(saveData));
+      alert("Peli tallennettu!");
+    }
+
+    function loadGame() {
+      const saved = localStorage.getItem("villisikaSeppoSave");
+
+      if (saved) {
+        const saveData = JSON.parse(saved);
+
+        beers = saveData.beers ?? 0;
+        euros = saveData.euros ?? 10;
+        sips = saveData.sips ?? 0;
+        beersPerSip = saveData.beersPerSip ?? 1;
+        day = saveData.day ?? 1;
+        secondsIntoDay = saveData.secondsIntoDay ?? 0;
+
+        if (saveData.helpers) {
+          helpers.lauri.count = saveData.helpers.lauri?.count ?? 0;
+          helpers.lauri.cost = saveData.helpers.lauri?.cost ?? 15;
+
+          helpers.jarski.count = saveData.helpers.jarski?.count ?? 0;
+          helpers.jarski.cost = saveData.helpers.jarski?.cost ?? 100;
+        }
+      }
+
+      updateDisplay();
+    }
+
+    function resetGame() {
+      if (confirm("Haluatko varmasti aloittaa alusta?")) {
+        beers = 0;
+        euros = 10;
+        sips = 0;
+        beersPerSip = 1;
+        day = 1;
+        secondsIntoDay = 0;
+
+        helpers.lauri.count = 0;
+        helpers.lauri.cost = 15;
+
+        helpers.jarski.count = 0;
+        helpers.jarski.cost = 100;
+
+        localStorage.removeItem("villisikaSeppoSave");
+        updateDisplay();
+      }
+    }
+
+    setInterval(() => {
+      secondsIntoDay += 1;
+
+      if (secondsIntoDay >= secondsPerDay) {
+        newDay();
+      }
+
+      updateDisplay();
+    }, 1000);
+
+    loadGame();
+  </script>
 </body>
 </html>
