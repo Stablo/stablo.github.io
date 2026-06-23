@@ -1,0 +1,10 @@
+body{font-family:monospace;background:#111;color:#eee;max-width:1150px;margin:40px auto;line-height:1.5}
+button{font-family:monospace;padding:8px;margin:3px;cursor:pointer;background:#222;color:#eee;border:1px solid #666}
+button:hover{background:#333}button:disabled{color:#666;border-color:#333;cursor:not-allowed}
+.layout{display:grid;grid-template-columns:1fr 310px;gap:20px}.box{border:1px solid #555;padding:15px;margin:15px 0}
+.sectionHeader{display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none}.sectionHeader h2{margin:0}.sectionContent{margin-top:10px}.hidden{display:none}
+.progressOuter{width:100%;height:20px;border:1px solid #666;background:#222}.progressInner{height:100%;width:0%;background:#eee}
+.hangoverOuter{height:8px;background:#333;border:1px solid #555}.hangoverInner{height:100%;width:0%;background:lime}
+.warning{color:#ffaaaa}.good{color:#aaffaa}.statLine{border-bottom:1px dotted #333;padding:5px 0}.kelaProblem{border:1px dashed #888;padding:10px;margin:10px 0;background:#181818}.formButton{min-width:160px}
+.beerRow,.marketRow{display:grid;grid-template-columns:140px 1fr 260px;gap:10px;align-items:center;border-top:1px dotted #444;padding:8px 0}.marketRow{grid-template-columns:190px 1fr 130px}.packButtons button{font-size:12px;padding:6px}canvas{background:#181818;border:1px solid #333}footer{text-align:center;color:#777;margin:30px 0}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:9999;display:flex;align-items:center;justify-content:center}.overlayBox{width:min(720px,92vw);border:2px solid #888;background:#111;color:#eee;padding:22px;box-shadow:0 0 30px #000;text-align:center}.bigSeq{font-size:38px;letter-spacing:12px;margin:24px 0;min-height:54px}.done{color:#777}.current{color:#aaffaa;text-decoration:underline}.pending{color:#eee}
