@@ -10,6 +10,8 @@
   <div class="appShell">
     <aside class="leftNav">
       <h2>🍺 Seppo</h2>
+      <button id="guideButton" class="guideButton" type="button">📖 Peliopas</button>
+      <div class="navDivider"></div>
       <button data-target="mainContent">Peli</button>
       <button data-target="stressContent">Stressi</button>
       <button data-target="timeContent">Aika</button>
@@ -25,11 +27,29 @@
 
     <div class="pageWrap">
       <h1>🍺 Villisika-Sepon juomapeli 🍺</h1>
-      <div class="layout">
-        <main id="gameMain"></main>
-        <aside id="statsPanel" class="box"></aside>
-      </div>
-      <footer>Villisika-Sepon juomapeli — versio 0.3.3-theme-stress-navorder</footer>
+
+      <nav class="topSiteNav" aria-label="Pelin pääsivut">
+        <button id="siteButtonGame" class="active" type="button" onclick="UI.showSite('game')">1. Peruspeli</button>
+        <button id="siteButtonUpgrades" type="button" onclick="UI.showSite('upgrades')">2. Pysyvät parannukset</button>
+        <button id="siteButtonGambling" type="button" onclick="UI.showSite('gambling')">3. Uhkapelit</button>
+      </nav>
+
+      <section id="site-game" class="sitePanel activeSite">
+        <div class="layout">
+          <main id="gameMain"></main>
+          <aside id="statsPanel" class="box"></aside>
+        </div>
+      </section>
+
+      <section id="site-upgrades" class="sitePanel hiddenSite">
+        <main id="upgradesMain" class="siteSingleColumn"></main>
+      </section>
+
+      <section id="site-gambling" class="sitePanel hiddenSite">
+        <main id="gamblingMain" class="siteSingleColumn"></main>
+      </section>
+
+      <footer>Villisika-Sepon juomapeli — versio 0.4.3-tuomas</footer>
     </div>
   </div>
 
@@ -45,6 +65,8 @@
   <script src="js/modules/returns.js"></script>
   <script src="js/modules/jobs.js"></script>
   <script src="js/modules/kela.js"></script>
+  <script src="js/modules/upgrades.js"></script>
+  <script src="js/modules/gambling.js"></script>
   <script src="js/modules/save.js"></script>
   <script src="js/app.js"></script>
 </body>
