@@ -108,6 +108,7 @@ const Stress = {
     else if (Game.state.euros < 30) gain += 2;
     if (Game.state.fullCans <= 0) gain += 2;
     if (typeof Kela !== 'undefined' && Kela.countProblems && Kela.countProblems() > 0) gain += 3;
+    if (typeof Upgrades !== 'undefined') gain = Math.max(0, gain - Upgrades.dailyStressReduction());
 
     if (gain > 0) Game.changeStress(gain);
     this.maybeDailyMeltdown();

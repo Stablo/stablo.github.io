@@ -86,7 +86,8 @@ const Returns = {
       bar.style.width = done + '%';
     } else if (this.puulantoriCooldown > 0) {
       status.textContent = `Puulantori lukittu hutiklikin takia. Aikaa jäljellä: ${this.puulantoriCooldown} s.`;
-      bar.style.width = ((20 - this.puulantoriCooldown) / 20) * 100 + '%';
+      const maxCooldown = typeof Upgrades !== 'undefined' ? Upgrades.puulantoriCooldownSeconds() : 20;
+      bar.style.width = ((maxCooldown - this.puulantoriCooldown) / maxCooldown) * 100 + '%';
     } else {
       status.textContent = 'Et ole palauttamassa tölkkejä.';
       bar.style.width = '0%';
@@ -113,8 +114,9 @@ const PuulantoriCanGame = {
     this.y = 40;
 
     const stressSpeed = typeof Stress !== 'undefined' ? Stress.minigameSpeedMultiplier() : 1;
-    this.vx = Game.randInt(7, 12) / 10 * stressSpeed;
-    this.vy = Game.randInt(6, 10) / 10 * stressSpeed;
+    const upgradeSpeed = typeof Upgrades !== 'undefined' ? Upgrades.puulantoriSpeedMultiplier() : 1;
+    this.vx = Game.randInt(7, 12) / 10 * stressSpeed * upgradeSpeed;
+    this.vy = Game.randInt(6, 10) / 10 * stressSpeed * upgradeSpeed;
     if (Math.random() < 0.5) this.vx *= -1;
     if (Math.random() < 0.5) this.vy *= -1;
 
@@ -143,7 +145,7 @@ const PuulantoriCanGame = {
         <div id="puulantoriPlayArea" style="position:relative;height:260px;border:1px solid #666;background:#181818;overflow:hidden;cursor:crosshair">
           <button id="puulantoriCan" style="position:absolute;width:58px;height:58px;font-size:34px;border-radius:50%;border:2px solid #ddd;background:#333;color:#eee;cursor:pointer;left:40px;top:40px">🥫</button>
         </div>
-        <p style="color:#aaa">Huti lukitsee Puulantorin 20 sekunniksi ja lisää stressiä.</p>
+        <p style="color:#aaa">Huti lukitsee Puulantorin hetkeksi ja lisää stressiä.</p>
       </div>
     `;
 
@@ -212,7 +214,8 @@ const PuulantoriCanGame = {
 
   randomizeMovementSlightly() {
     const stressSpeed = typeof Stress !== 'undefined' ? Stress.minigameSpeedMultiplier() : 1;
-    const boost = (1 + this.returnedCans * 0.04) * stressSpeed;
+    const upgradeSpeed = typeof Upgrades !== 'undefined' ? Upgrades.puulantoriSpeedMultiplier() : 1;
+    const boost = (1 + this.returnedCans * 0.04) * stressSpeed * upgradeSpeed;
 
     this.vx += Game.randInt(-2, 2) / 20;
     this.vy += Game.randInt(-2, 2) / 20;
@@ -223,9 +226,9 @@ const PuulantoriCanGame = {
   },
 
   missClick() {
-    Returns.puulantoriCooldown = 20;
+    Returns.puulantoriCooldown = typeof Upgrades !== 'undefined' ? Upgrades.puulantoriCooldownSeconds() : 20;
     if (typeof Stress !== 'undefined') Game.changeStress(6);
-    Game.state.eventLog = 'Puulantori: hutiklikki! Puulantori lukittui 20 sekunniksi. Stressi +6.';
+    Game.state.eventLog = `Puulantori: hutiklikki! Puulantori lukittui ${Returns.puulantoriCooldown} sekunniksi. Stressi +6.`;
     this.cleanup();
     Game.update();
   },

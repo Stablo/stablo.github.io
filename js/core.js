@@ -1,5 +1,5 @@
 const Game = {
-  version: "0.3.3-theme-stress-navorder",
+  version: "0.4.3-tuomas",
   modules: [],
   config: {
     canValue: 0.20,
@@ -13,6 +13,7 @@ const Game = {
     fullCans: 0,
     emptyCans: 0,
     ryypytPerOlut: 1,
+    manualDrinksForTiiviste: 0,
     hangover: 0,
     stress: 0,
     cigarettes: 0,

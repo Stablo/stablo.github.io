@@ -79,7 +79,9 @@ const Jobs = {
   },
 
   stressTimePenalty() {
-    return typeof Stress !== 'undefined' ? Stress.timePenalty() : 0;
+    const base = typeof Stress !== 'undefined' ? Stress.timePenalty() : 0;
+    const discount = typeof Upgrades !== 'undefined' ? Upgrades.jobStressTimeDiscount() : 0;
+    return Math.max(0, base - discount);
   },
 
   start(job) {

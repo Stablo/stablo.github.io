@@ -1,1 +1,73 @@
-const Player={init(){document.getElementById('gameMain').insertAdjacentHTML('beforeend',Game.section('Peli','mainContent',`<p>Ryypyt: <span id="ryypyt">0</span></p><p>Eurot: <span id="euros">200.00</span> €</p><p>Täydet tölkit: <span id="fullCans">0</span></p><p>Tyhjät tölkit: <span id="emptyCans">0</span></p><p>Juodut oluet: <span id="oluet">0</span></p><p>Ryypyt per olut: <span id="ryypytPerOlut">1</span></p><p>Krapula: <span id="hangoverStatus">0</span>/100</p><div class="hangoverOuter"><div class="hangoverInner" id="hangoverBar"></div></div><p id="drinkWarning" class="warning"></p><button id="drinkButton" onclick="Player.drinkBeer()">Juo olut</button><button id="smokeButton" onclick="Supermarket.smokeCigarette()">Polta tupakka</button>`))},drinkBeer(){const s=Game.state;if(s.fullCans<=0)return;s.fullCans--;s.emptyCans++;s.oluet++;s.ryypyt+=s.ryypytPerOlut;Game.changeHangover(-1);if(typeof Stress!=='undefined')Game.changeStress(-1);Game.update()},render(){const s=Game.state;['ryypyt','euros','fullCans','emptyCans','oluet','ryypytPerOlut'].forEach(id=>{const el=document.getElementById(id);if(el){let v=s[id];el.textContent=id==='euros'?v.toFixed(2):Math.floor(v)}});document.getElementById('hangoverStatus').textContent=Math.floor(s.hangover);const bar=document.getElementById('hangoverBar');bar.style.width=s.hangover+'%';bar.style.background=`rgb(${Math.floor(s.hangover*2.55)},${Math.floor(255-s.hangover*2.55)},0)`;document.getElementById('drinkButton').disabled=s.fullCans<=0;document.getElementById('smokeButton').disabled=s.cigarettes<=0;const helper=Helpers.getHelperDrinksPerDay();document.getElementById('drinkWarning').textContent=s.fullCans<=0?'Ei täysiä tölkkejä. Osta olutta ennen kuin voit juoda.':helper>s.fullCans?'Varoitus: apurit juovat enemmän kuin sinulla on täysiä tölkkejä.':''}};Game.register(Player);
+const Player = {
+  init() {
+    document.getElementById('gameMain').insertAdjacentHTML(
+      'beforeend',
+      Game.section(
+        'Peli',
+        'mainContent',
+        `
+          <p>Ryypyt: <span id="ryypyt">0</span></p>
+          <p>Eurot: <span id="euros">200.00</span> €</p>
+          <p>Täydet tölkit: <span id="fullCans">0</span></p>
+          <p>Tyhjät tölkit: <span id="emptyCans">0</span></p>
+          <p>Juodut oluet: <span id="oluet">0</span></p>
+          <p>Ryypyt per olut: <span id="ryypytPerOlut">1</span></p>
+          <p>Krapula: <span id="hangoverStatus">0</span>/100</p>
+          <div class="hangoverOuter"><div class="hangoverInner" id="hangoverBar"></div></div>
+          <p id="drinkWarning" class="warning"></p>
+          <button id="drinkButton" onclick="Player.drinkBeer()">Juo olut</button>
+          <button id="smokeButton" onclick="Supermarket.smokeCigarette()">Polta tupakka</button>
+        `
+      )
+    );
+  },
+
+  drinkBeer() {
+    const s = Game.state;
+    if (s.fullCans <= 0) return;
+
+    s.fullCans--;
+    s.emptyCans++;
+    s.oluet++;
+    s.ryypyt += s.ryypytPerOlut;
+
+    if (typeof Upgrades !== 'undefined' && typeof Upgrades.processManualDrink === 'function') {
+      Upgrades.processManualDrink();
+    }
+
+    Game.changeHangover(-1);
+    if (typeof Stress !== 'undefined') Game.changeStress(-1);
+    Game.update();
+  },
+
+  render() {
+    const s = Game.state;
+
+    ['ryypyt', 'euros', 'fullCans', 'emptyCans', 'oluet', 'ryypytPerOlut'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        const value = s[id];
+        el.textContent = id === 'euros' ? value.toFixed(2) : Math.floor(value);
+      }
+    });
+
+    document.getElementById('hangoverStatus').textContent = Math.floor(s.hangover);
+
+    const bar = document.getElementById('hangoverBar');
+    bar.style.width = s.hangover + '%';
+    bar.style.background = `rgb(${Math.floor(s.hangover * 2.55)},${Math.floor(255 - s.hangover * 2.55)},0)`;
+
+    document.getElementById('drinkButton').disabled = s.fullCans <= 0;
+    document.getElementById('smokeButton').disabled = s.cigarettes <= 0;
+
+    const helper = Helpers.getHelperDrinksPerDay();
+    document.getElementById('drinkWarning').textContent =
+      s.fullCans <= 0
+        ? 'Ei täysiä tölkkejä. Osta olutta ennen kuin voit juoda.'
+        : helper > s.fullCans
+          ? 'Varoitus: apurit juovat enemmän kuin sinulla on täysiä tölkkejä.'
+          : '';
+  }
+};
+
+Game.register(Player);
