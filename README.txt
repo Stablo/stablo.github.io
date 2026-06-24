@@ -1,8 +1,9 @@
-Villisika-Sepon juomapeli — versio 0.4.5-tilit
+Villisika-Sepon juomapeli — versio 0.4.6-tilikorjaus
 
 Avaa index.html selaimessa.
 
 Uutta tässä versiossa:
+- Tilinluonti ohjaa sähköpostivahvistuksen takaisin nykyiseen peliosoitteeseen.
 - Tiliosioon lisätty salasanan palautus sähköpostilinkin kautta.
 - Uusi apuri Tuomas: halpa mutta arvaamaton, juo päivittäin satunnaisen osuuden täysistä tölkeistäsi.
 - Tuomas antaa takaisin ryyppyinä joko 45 %, 75 % tai 100 % juomastaan määrästä.

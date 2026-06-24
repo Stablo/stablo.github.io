@@ -1,5 +1,5 @@
 const Game = {
-  version: "0.4.5-tilit",
+  version: "0.4.6-tilikorjaus",
   modules: [],
   config: {
     canValue: 0.20,

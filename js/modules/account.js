@@ -588,7 +588,19 @@ const Account = {
     this.message = 'Luodaan tiliä...';
     this.render();
 
-    const { data, error } = await this.client.auth.signUp(credentials);
+    const redirectTo = this.passwordRecoveryRedirectTo();
+    const signUpCredentials = redirectTo
+      ? { ...credentials, options: { emailRedirectTo: redirectTo } }
+      : credentials;
+
+    let data = null;
+    let error = null;
+
+    try {
+      ({ data, error } = await this.client.auth.signUp(signUpCredentials));
+    } catch (caught) {
+      error = caught;
+    }
 
     this.busy = false;
     if (error) {
