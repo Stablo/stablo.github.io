@@ -1,5 +1,5 @@
 const Game = {
-  version: "0.4.3-tuomas",
+  version: "0.4.4-romahdus",
   modules: [],
   config: {
     canValue: 0.20,
@@ -19,7 +19,10 @@ const Game = {
     cigarettes: 0,
     day: 1,
     dayProgressSeconds: 0,
-    eventLog: "Ei tapahtumia vielä."
+    eventLog: "Ei tapahtumia vielä.",
+    collapseCount: 0,
+    lastCollapseDay: null,
+    gameOver: false
   },
   register(module) {
     this.modules.push(module);
@@ -63,7 +66,14 @@ const Game = {
     setInterval(() => this.tick(), 1000);
   },
   tick() {
-    this.modules.forEach(module => module.tick && module.tick());
+    if (this.state.gameOver) {
+      this.update();
+      return;
+    }
+    for (const module of this.modules) {
+      if (module.tick) module.tick();
+      if (this.state.gameOver) break;
+    }
     this.update();
   },
   update() {

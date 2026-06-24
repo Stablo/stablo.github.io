@@ -80,6 +80,32 @@ const UI = {
           <li><strong>Stressi</strong> vaikeuttaa minipelejä ja voi aiheuttaa sekoilutapahtumia.</li>
         </ul>
 
+        <h3>Pysyvät parannukset</h3>
+        <ul>
+          <li>Parannukset ostetaan ryypyillä omalla ylävalikon sivullaan.</li>
+          <li>Ne ovat kalliita, mutta pysyviä. Osta niitä vasta kun perusarki ei kaadu joka päivä.</li>
+          <li>Teräsmaksan tiiviste vahvistuu hitaasti: se vaatii 50 itse juotua olutta ennen pysyvää +1 ryyppyä per olut.</li>
+          <li>Apuriparannukset voivat säästää tölkkejä tai kasvattaa tuotantoa, joten ne sopivat pitkään peliin.</li>
+        </ul>
+
+        <h3>Minipeleistä</h3>
+        <ul>
+          <li>Puulantorilla jokainen tölkkiosuma palauttaa yhden tölkin. Hutiklikki lukitsee Puulantorin hetkeksi.</li>
+          <li>Kilinäkoneessa valitse järkevin toiminta. Väärät päätökset nostavat stressiä ja voivat maksaa tölkkejä.</li>
+          <li>Pikkukeikoissa paina nuolinäppäimet oikeassa järjestyksessä. Stressi lisää askelia ja lyhentää aikaa.</li>
+          <li>Karaokessa nuolet liikkuvat kohti keskimerkkiä. Paina oikea nuoli merkin kohdalla; vaikeammat tasot maksavat enemmän mutta ovat usein huono idea spammata.</li>
+          <li>Kuppipelissä näet kupit sekoittuvan. Lopputulos voi olla 0x, 1x tai 2x panos.</li>
+          <li>Korttipakka on kaoottinen: hyvä merkki voi palkita, paha merkki voi viedä ryyppyjä tai pahentaa oloa.</li>
+        </ul>
+
+        <h3>Romahdus ja pelin loppu</h3>
+        <ul>
+          <li>Romahdus voi tapahtua, kun stressi on 100, krapula on 100, euroja on alle 1 € ja täysiä tölkkejä ei ole.</li>
+          <li>Ensimmäinen ja toinen romahdus eivät lopeta peliä, mutta vievät puolet euroista ja ryypyistä. Saat samalla pienen säälivaraston takaisin.</li>
+          <li>Kolmas romahdus on varsinainen game over: Seppo siirtyy taustatarinaksi.</li>
+          <li>Pidä aina ainakin yksi pelastusreitti hengissä: hieman euroja, muutama tölkki, matalampi stressi tai matalampi krapula.</li>
+        </ul>
+
         <h3>Hyödyllisiä vinkkejä</h3>
         <ul>
           <li>Älä polta kaikkia euroja kalliiseen olueen; hinnat vaihtuvat muutaman päivän välein.</li>
@@ -95,7 +121,7 @@ const UI = {
         <h3>Pieni selviytymissääntö</h3>
         <p>
           Jos kaikki menee pieleen: palauta tölkkejä, hae halpaa ruokaa, laske stressiä,
-          ja vasta sitten tee vaikeampia keikkoja tai Kela-selvityksiä.
+          hanki täysiä tölkkejä ja vasta sitten tee vaikeampia keikkoja tai uhkapelejä.
         </p>
       </div>
     `;
@@ -126,6 +152,7 @@ const UI = {
       <div class="statLine">Krapula: ${Math.floor(s.hangover)}/100</div>
       <div class="statLine">Stressi: ${Math.floor(stress)}/100</div>
       <div class="statLine">Tila: ${stressLabel}</div>
+      <div class="statLine">Romahdukset: ${s.collapseCount ?? 0}/3</div>
       <div class="statLine">Päivän hidastus: ${Game.getSlowdownPercent()}%</div>
       <div class="statLine">Tupakat: ${s.cigarettes}</div>
       <div class="statLine">Täydet tölkit: ${s.fullCans}</div>

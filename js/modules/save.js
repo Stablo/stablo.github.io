@@ -1,4 +1,6 @@
 const SaveLoad = {
+  storageKey: 'villisikaSeppoModularSave',
+
   init() {
     document.getElementById('gameMain').insertAdjacentHTML(
       'beforeend',
@@ -10,7 +12,7 @@ const SaveLoad = {
     );
   },
 
-  save() {
+  getSaveData() {
     const data = {
       state: Game.state,
       helpers: Helpers.helpers,
@@ -28,15 +30,12 @@ const SaveLoad = {
       gamblingLog: typeof Gambling !== 'undefined' ? Gambling.log : ''
     };
 
-    localStorage.setItem('villisikaSeppoModularSave', JSON.stringify(data));
-    alert('Peli tallennettu!');
+    return JSON.parse(JSON.stringify(data));
   },
 
-  load() {
-    const raw = localStorage.getItem('villisikaSeppoModularSave');
-    if (!raw) return;
+  restoreData(data) {
+    if (!data) return false;
 
-    const data = JSON.parse(raw);
     Object.assign(Game.state, data.state || {});
 
     if (data.helpers) {
@@ -68,11 +67,24 @@ const SaveLoad = {
     }
 
     Game.update();
+    return true;
+  },
+
+  save() {
+    localStorage.setItem(this.storageKey, JSON.stringify(this.getSaveData()));
+    alert('Peli tallennettu!');
+  },
+
+  load() {
+    const raw = localStorage.getItem(this.storageKey);
+    if (!raw) return;
+
+    this.restoreData(JSON.parse(raw));
   },
 
   reset() {
     if (!confirm('Haluatko varmasti aloittaa alusta?')) return;
-    localStorage.removeItem('villisikaSeppoModularSave');
+    localStorage.removeItem(this.storageKey);
     location.reload();
   },
 

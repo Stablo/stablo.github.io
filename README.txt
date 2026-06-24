@@ -1,19 +1,18 @@
-Villisika-Sepon juomapeli — themed modular version
+Villisika-Sepon juomapeli — versio 0.4.3-tuomas
 
-Open index.html in a browser.
+Avaa index.html selaimessa.
 
-Changes in this version:
-- Separate modular JS structure is preserved.
-- Left sidebar quick navigation includes every module, including Stressi.
-- Every game section now has a distinct color theme:
-  Peli, Aika, Olutkauppa, Supermarket, Tapahtumat, Apurit,
-  Palautukset, Pikkukeikat, Kela, Stressi, Tallennus, and Pikatilastot.
-- Kela uses Kela Design System-inspired blue/yellow colors:
-  kela-blue-80 #003580 and kela-yellow-30 #f8b516.
-- Stress module is loaded in index.html.
+Uutta tässä versiossa:
+- Uusi apuri Tuomas: halpa mutta arvaamaton, juo päivittäin satunnaisen osuuden täysistä tölkeistäsi.
+- Tuomas antaa takaisin ryyppyinä joko 45 %, 75 % tai 100 % juomastaan määrästä.
+- Uusi parannus "Nää on näitä" parantaa Tuomaksen palautukset tasolle 50 %, 80 % tai 105 %.
+- Uusi parannus "Ei kyllä mä lähen nyt kotia" tekee Jarskista tehokkaamman: hän juo vain 15 tölkkiä mutta tuottaa 20 tölkin ryyppytuloksen.
+- Uusi parannus "Mestari jätti pienet" nostaa Laurin päiväkulutuksen ja tuotannon 3 tölkistä 6 tölkkiin.
+- Kuppipeli, karaoke, korttipeli, stressi, opas ja teemavärit ovat mukana.
 
-No build tools are required.
-
-Korjattu versio: sisältää sekä teemoitetut moduulit että Stressi-moduulin ja sen vaikutukset.
-
-Update 0.3.3: Left sidebar buttons now follow the same order as the modules appear in the main game view.
+Tiedostorakenne:
+- index.html
+- css/styles.css
+- js/core.js
+- js/ui.js
+- js/modules/*.js
