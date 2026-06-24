@@ -49,11 +49,9 @@ const Account = {
 
           <hr>
 
-          <p>Pilvitallennus käyttää Supabasen <strong>game_saves</strong>-taulua.</p>
           <div class="accountActions">
             <button id="accountCloudSaveButton" onclick="Account.cloudSave()">Tallenna nykyinen peli pilveen</button>
             <button id="accountCloudLoadButton" onclick="Account.cloudLoad()">Lataa pilvestä</button>
-            <button id="accountUploadLocalButton" onclick="Account.uploadLocalSave()">Lähetä selaimen tallennus pilveen</button>
           </div>
 
           <hr>
@@ -361,7 +359,7 @@ const Account = {
 
   async saveDataToCloud(saveData, successMessage) {
     const user = await this.requireUser();
-    if (!user || this.busy) return;
+    if (!user || this.busy) return false;
 
     this.busy = true;
     this.message = 'Tallennetaan pilveen...';
@@ -392,36 +390,19 @@ const Account = {
         ? successMessage
         : `${successMessage} Lisää nimimerkki, jos haluat näkyä pistetaululla.`;
     this.render();
+    return !error;
   },
 
   async cloudSave() {
-    if (typeof SaveLoad === 'undefined') return;
-    await this.saveDataToCloud(SaveLoad.getSaveData(), 'Nykyinen peli tallennettu pilveen.');
-  },
-
-  async uploadLocalSave() {
-    if (typeof SaveLoad === 'undefined') return;
-
-    const raw = localStorage.getItem(SaveLoad.storageKey);
-    if (!raw) {
-      this.message = 'Selaimessa ei ole paikallista tallennusta lähetettäväksi.';
-      this.render();
-      return;
-    }
-
-    try {
-      await this.saveDataToCloud(JSON.parse(raw), 'Selaimen paikallinen tallennus lähetetty pilveen.');
-    } catch (_error) {
-      this.message = 'Paikallista tallennusta ei voitu lukea.';
-      this.render();
-    }
+    if (typeof SaveLoad === 'undefined') return false;
+    return this.saveDataToCloud(SaveLoad.getSaveData(), 'Nykyinen peli tallennettu pilveen.');
   },
 
   async cloudLoad() {
     const user = await this.requireUser();
-    if (!user || this.busy) return;
+    if (!user || this.busy) return false;
 
-    if (!confirm('Ladataanko pilvitallennus? Nykyinen tallentamaton tilanne korvautuu.')) return;
+    if (!confirm('Ladataanko pilvitallennus? Nykyinen tallentamaton tilanne korvautuu.')) return false;
 
     this.busy = true;
     this.message = 'Ladataan pilvestä...';
@@ -438,23 +419,19 @@ const Account = {
     if (error) {
       this.message = error.message;
       this.render();
-      return;
+      return false;
     }
 
     if (!data) {
       this.message = 'Pilvessä ei ole vielä tallennusta tälle tilille.';
       this.render();
-      return;
+      return false;
     }
 
     SaveLoad.restoreData(data.save_data);
-    localStorage.setItem(SaveLoad.storageKey, JSON.stringify(data.save_data));
     this.message = `Pilvitallennus ladattu. Päivitetty: ${new Date(data.updated_at).toLocaleString('fi-FI')}.`;
     this.render();
-  },
-
-  hasLocalSave() {
-    return typeof SaveLoad !== 'undefined' && !!localStorage.getItem(SaveLoad.storageKey);
+    return true;
   },
 
   render() {
@@ -483,7 +460,6 @@ const Account = {
     const saveNickname = document.getElementById('accountNicknameButton');
     const cloudSave = document.getElementById('accountCloudSaveButton');
     const cloudLoad = document.getElementById('accountCloudLoadButton');
-    const uploadLocal = document.getElementById('accountUploadLocalButton');
     const refreshScoreboard = document.getElementById('accountRefreshScoreboardButton');
     const scoreboardList = document.getElementById('scoreboardList');
 
@@ -501,7 +477,6 @@ const Account = {
     if (saveNickname) saveNickname.disabled = this.busy || !loggedIn;
     if (cloudSave) cloudSave.disabled = this.busy || !loggedIn;
     if (cloudLoad) cloudLoad.disabled = this.busy || !loggedIn;
-    if (uploadLocal) uploadLocal.disabled = this.busy || !loggedIn || !this.hasLocalSave();
     if (refreshScoreboard) refreshScoreboard.disabled = this.busy || !connected;
 
     if (scoreboardList) {

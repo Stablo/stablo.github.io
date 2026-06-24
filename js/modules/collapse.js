@@ -149,7 +149,7 @@ const Collapse = {
         <ul>${details.map(item => `<li>${item}</li>`).join('')}</ul>
         <div>
           ${final
-            ? `<button onclick="Collapse.hardReset()">Aloita alusta</button><button onclick="SaveLoad.load(); Collapse.closeOverlay();">Lataa tallennus</button>`
+            ? `<button onclick="Collapse.hardReset()">Aloita alusta</button><button onclick="SaveLoad.load().then(ok => { if (ok) Collapse.closeOverlay(); })">Lataa pilvitallennus</button>`
             : `<button onclick="Collapse.closeOverlay()">Jatka jotenkin</button>`
           }
         </div>
@@ -173,7 +173,6 @@ const Collapse = {
   },
 
   hardReset() {
-    localStorage.removeItem('villisikaSeppoModularSave');
     location.reload();
   },
 

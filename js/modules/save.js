@@ -1,13 +1,17 @@
 const SaveLoad = {
-  storageKey: 'villisikaSeppoModularSave',
-
   init() {
     document.getElementById('gameMain').insertAdjacentHTML(
       'beforeend',
       Game.section(
         'Tallennus',
         'saveContent',
-        `<button onclick="SaveLoad.save()">Tallenna peli</button><button onclick="SaveLoad.load()">Lataa peli</button><button onclick="SaveLoad.reset()">Nollaa peli</button>`
+        `
+          <p>Peli tallennetaan vain pilveen. Kirjaudu sisään Tili-osiossa ennen tallennusta tai latausta.</p>
+          <button onclick="SaveLoad.save()">Tallenna pilveen</button>
+          <button onclick="SaveLoad.load()">Lataa pilvestä</button>
+          <button onclick="SaveLoad.reset()">Aloita alusta tallentamatta</button>
+          <p id="saveStatus" class="smallHint">Ei tallennustoimintoa käynnissä.</p>
+        `
       )
     );
   },
@@ -70,21 +74,35 @@ const SaveLoad = {
     return true;
   },
 
-  save() {
-    localStorage.setItem(this.storageKey, JSON.stringify(this.getSaveData()));
-    alert('Peli tallennettu!');
+  report(message) {
+    const status = document.getElementById('saveStatus');
+    if (status) status.textContent = message;
   },
 
-  load() {
-    const raw = localStorage.getItem(this.storageKey);
-    if (!raw) return;
+  async save() {
+    if (typeof Account === 'undefined' || !Account.client) {
+      this.report('Pilvitallennus ei ole käytettävissä.');
+      return false;
+    }
 
-    this.restoreData(JSON.parse(raw));
+    const ok = await Account.cloudSave();
+    this.report(Account.message);
+    return ok;
+  },
+
+  async load() {
+    if (typeof Account === 'undefined' || !Account.client) {
+      this.report('Pilvitallennus ei ole käytettävissä.');
+      return false;
+    }
+
+    const ok = await Account.cloudLoad();
+    this.report(Account.message);
+    return ok;
   },
 
   reset() {
-    if (!confirm('Haluatko varmasti aloittaa alusta?')) return;
-    localStorage.removeItem(this.storageKey);
+    if (!confirm('Aloitetaanko nykyinen selainistunto alusta tallentamatta sitä pilveen?')) return;
     location.reload();
   },
 
