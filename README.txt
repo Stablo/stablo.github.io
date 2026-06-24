@@ -1,8 +1,9 @@
-Villisika-Sepon juomapeli — versio 0.4.3-tuomas
+Villisika-Sepon juomapeli — versio 0.4.5-tilit
 
 Avaa index.html selaimessa.
 
 Uutta tässä versiossa:
+- Tiliosioon lisätty salasanan palautus sähköpostilinkin kautta.
 - Uusi apuri Tuomas: halpa mutta arvaamaton, juo päivittäin satunnaisen osuuden täysistä tölkeistäsi.
 - Tuomas antaa takaisin ryyppyinä joko 45 %, 75 % tai 100 % juomastaan määrästä.
 - Uusi parannus "Nää on näitä" parantaa Tuomaksen palautukset tasolle 50 %, 80 % tai 105 %.

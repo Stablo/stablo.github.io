@@ -678,6 +678,13 @@ footer {
   color: #f4eee5;
 }
 
+.passwordResetBox label {
+  display: block;
+  margin: 10px 0;
+  color: color-mix(in srgb, var(--theme-1) 76%, #fff);
+  font-weight: bold;
+}
+
 @media (max-width: 900px) {
   .accountGrid { grid-template-columns: 1fr; }
   .scoreboardList span { min-width: 120px; }

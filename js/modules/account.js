@@ -4,6 +4,7 @@ const Account = {
   profile: null,
   scoreboard: [],
   busy: false,
+  passwordRecoveryActive: false,
   message: 'Yhdistetään Supabaseen...',
   slot: 'main',
   maxScore: 1000000000,
@@ -12,6 +13,8 @@ const Account = {
     register: 10,
     login: 3,
     logout: 3,
+    passwordReset: 20,
+    passwordUpdate: 5,
     nickname: 5,
     save: 5,
     load: 5,
@@ -42,6 +45,7 @@ const Account = {
           <div class="accountActions">
             <button id="accountRegisterButton" onclick="Account.register()">Luo tili</button>
             <button id="accountLoginButton" onclick="Account.login()">Kirjaudu sisään</button>
+            <button id="accountPasswordResetButton" onclick="Account.requestPasswordReset()">Unohtuiko salasana?</button>
             <button id="accountLogoutButton" onclick="Account.logout()">Kirjaudu ulos</button>
           </div>
 
@@ -210,6 +214,166 @@ const Account = {
     return '';
   },
 
+  passwordRecoveryRedirectTo() {
+    const href = window.location.href || '';
+    if (!/^https?:\/\//.test(href)) return null;
+    return window.location.origin + window.location.pathname + window.location.search;
+  },
+
+  async requestPasswordReset() {
+    if (!this.client || this.busy) return;
+    if (this.isCoolingDown('passwordReset', 'Salasanan palautus')) return;
+
+    const email = document.getElementById('accountEmail')?.value.trim();
+    const emailProblem = this.validateEmail(email);
+    if (emailProblem) {
+      this.setProblem('Sähköposti ei kelpaa', emailProblem);
+      return;
+    }
+
+    this.startCooldown('passwordReset');
+    this.busy = true;
+    this.message = 'Lähetetään salasanan palautuslinkkiä...';
+    this.render();
+
+    const redirectTo = this.passwordRecoveryRedirectTo();
+    const { error } = redirectTo
+      ? await this.client.auth.resetPasswordForEmail(email, { redirectTo })
+      : await this.client.auth.resetPasswordForEmail(email);
+
+    this.busy = false;
+
+    if (error) {
+      this.setProblem('Palautuslinkkiä ei lähetetty', this.explainError(error));
+      return;
+    }
+
+    this.message = 'Jos osoitteella on tili, salasanan palautuslinkki on lähetetty sähköpostiin.';
+    this.showNotice(
+      'Tarkista sähköposti',
+      'Jos osoitteella on tili, saat linkin jolla voit asettaa uuden salasanan.'
+    );
+    this.render();
+  },
+
+  showPasswordResetOverlay() {
+    const old = document.getElementById('passwordResetOverlay');
+    if (old) old.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'passwordResetOverlay';
+    overlay.className = 'overlay accountNoticeOverlay';
+
+    const box = document.createElement('div');
+    box.className = 'overlayBox accountNoticeBox passwordResetBox';
+    box.setAttribute('role', 'dialog');
+    box.setAttribute('aria-modal', 'true');
+
+    const heading = document.createElement('h2');
+    heading.textContent = 'Aseta uusi salasana';
+
+    const text = document.createElement('p');
+    text.textContent = 'Kirjoita uusi salasana tälle tilille.';
+
+    const passwordLabel = document.createElement('label');
+    passwordLabel.textContent = 'Uusi salasana';
+    const password = document.createElement('input');
+    password.id = 'recoveryPassword';
+    password.type = 'password';
+    password.minLength = 6;
+    password.maxLength = 128;
+    password.autocomplete = 'new-password';
+    passwordLabel.appendChild(password);
+
+    const confirmLabel = document.createElement('label');
+    confirmLabel.textContent = 'Uusi salasana uudelleen';
+    const confirm = document.createElement('input');
+    confirm.id = 'recoveryPasswordConfirm';
+    confirm.type = 'password';
+    confirm.minLength = 6;
+    confirm.maxLength = 128;
+    confirm.autocomplete = 'new-password';
+    confirmLabel.appendChild(confirm);
+
+    const actions = document.createElement('div');
+    actions.className = 'accountActions';
+
+    const save = document.createElement('button');
+    save.id = 'recoveryPasswordSaveButton';
+    save.type = 'button';
+    save.textContent = 'Tallenna uusi salasana';
+    save.onclick = () => this.updateRecoveredPassword();
+
+    const cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.textContent = 'Sulje';
+    cancel.onclick = () => this.closePasswordResetOverlay();
+
+    actions.appendChild(save);
+    actions.appendChild(cancel);
+
+    box.appendChild(heading);
+    box.appendChild(text);
+    box.appendChild(passwordLabel);
+    box.appendChild(confirmLabel);
+    box.appendChild(actions);
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+
+    [password, confirm].forEach(input => {
+      input.addEventListener('keydown', event => {
+        if (event.key === 'Enter') this.updateRecoveredPassword();
+      });
+    });
+
+    password.focus();
+  },
+
+  closePasswordResetOverlay() {
+    const overlay = document.getElementById('passwordResetOverlay');
+    if (overlay) overlay.remove();
+  },
+
+  async updateRecoveredPassword() {
+    if (!this.client || this.busy) return;
+    if (this.isCoolingDown('passwordUpdate', 'Salasanan päivitys')) return;
+
+    const password = document.getElementById('recoveryPassword')?.value || '';
+    const confirm = document.getElementById('recoveryPasswordConfirm')?.value || '';
+
+    const passwordProblem = this.validatePassword(password);
+    if (passwordProblem) {
+      this.setProblem('Salasana ei kelpaa', passwordProblem);
+      return;
+    }
+
+    if (password !== confirm) {
+      this.setProblem('Salasanat eivät täsmää', 'Kirjoita sama uusi salasana molempiin kenttiin.');
+      return;
+    }
+
+    this.startCooldown('passwordUpdate');
+    this.busy = true;
+    this.message = 'Päivitetään salasanaa...';
+    this.render();
+
+    const { error } = await this.client.auth.updateUser({ password });
+
+    this.busy = false;
+
+    if (error) {
+      this.setProblem('Salasanaa ei päivitetty', this.explainError(error));
+      return;
+    }
+
+    this.passwordRecoveryActive = false;
+    this.closePasswordResetOverlay();
+    await this.refreshUser();
+    this.message = 'Salasana päivitetty. Olet kirjautuneena sisään.';
+    this.showNotice('Salasana päivitetty', 'Uusi salasana on nyt käytössä.');
+    this.render();
+  },
+
   connect() {
     if (!this.isConfigured()) {
       this.message = 'Supabase-asetukset puuttuvat. Pilvitallennus ei ole käytössä.';
@@ -233,10 +397,16 @@ const Account = {
       }
     );
 
-    this.client.auth.onAuthStateChange((_event, session) => {
+    this.client.auth.onAuthStateChange((event, session) => {
       this.user = session?.user ?? null;
       if (!this.user) this.profile = null;
       if (this.user) this.loadProfile();
+      if (event === 'PASSWORD_RECOVERY') {
+        this.passwordRecoveryActive = true;
+        this.message = 'Salasanan palautuslinkki hyväksytty. Aseta uusi salasana.';
+        setTimeout(() => this.showPasswordResetOverlay(), 0);
+      }
+      if (event === 'SIGNED_OUT') this.passwordRecoveryActive = false;
       this.loadScoreboard();
       this.render();
     });
@@ -591,6 +761,7 @@ const Account = {
     const registerCooling = this.cooldownLeft('register') > 0;
     const loginCooling = this.cooldownLeft('login') > 0;
     const logoutCooling = this.cooldownLeft('logout') > 0;
+    const passwordResetCooling = this.cooldownLeft('passwordReset') > 0;
     const nicknameCooling = this.cooldownLeft('nickname') > 0;
     const saveCooling = this.cooldownLeft('save') > 0;
     const loadCooling = this.cooldownLeft('load') > 0;
@@ -609,6 +780,7 @@ const Account = {
     const nicknameStatus = document.getElementById('nicknameStatus');
     const register = document.getElementById('accountRegisterButton');
     const login = document.getElementById('accountLoginButton');
+    const passwordReset = document.getElementById('accountPasswordResetButton');
     const logout = document.getElementById('accountLogoutButton');
     const saveNickname = document.getElementById('accountNicknameButton');
     const cloudSave = document.getElementById('accountCloudSaveButton');
@@ -627,6 +799,7 @@ const Account = {
     }
     if (register) register.disabled = this.busy || !configured || !connected || loggedIn || registerCooling;
     if (login) login.disabled = this.busy || !configured || !connected || loggedIn || loginCooling;
+    if (passwordReset) passwordReset.disabled = this.busy || !configured || !connected || loggedIn || passwordResetCooling;
     if (logout) logout.disabled = this.busy || !connected || !loggedIn || logoutCooling;
     if (saveNickname) saveNickname.disabled = this.busy || !loggedIn || nicknameCooling;
     if (cloudSave) cloudSave.disabled = this.busy || !loggedIn || saveCooling;
