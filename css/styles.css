@@ -629,6 +629,41 @@ footer {
   margin: 10px 0;
 }
 
+.nicknameBox {
+  align-self: end;
+}
+
+.nicknameBox p {
+  margin: 0 0 6px;
+  color: #cdbdca;
+}
+
+.scoreboardList {
+  max-width: 520px;
+  margin: 10px 0;
+  padding-left: 30px;
+}
+
+.scoreboardList li {
+  padding: 6px 0;
+  border-bottom: 1px dotted color-mix(in srgb, var(--theme-1) 35%, #333);
+}
+
+.scoreboardList li::marker {
+  color: var(--theme-1);
+  font-weight: bold;
+}
+
+.scoreboardList span {
+  display: inline-block;
+  min-width: 180px;
+}
+
+.scoreboardList strong {
+  color: color-mix(in srgb, var(--theme-1) 82%, #fff);
+}
+
 @media (max-width: 900px) {
   .accountGrid { grid-template-columns: 1fr; }
+  .scoreboardList span { min-width: 120px; }
 }

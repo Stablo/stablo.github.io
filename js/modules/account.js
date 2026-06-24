@@ -1,6 +1,8 @@
 const Account = {
   client: null,
   user: null,
+  profile: null,
+  scoreboard: [],
   busy: false,
   message: 'Yhdistetään Supabaseen...',
   slot: 'main',
@@ -34,12 +36,32 @@ const Account = {
 
           <hr>
 
+          <div class="accountGrid">
+            <label>
+              Nimimerkki
+              <input id="accountNickname" type="text" maxlength="24" autocomplete="nickname" placeholder="Seppo">
+            </label>
+            <div class="nicknameBox">
+              <p id="nicknameStatus">Valitse nimimerkki, jotta näyt pistetaululla.</p>
+              <button id="accountNicknameButton" onclick="Account.saveNickname()">Tallenna nimimerkki</button>
+            </div>
+          </div>
+
+          <hr>
+
           <p>Pilvitallennus käyttää Supabasen <strong>game_saves</strong>-taulua.</p>
           <div class="accountActions">
             <button id="accountCloudSaveButton" onclick="Account.cloudSave()">Tallenna nykyinen peli pilveen</button>
             <button id="accountCloudLoadButton" onclick="Account.cloudLoad()">Lataa pilvestä</button>
             <button id="accountUploadLocalButton" onclick="Account.uploadLocalSave()">Lähetä selaimen tallennus pilveen</button>
           </div>
+
+          <hr>
+
+          <h3>Pistetaulu</h3>
+          <p class="smallHint">Pistetaulu näyttää tilien viimeisimmän pilvitallennetun ryyppymäärän.</p>
+          <ol id="scoreboardList" class="scoreboardList"></ol>
+          <button id="accountRefreshScoreboardButton" onclick="Account.loadScoreboard()">Päivitä pistetaulu</button>
         `
       )
     );
@@ -86,10 +108,14 @@ const Account = {
 
     this.client.auth.onAuthStateChange((_event, session) => {
       this.user = session?.user ?? null;
+      if (!this.user) this.profile = null;
+      if (this.user) this.loadProfile();
+      this.loadScoreboard();
       this.render();
     });
 
     this.refreshUser();
+    this.loadScoreboard();
   },
 
   async refreshUser() {
@@ -103,9 +129,128 @@ const Account = {
     }
 
     this.user = data.session?.user ?? null;
+    if (this.user) await this.loadProfile();
+    else this.profile = null;
+    await this.loadScoreboard();
     this.message = this.user
       ? 'Kirjautuminen voimassa. Voit käyttää pilvitallennusta.'
       : 'Voit luoda tilin tai kirjautua sisään.';
+    this.render();
+  },
+
+  cleanNickname(value) {
+    return (value || '').trim().replace(/\s+/g, ' ');
+  },
+
+  currentRyypyt() {
+    return Math.max(0, Math.floor(Game.state.ryypyt || 0));
+  },
+
+  setNicknameInput(value) {
+    const input = document.getElementById('accountNickname');
+    if (input) input.value = value || '';
+  },
+
+  async loadProfile() {
+    if (!this.client || !this.user) return;
+
+    const { data, error } = await this.client
+      .from('profiles')
+      .select('nickname, ryypyt, updated_at')
+      .eq('user_id', this.user.id)
+      .maybeSingle();
+
+    if (error) {
+      this.message = error.message;
+      this.render();
+      return;
+    }
+
+    this.profile = data || null;
+    if (this.profile) this.setNicknameInput(this.profile.nickname);
+    this.render();
+  },
+
+  async saveNickname() {
+    const user = await this.requireUser();
+    if (!user || this.busy) return;
+
+    const nickname = this.cleanNickname(document.getElementById('accountNickname')?.value);
+    if (nickname.length < 2 || nickname.length > 24) {
+      this.message = 'Nimimerkin pitää olla 2-24 merkkiä.';
+      this.render();
+      return;
+    }
+
+    this.busy = true;
+    this.message = 'Tallennetaan nimimerkkiä...';
+    this.render();
+
+    const { data, error } = await this.client
+      .from('profiles')
+      .upsert(
+        {
+          user_id: user.id,
+          nickname,
+          ryypyt: this.currentRyypyt(),
+          updated_at: new Date().toISOString()
+        },
+        { onConflict: 'user_id' }
+      )
+      .select('nickname, ryypyt, updated_at')
+      .single();
+
+    this.busy = false;
+
+    if (error) {
+      this.message = error.code === '23505'
+        ? 'Nimimerkki on jo käytössä. Valitse toinen.'
+        : error.message;
+      this.render();
+      return;
+    }
+
+    this.profile = data;
+    this.setNicknameInput(data.nickname);
+    this.message = 'Nimimerkki tallennettu.';
+    await this.loadScoreboard();
+    this.render();
+  },
+
+  async updateScoreboardScore() {
+    if (!this.client || !this.user || !this.profile) return;
+
+    const { data, error } = await this.client
+      .from('profiles')
+      .update({
+        ryypyt: this.currentRyypyt(),
+        updated_at: new Date().toISOString()
+      })
+      .eq('user_id', this.user.id)
+      .select('nickname, ryypyt, updated_at')
+      .single();
+
+    if (!error && data) this.profile = data;
+  },
+
+  async loadScoreboard() {
+    if (!this.client) return;
+
+    const { data, error } = await this.client
+      .from('profiles')
+      .select('nickname, ryypyt, updated_at')
+      .order('ryypyt', { ascending: false })
+      .order('updated_at', { ascending: true })
+      .limit(10);
+
+    if (error) {
+      this.scoreboard = [];
+      this.message = error.message;
+      this.render();
+      return;
+    }
+
+    this.scoreboard = data || [];
     this.render();
   },
 
@@ -190,7 +335,9 @@ const Account = {
     }
 
     this.user = null;
+    this.profile = null;
     this.message = 'Kirjauduit ulos.';
+    await this.loadScoreboard();
     this.render();
   },
 
@@ -233,8 +380,17 @@ const Account = {
         { onConflict: 'user_id,slot' }
       );
 
+    if (!error) {
+      await this.updateScoreboardScore();
+      await this.loadScoreboard();
+    }
+
     this.busy = false;
-    this.message = error ? error.message : successMessage;
+    this.message = error
+      ? error.message
+      : this.profile
+        ? successMessage
+        : `${successMessage} Lisää nimimerkki, jos haluat näkyä pistetaululla.`;
     this.render();
   },
 
@@ -311,27 +467,55 @@ const Account = {
     const loggedIn = !!this.user;
 
     status.textContent = loggedIn
-      ? `Kirjautuneena: ${this.user.email || this.user.id}`
+      ? this.profile
+        ? `Kirjautuneena nimimerkillä: ${this.profile.nickname}`
+        : 'Kirjautuneena. Valitse nimimerkki pistetaulua varten.'
       : 'Et ole kirjautunut.';
     message.textContent = this.message;
 
     const email = document.getElementById('accountEmail');
     const password = document.getElementById('accountPassword');
+    const nickname = document.getElementById('accountNickname');
+    const nicknameStatus = document.getElementById('nicknameStatus');
     const register = document.getElementById('accountRegisterButton');
     const login = document.getElementById('accountLoginButton');
     const logout = document.getElementById('accountLogoutButton');
+    const saveNickname = document.getElementById('accountNicknameButton');
     const cloudSave = document.getElementById('accountCloudSaveButton');
     const cloudLoad = document.getElementById('accountCloudLoadButton');
     const uploadLocal = document.getElementById('accountUploadLocalButton');
+    const refreshScoreboard = document.getElementById('accountRefreshScoreboardButton');
+    const scoreboardList = document.getElementById('scoreboardList');
 
     if (email) email.disabled = this.busy || loggedIn;
     if (password) password.disabled = this.busy || loggedIn;
+    if (nickname) nickname.disabled = this.busy || !loggedIn;
+    if (nicknameStatus) {
+      nicknameStatus.textContent = this.profile
+        ? `Nykyinen pistetaulun ryypyt: ${this.profile.ryypyt}`
+        : 'Valitse nimimerkki, jotta näyt pistetaululla.';
+    }
     if (register) register.disabled = this.busy || !configured || !connected || loggedIn;
     if (login) login.disabled = this.busy || !configured || !connected || loggedIn;
     if (logout) logout.disabled = this.busy || !connected || !loggedIn;
+    if (saveNickname) saveNickname.disabled = this.busy || !loggedIn;
     if (cloudSave) cloudSave.disabled = this.busy || !loggedIn;
     if (cloudLoad) cloudLoad.disabled = this.busy || !loggedIn;
     if (uploadLocal) uploadLocal.disabled = this.busy || !loggedIn || !this.hasLocalSave();
+    if (refreshScoreboard) refreshScoreboard.disabled = this.busy || !connected;
+
+    if (scoreboardList) {
+      if (!this.scoreboard.length) {
+        scoreboardList.innerHTML = '<li>Pistetaulu on vielä tyhjä.</li>';
+      } else {
+        scoreboardList.innerHTML = this.scoreboard.map(row => `
+          <li>
+            <span>${row.nickname}</span>
+            <strong>${Number(row.ryypyt || 0).toLocaleString('fi-FI')} ryyppyä</strong>
+          </li>
+        `).join('');
+      }
+    }
   }
 };
 
