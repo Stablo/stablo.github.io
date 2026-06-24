@@ -7,6 +7,16 @@ const Account = {
   message: 'Yhdistetään Supabaseen...',
   slot: 'main',
   maxScore: 1000000000,
+  cooldowns: {},
+  cooldownSeconds: {
+    register: 10,
+    login: 3,
+    logout: 3,
+    nickname: 5,
+    save: 5,
+    load: 5,
+    scoreboard: 10
+  },
 
   init() {
     document.getElementById('gameMain').insertAdjacentHTML(
@@ -21,11 +31,11 @@ const Account = {
           <div class="accountGrid">
             <label>
               Sähköposti
-              <input id="accountEmail" type="email" autocomplete="email" placeholder="nimi@example.com">
+              <input id="accountEmail" type="email" maxlength="254" autocomplete="email" placeholder="nimi@example.com">
             </label>
             <label>
               Salasana
-              <input id="accountPassword" type="password" autocomplete="current-password" placeholder="vähintään 6 merkkiä">
+              <input id="accountPassword" type="password" minlength="6" maxlength="128" autocomplete="current-password" placeholder="vähintään 6 merkkiä">
             </label>
           </div>
 
@@ -40,7 +50,7 @@ const Account = {
           <div class="accountGrid">
             <label>
               Nimimerkki
-              <input id="accountNickname" type="text" maxlength="24" autocomplete="nickname" placeholder="Seppo" pattern="[A-Za-z0-9ÅÄÖåäö _-]{2,24}">
+              <input id="accountNickname" type="text" maxlength="24" autocomplete="nickname" placeholder="Seppo" pattern="[A-Za-z0-9ÅÄÖåäö _-]{2,24}" title="2-24 merkkiä: kirjaimet, numerot, välilyönti, _ ja -">
             </label>
             <div class="nicknameBox">
               <p id="nicknameStatus">Valitse nimimerkki, jotta näyt pistetaululla.</p>
@@ -62,7 +72,7 @@ const Account = {
           <h3>Pistetaulu</h3>
           <p class="smallHint">Pistetaulu näyttää tilien parhaimman pilvitallennetun ryyppymäärän.</p>
           <ol id="scoreboardList" class="scoreboardList"></ol>
-          <button id="accountRefreshScoreboardButton" onclick="Account.loadScoreboard()">Päivitä pistetaulu</button>
+          <button id="accountRefreshScoreboardButton" onclick="Account.refreshScoreboard()">Päivitä pistetaulu</button>
         `
       )
     );
@@ -82,6 +92,122 @@ const Account = {
     return typeof SupabaseConfig !== 'undefined'
       && !!SupabaseConfig.url
       && !!SupabaseConfig.publishableKey;
+  },
+
+  showNotice(title, body) {
+    const old = document.getElementById('accountNoticeOverlay');
+    if (old) old.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'accountNoticeOverlay';
+    overlay.className = 'overlay accountNoticeOverlay';
+
+    const box = document.createElement('div');
+    box.className = 'overlayBox accountNoticeBox';
+    box.setAttribute('role', 'dialog');
+    box.setAttribute('aria-modal', 'true');
+
+    const heading = document.createElement('h2');
+    heading.textContent = title;
+
+    const text = document.createElement('p');
+    text.textContent = body;
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = 'Selvä';
+    button.onclick = () => this.closeNotice();
+
+    box.appendChild(heading);
+    box.appendChild(text);
+    box.appendChild(button);
+    overlay.appendChild(box);
+
+    overlay.addEventListener('click', event => {
+      if (event.target === overlay) this.closeNotice();
+    });
+
+    document.body.appendChild(overlay);
+  },
+
+  closeNotice() {
+    const overlay = document.getElementById('accountNoticeOverlay');
+    if (overlay) overlay.remove();
+  },
+
+  explainError(error) {
+    const raw = typeof error === 'string' ? error : error?.message || 'Tuntematon virhe.';
+    const text = raw.toLowerCase();
+
+    if (text.includes('invalid login credentials')) {
+      return 'Sähköposti tai salasana ei täsmää. Tarkista kirjoitusasu ja yritä uudelleen.';
+    }
+    if (text.includes('already registered') || text.includes('user already registered')) {
+      return 'Tällä sähköpostilla on jo tili. Kokeile kirjautua sisään.';
+    }
+    if (text.includes('email') && text.includes('invalid')) {
+      return 'Sähköpostiosoite ei näytä toimivalta. Kirjoita osoite muodossa nimi@example.com.';
+    }
+    if (text.includes('password')) {
+      return 'Salasana ei kelpaa. Käytä vähintään 6 merkkiä.';
+    }
+    if (text.includes('duplicate') || text.includes('23505')) {
+      return 'Nimimerkki on jo käytössä. Valitse toinen.';
+    }
+    if (text.includes('odota hetki') || text.includes('too many') || text.includes('rate')) {
+      return 'Teit tämän juuri äsken. Odota hetki ja yritä uudelleen.';
+    }
+
+    return raw;
+  },
+
+  setProblem(title, body) {
+    this.message = body;
+    this.showNotice(title, body);
+    this.render();
+  },
+
+  cooldownLeft(action) {
+    const until = this.cooldowns[action] || 0;
+    return Math.max(0, Math.ceil((until - Date.now()) / 1000));
+  },
+
+  startCooldown(action, seconds = this.cooldownSeconds[action] || 5) {
+    this.cooldowns[action] = Date.now() + seconds * 1000;
+    setTimeout(() => this.render(), seconds * 1000 + 50);
+  },
+
+  isCoolingDown(action, label) {
+    const left = this.cooldownLeft(action);
+    if (left <= 0) return false;
+
+    this.setProblem('Odota hetki', `${label} on käytettävissä noin ${left} sekunnin kuluttua.`);
+    return true;
+  },
+
+  validateEmail(email) {
+    if (!email) return 'Anna sähköpostiosoite.';
+    if (email.length > 254) return 'Sähköpostiosoite on liian pitkä.';
+    if (/\s/.test(email)) return 'Sähköpostiosoitteessa ei voi olla välilyöntejä.';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+      return 'Sähköpostiosoite ei näytä toimivalta. Kirjoita se muodossa nimi@example.com.';
+    }
+
+    const [local, domain] = email.split('@');
+    if (!local || !domain || local.length > 64) return 'Sähköpostiosoite ei näytä toimivalta.';
+    if (domain.length > 253 || domain.includes('..')) return 'Sähköpostin verkkotunnus ei näytä toimivalta.';
+    if (!domain.split('.').every(part => /^[A-Za-z0-9-]{1,63}$/.test(part) && !part.startsWith('-') && !part.endsWith('-'))) {
+      return 'Sähköpostin verkkotunnus ei näytä toimivalta.';
+    }
+
+    return '';
+  },
+
+  validatePassword(password) {
+    if (!password) return 'Anna salasana.';
+    if (password.length > 128) return 'Salasana on liian pitkä.';
+    if (password.length < 6) return 'Salasanan pitää olla vähintään 6 merkkiä.';
+    return '';
   },
 
   connect() {
@@ -181,14 +307,18 @@ const Account = {
   async saveNickname() {
     const user = await this.requireUser();
     if (!user || this.busy) return;
+    if (this.isCoolingDown('nickname', 'Nimimerkin tallennus')) return;
 
     const nickname = this.cleanNickname(document.getElementById('accountNickname')?.value);
     if (!this.isNicknameAllowed(nickname)) {
-      this.message = 'Nimimerkin pitää olla 2-24 merkkiä. Sallitut merkit: kirjaimet, numerot, välilyönti, _ ja -.';
-      this.render();
+      this.setProblem(
+        'Nimimerkki ei kelpaa',
+        'Nimimerkin pitää olla 2-24 merkkiä. Sallitut merkit: kirjaimet, numerot, välilyönti, _ ja -.'
+      );
       return;
     }
 
+    this.startCooldown('nickname');
     this.busy = true;
     this.message = 'Tallennetaan nimimerkkiä...';
     this.render();
@@ -216,10 +346,7 @@ const Account = {
     this.busy = false;
 
     if (error) {
-      this.message = error.code === '23505'
-        ? 'Nimimerkki on jo käytössä. Valitse toinen.'
-        : error.message;
-      this.render();
+      this.setProblem('Nimimerkkiä ei tallennettu', this.explainError(error));
       return;
     }
 
@@ -231,7 +358,7 @@ const Account = {
   },
 
   async loadScoreboard() {
-    if (!this.client) return;
+    if (!this.client) return false;
 
     const { data, error } = await this.client
       .from('scoreboard')
@@ -244,20 +371,35 @@ const Account = {
       this.scoreboard = [];
       this.message = error.message;
       this.render();
-      return;
+      return false;
     }
 
     this.scoreboard = data || [];
     this.render();
+    return true;
   },
 
-  credentials() {
+  async refreshScoreboard() {
+    if (this.isCoolingDown('scoreboard', 'Pistetaulun päivitys')) return;
+
+    this.startCooldown('scoreboard');
+    const ok = await this.loadScoreboard();
+    if (!ok) this.showNotice('Pistetaulua ei voitu päivittää', this.explainError(this.message));
+  },
+
+  credentials({ registering = false } = {}) {
     const email = document.getElementById('accountEmail')?.value.trim();
     const password = document.getElementById('accountPassword')?.value;
 
-    if (!email || !password) {
-      this.message = 'Anna sähköposti ja salasana.';
-      this.render();
+    const emailProblem = this.validateEmail(email);
+    if (emailProblem) {
+      this.setProblem('Sähköposti ei kelpaa', emailProblem);
+      return null;
+    }
+
+    const passwordProblem = this.validatePassword(password, registering);
+    if (passwordProblem) {
+      this.setProblem('Salasana ei kelpaa', passwordProblem);
       return null;
     }
 
@@ -266,10 +408,12 @@ const Account = {
 
   async register() {
     if (!this.client || this.busy) return;
+    if (this.isCoolingDown('register', 'Tilin luominen')) return;
 
-    const credentials = this.credentials();
+    const credentials = this.credentials({ registering: true });
     if (!credentials) return;
 
+    this.startCooldown('register');
     this.busy = true;
     this.message = 'Luodaan tiliä...';
     this.render();
@@ -278,8 +422,7 @@ const Account = {
 
     this.busy = false;
     if (error) {
-      this.message = error.message;
-      this.render();
+      this.setProblem('Tiliä ei luotu', this.explainError(error));
       return;
     }
 
@@ -293,10 +436,12 @@ const Account = {
 
   async login() {
     if (!this.client || this.busy) return;
+    if (this.isCoolingDown('login', 'Kirjautuminen')) return;
 
     const credentials = this.credentials();
     if (!credentials) return;
 
+    this.startCooldown('login');
     this.busy = true;
     this.message = 'Kirjaudutaan sisään...';
     this.render();
@@ -305,8 +450,7 @@ const Account = {
 
     this.busy = false;
     if (error) {
-      this.message = error.message;
-      this.render();
+      this.setProblem('Kirjautuminen epäonnistui', this.explainError(error));
       return;
     }
 
@@ -317,7 +461,9 @@ const Account = {
 
   async logout() {
     if (!this.client || this.busy) return;
+    if (this.isCoolingDown('logout', 'Uloskirjautuminen')) return;
 
+    this.startCooldown('logout');
     this.busy = true;
     this.message = 'Kirjaudutaan ulos...';
     this.render();
@@ -326,8 +472,7 @@ const Account = {
 
     this.busy = false;
     if (error) {
-      this.message = error.message;
-      this.render();
+      this.setProblem('Uloskirjautuminen epäonnistui', this.explainError(error));
       return;
     }
 
@@ -340,16 +485,14 @@ const Account = {
 
   async requireUser() {
     if (!this.client) {
-      this.message = 'Supabase-yhteyttä ei ole.';
-      this.render();
+      this.setProblem('Yhteys ei ole valmis', 'Supabase-yhteyttä ei ole. Tarkista, että sivu on verkossa ja yritä uudelleen.');
       return null;
     }
 
     if (!this.user) await this.refreshUser();
 
     if (!this.user) {
-      this.message = 'Kirjaudu ensin sisään.';
-      this.render();
+      this.setProblem('Kirjaudu ensin', 'Sinun pitää kirjautua sisään ennen tätä toimintoa.');
       return null;
     }
 
@@ -384,25 +527,31 @@ const Account = {
 
     this.busy = false;
     this.message = error
-      ? error.message
+      ? this.explainError(error)
       : this.profile
         ? successMessage
         : `${successMessage} Lisää nimimerkki, jos haluat näkyä pistetaululla.`;
+    if (error) this.showNotice('Tallennus epäonnistui', this.message);
     this.render();
     return !error;
   },
 
   async cloudSave() {
     if (typeof SaveLoad === 'undefined') return false;
+    if (this.isCoolingDown('save', 'Tallennus')) return false;
+
+    this.startCooldown('save');
     return this.saveDataToCloud(SaveLoad.getSaveData(), 'Nykyinen peli tallennettu pilveen.');
   },
 
   async cloudLoad() {
     const user = await this.requireUser();
     if (!user || this.busy) return false;
+    if (this.isCoolingDown('load', 'Lataus')) return false;
 
     if (!confirm('Ladataanko pilvitallennus? Nykyinen tallentamaton tilanne korvautuu.')) return false;
 
+    this.startCooldown('load');
     this.busy = true;
     this.message = 'Ladataan pilvestä...';
     this.render();
@@ -416,14 +565,12 @@ const Account = {
     this.busy = false;
 
     if (error) {
-      this.message = error.message;
-      this.render();
+      this.setProblem('Lataus epäonnistui', this.explainError(error));
       return false;
     }
 
     if (!data) {
-      this.message = 'Pilvessä ei ole vielä tallennusta tälle tilille.';
-      this.render();
+      this.setProblem('Tallennusta ei löytynyt', 'Pilvessä ei ole vielä tallennusta tälle tilille.');
       return false;
     }
 
@@ -441,6 +588,13 @@ const Account = {
     const configured = this.isConfigured();
     const connected = !!this.client;
     const loggedIn = !!this.user;
+    const registerCooling = this.cooldownLeft('register') > 0;
+    const loginCooling = this.cooldownLeft('login') > 0;
+    const logoutCooling = this.cooldownLeft('logout') > 0;
+    const nicknameCooling = this.cooldownLeft('nickname') > 0;
+    const saveCooling = this.cooldownLeft('save') > 0;
+    const loadCooling = this.cooldownLeft('load') > 0;
+    const scoreboardCooling = this.cooldownLeft('scoreboard') > 0;
 
     status.textContent = loggedIn
       ? this.profile
@@ -471,14 +625,14 @@ const Account = {
         ? `Paras pistetaulun tulos: ${Number(this.profile.best_ryypyt || 0).toLocaleString('fi-FI')} ryyppyä`
         : 'Valitse nimimerkki, jotta näyt pistetaululla.';
     }
-    if (register) register.disabled = this.busy || !configured || !connected || loggedIn;
-    if (login) login.disabled = this.busy || !configured || !connected || loggedIn;
-    if (logout) logout.disabled = this.busy || !connected || !loggedIn;
-    if (saveNickname) saveNickname.disabled = this.busy || !loggedIn;
-    if (cloudSave) cloudSave.disabled = this.busy || !loggedIn;
-    if (cloudLoad) cloudLoad.disabled = this.busy || !loggedIn;
+    if (register) register.disabled = this.busy || !configured || !connected || loggedIn || registerCooling;
+    if (login) login.disabled = this.busy || !configured || !connected || loggedIn || loginCooling;
+    if (logout) logout.disabled = this.busy || !connected || !loggedIn || logoutCooling;
+    if (saveNickname) saveNickname.disabled = this.busy || !loggedIn || nicknameCooling;
+    if (cloudSave) cloudSave.disabled = this.busy || !loggedIn || saveCooling;
+    if (cloudLoad) cloudLoad.disabled = this.busy || !loggedIn || loadCooling;
     if (reset) reset.disabled = this.busy;
-    if (refreshScoreboard) refreshScoreboard.disabled = this.busy || !connected;
+    if (refreshScoreboard) refreshScoreboard.disabled = this.busy || !connected || scoreboardCooling;
 
     if (scoreboardList) {
       scoreboardList.replaceChildren();

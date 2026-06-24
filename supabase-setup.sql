@@ -60,6 +60,28 @@ for delete
 to authenticated
 using (auth.uid() = user_id);
 
+create or replace function public.rate_limit_game_save()
+returns trigger
+language plpgsql
+as $$
+begin
+  if tg_op = 'UPDATE' and old.updated_at > now() - interval '5 seconds' then
+    raise exception 'Odota hetki ennen seuraavaa tallennusta.';
+  end if;
+
+  new.updated_at := now();
+  return new;
+end;
+$$;
+
+drop trigger if exists rate_limit_game_save_before_write on public.game_saves;
+
+create trigger rate_limit_game_save_before_write
+before insert or update
+on public.game_saves
+for each row
+execute function public.rate_limit_game_save();
+
 create table if not exists public.profiles (
   user_id uuid primary key references auth.users(id) on delete cascade,
   nickname text not null,
@@ -150,6 +172,28 @@ with check (
   and nickname ~ '^[A-Za-z0-9ÅÄÖåäö _-]{2,24}$'
 );
 
+create or replace function public.rate_limit_profile_nickname()
+returns trigger
+language plpgsql
+as $$
+begin
+  if old.nickname is distinct from new.nickname and old.updated_at > now() - interval '5 seconds' then
+    raise exception 'Odota hetki ennen nimimerkin vaihtamista.';
+  end if;
+
+  new.updated_at := now();
+  return new;
+end;
+$$;
+
+drop trigger if exists rate_limit_profile_nickname_before_update on public.profiles;
+
+create trigger rate_limit_profile_nickname_before_update
+before update of nickname
+on public.profiles
+for each row
+execute function public.rate_limit_profile_nickname();
+
 create or replace function public.safe_ryypyt_from_save(save_data jsonb)
 returns bigint
 language plpgsql
@@ -218,6 +262,8 @@ select
   best_ryypyt as ryypyt,
   updated_at
 from public.profiles
-where best_ryypyt > 0;
+where
+  best_ryypyt > 0
+  and nickname ~ '^[A-Za-z0-9ÅÄÖåäö _-]{2,24}$';
 
 grant select on public.scoreboard to anon, authenticated;

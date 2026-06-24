@@ -655,6 +655,29 @@ footer {
   color: color-mix(in srgb, var(--theme-1) 82%, #fff);
 }
 
+.accountNoticeOverlay {
+  --theme-1: #72f2d0;
+  --theme-2: #145b50;
+  --theme-3: #061a17;
+}
+
+.accountNoticeBox {
+  max-width: min(520px, 92vw);
+  background:
+    linear-gradient(145deg, #061a17, #111015),
+    radial-gradient(circle at top right, rgba(114,242,208,.14), transparent 18rem);
+  border-color: #72f2d0;
+}
+
+.accountNoticeBox h2 {
+  margin-top: 0;
+  color: #b9fff0;
+}
+
+.accountNoticeBox p {
+  color: #f4eee5;
+}
+
 @media (max-width: 900px) {
   .accountGrid { grid-template-columns: 1fr; }
   .scoreboardList span { min-width: 120px; }
