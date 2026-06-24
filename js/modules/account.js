@@ -6,6 +6,7 @@ const Account = {
   busy: false,
   message: 'Yhdistetään Supabaseen...',
   slot: 'main',
+  maxScore: 1000000000,
 
   init() {
     document.getElementById('gameMain').insertAdjacentHTML(
@@ -39,7 +40,7 @@ const Account = {
           <div class="accountGrid">
             <label>
               Nimimerkki
-              <input id="accountNickname" type="text" maxlength="24" autocomplete="nickname" placeholder="Seppo">
+              <input id="accountNickname" type="text" maxlength="24" autocomplete="nickname" placeholder="Seppo" pattern="[A-Za-z0-9ÅÄÖåäö _-]{2,24}">
             </label>
             <div class="nicknameBox">
               <p id="nicknameStatus">Valitse nimimerkki, jotta näyt pistetaululla.</p>
@@ -59,7 +60,7 @@ const Account = {
           <hr>
 
           <h3>Pistetaulu</h3>
-          <p class="smallHint">Pistetaulu näyttää tilien viimeisimmän pilvitallennetun ryyppymäärän.</p>
+          <p class="smallHint">Pistetaulu näyttää tilien parhaimman pilvitallennetun ryyppymäärän.</p>
           <ol id="scoreboardList" class="scoreboardList"></ol>
           <button id="accountRefreshScoreboardButton" onclick="Account.loadScoreboard()">Päivitä pistetaulu</button>
         `
@@ -142,8 +143,14 @@ const Account = {
     return (value || '').trim().replace(/\s+/g, ' ');
   },
 
+  isNicknameAllowed(value) {
+    return /^[A-Za-z0-9ÅÄÖåäö _-]{2,24}$/.test(value);
+  },
+
   currentRyypyt() {
-    return Math.max(0, Math.floor(Game.state.ryypyt || 0));
+    const value = Number(Game.state.ryypyt);
+    if (!Number.isFinite(value)) return 0;
+    return Math.max(0, Math.min(this.maxScore, Math.floor(value)));
   },
 
   setNicknameInput(value) {
@@ -156,7 +163,7 @@ const Account = {
 
     const { data, error } = await this.client
       .from('profiles')
-      .select('nickname, ryypyt, updated_at')
+      .select('nickname, current_ryypyt, best_ryypyt, updated_at')
       .eq('user_id', this.user.id)
       .maybeSingle();
 
@@ -176,8 +183,8 @@ const Account = {
     if (!user || this.busy) return;
 
     const nickname = this.cleanNickname(document.getElementById('accountNickname')?.value);
-    if (nickname.length < 2 || nickname.length > 24) {
-      this.message = 'Nimimerkin pitää olla 2-24 merkkiä.';
+    if (!this.isNicknameAllowed(nickname)) {
+      this.message = 'Nimimerkin pitää olla 2-24 merkkiä. Sallitut merkit: kirjaimet, numerot, välilyönti, _ ja -.';
       this.render();
       return;
     }
@@ -186,18 +193,24 @@ const Account = {
     this.message = 'Tallennetaan nimimerkkiä...';
     this.render();
 
-    const { data, error } = await this.client
-      .from('profiles')
-      .upsert(
-        {
-          user_id: user.id,
-          nickname,
-          ryypyt: this.currentRyypyt(),
-          updated_at: new Date().toISOString()
-        },
-        { onConflict: 'user_id' }
-      )
-      .select('nickname, ryypyt, updated_at')
+    if (!this.profile) await this.loadProfile();
+
+    const profileData = {
+      nickname,
+      updated_at: new Date().toISOString()
+    };
+
+    const query = this.profile
+      ? this.client
+        .from('profiles')
+        .update(profileData)
+        .eq('user_id', user.id)
+      : this.client
+        .from('profiles')
+        .insert({ user_id: user.id, ...profileData });
+
+    const { data, error } = await query
+      .select('nickname, current_ryypyt, best_ryypyt, updated_at')
       .single();
 
     this.busy = false;
@@ -212,32 +225,16 @@ const Account = {
 
     this.profile = data;
     this.setNicknameInput(data.nickname);
-    this.message = 'Nimimerkki tallennettu.';
+    this.message = 'Nimimerkki tallennettu. Tallenna peli, jotta tulos päivittyy pistetaululle.';
     await this.loadScoreboard();
     this.render();
-  },
-
-  async updateScoreboardScore() {
-    if (!this.client || !this.user || !this.profile) return;
-
-    const { data, error } = await this.client
-      .from('profiles')
-      .update({
-        ryypyt: this.currentRyypyt(),
-        updated_at: new Date().toISOString()
-      })
-      .eq('user_id', this.user.id)
-      .select('nickname, ryypyt, updated_at')
-      .single();
-
-    if (!error && data) this.profile = data;
   },
 
   async loadScoreboard() {
     if (!this.client) return;
 
     const { data, error } = await this.client
-      .from('profiles')
+      .from('scoreboard')
       .select('nickname, ryypyt, updated_at')
       .order('ryypyt', { ascending: false })
       .order('updated_at', { ascending: true })
@@ -381,7 +378,7 @@ const Account = {
       );
 
     if (!error) {
-      await this.updateScoreboardScore();
+      await this.loadProfile();
       await this.loadScoreboard();
     }
 
@@ -471,7 +468,7 @@ const Account = {
     if (nickname) nickname.disabled = this.busy || !loggedIn;
     if (nicknameStatus) {
       nicknameStatus.textContent = this.profile
-        ? `Nykyinen pistetaulun ryypyt: ${this.profile.ryypyt}`
+        ? `Paras pistetaulun tulos: ${Number(this.profile.best_ryypyt || 0).toLocaleString('fi-FI')} ryyppyä`
         : 'Valitse nimimerkki, jotta näyt pistetaululla.';
     }
     if (register) register.disabled = this.busy || !configured || !connected || loggedIn;
@@ -484,15 +481,25 @@ const Account = {
     if (refreshScoreboard) refreshScoreboard.disabled = this.busy || !connected;
 
     if (scoreboardList) {
+      scoreboardList.replaceChildren();
+
       if (!this.scoreboard.length) {
-        scoreboardList.innerHTML = '<li>Pistetaulu on vielä tyhjä.</li>';
+        const empty = document.createElement('li');
+        empty.textContent = 'Pistetaulu on vielä tyhjä.';
+        scoreboardList.appendChild(empty);
       } else {
-        scoreboardList.innerHTML = this.scoreboard.map(row => `
-          <li>
-            <span>${row.nickname}</span>
-            <strong>${Number(row.ryypyt || 0).toLocaleString('fi-FI')} ryyppyä</strong>
-          </li>
-        `).join('');
+        this.scoreboard.forEach(row => {
+          const item = document.createElement('li');
+          const name = document.createElement('span');
+          const score = document.createElement('strong');
+
+          name.textContent = row.nickname || 'Nimetön';
+          score.textContent = `${Number(row.ryypyt || 0).toLocaleString('fi-FI')} ryyppyä`;
+
+          item.appendChild(name);
+          item.appendChild(score);
+          scoreboardList.appendChild(item);
+        });
       }
     }
   }

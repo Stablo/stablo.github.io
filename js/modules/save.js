@@ -1,4 +1,60 @@
 const SaveLoad = {
+  maxScore() {
+    return typeof Account !== 'undefined' && Account.maxScore ? Account.maxScore : 1000000000;
+  },
+
+  clampNumber(value, min, max, fallback = min) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return fallback;
+    return Math.max(min, Math.min(max, number));
+  },
+
+  clampInteger(value, min, max, fallback = min) {
+    return Math.floor(this.clampNumber(value, min, max, fallback));
+  },
+
+  sanitizeSaveData(data) {
+    const clean = JSON.parse(JSON.stringify(data || {}));
+    clean.state = clean.state || {};
+
+    const s = clean.state;
+    const maxScore = this.maxScore();
+    const maxResource = 1000000000;
+
+    s.ryypyt = this.clampInteger(s.ryypyt, 0, maxScore, 0);
+    s.euros = this.clampNumber(s.euros, 0, maxResource, 0);
+    s.oluet = this.clampInteger(s.oluet, 0, maxResource, 0);
+    s.fullCans = this.clampInteger(s.fullCans, 0, maxResource, 0);
+    s.emptyCans = this.clampInteger(s.emptyCans, 0, maxResource, 0);
+    s.ryypytPerOlut = this.clampInteger(s.ryypytPerOlut, 1, 1000000, 1);
+    s.manualDrinksForTiiviste = this.clampInteger(s.manualDrinksForTiiviste, 0, 49, 0);
+    s.hangover = this.clampNumber(s.hangover, 0, 100, 0);
+    s.stress = this.clampNumber(s.stress ?? 0, 0, 100, 0);
+    s.cigarettes = this.clampInteger(s.cigarettes, 0, maxResource, 0);
+    s.day = this.clampInteger(s.day, 1, maxResource, 1);
+    s.dayProgressSeconds = this.clampNumber(s.dayProgressSeconds, 0, 86400, 0);
+    s.collapseCount = this.clampInteger(s.collapseCount ?? 0, 0, 3, 0);
+    s.gameOver = !!s.gameOver;
+
+    if (typeof s.eventLog !== 'string') s.eventLog = 'Ei tapahtumia vielä.';
+    s.eventLog = s.eventLog.slice(0, 600);
+
+    if (clean.helpers) {
+      Object.values(clean.helpers).forEach(helper => {
+        helper.count = this.clampInteger(helper.count, 0, 1000000, 0);
+        helper.cost = this.clampInteger(helper.cost, 1, maxResource, 1);
+      });
+    }
+
+    if (Array.isArray(clean.marketItems)) {
+      clean.marketItems.forEach(item => {
+        item.owned = this.clampInteger(item.owned, 0, maxResource, 0);
+      });
+    }
+
+    return clean;
+  },
+
   getSaveData() {
     const data = {
       state: Game.state,
@@ -17,11 +73,12 @@ const SaveLoad = {
       gamblingLog: typeof Gambling !== 'undefined' ? Gambling.log : ''
     };
 
-    return JSON.parse(JSON.stringify(data));
+    return this.sanitizeSaveData(data);
   },
 
   restoreData(data) {
     if (!data) return false;
+    data = this.sanitizeSaveData(data);
 
     Object.assign(Game.state, data.state || {});
 
