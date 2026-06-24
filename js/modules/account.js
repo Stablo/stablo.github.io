@@ -11,7 +11,7 @@ const Account = {
     document.getElementById('gameMain').insertAdjacentHTML(
       'beforeend',
       Game.section(
-        'Tili ja pilvitallennus',
+        'Tili ja tallennus',
         'accountContent',
         `
           <p id="accountStatus">Et ole kirjautunut.</p>
@@ -50,9 +50,11 @@ const Account = {
           <hr>
 
           <div class="accountActions">
-            <button id="accountCloudSaveButton" onclick="Account.cloudSave()">Tallenna nykyinen peli pilveen</button>
-            <button id="accountCloudLoadButton" onclick="Account.cloudLoad()">Lataa pilvestä</button>
+            <button id="accountCloudSaveButton" onclick="SaveLoad.save()">Tallenna peli</button>
+            <button id="accountCloudLoadButton" onclick="SaveLoad.load()">Lataa peli</button>
+            <button id="accountResetButton" onclick="SaveLoad.reset()">Aloita alusta tallentamatta</button>
           </div>
+          <p id="saveStatus" class="smallHint">Ei tallennustoimintoa käynnissä.</p>
 
           <hr>
 
@@ -460,6 +462,7 @@ const Account = {
     const saveNickname = document.getElementById('accountNicknameButton');
     const cloudSave = document.getElementById('accountCloudSaveButton');
     const cloudLoad = document.getElementById('accountCloudLoadButton');
+    const reset = document.getElementById('accountResetButton');
     const refreshScoreboard = document.getElementById('accountRefreshScoreboardButton');
     const scoreboardList = document.getElementById('scoreboardList');
 
@@ -477,6 +480,7 @@ const Account = {
     if (saveNickname) saveNickname.disabled = this.busy || !loggedIn;
     if (cloudSave) cloudSave.disabled = this.busy || !loggedIn;
     if (cloudLoad) cloudLoad.disabled = this.busy || !loggedIn;
+    if (reset) reset.disabled = this.busy;
     if (refreshScoreboard) refreshScoreboard.disabled = this.busy || !connected;
 
     if (scoreboardList) {

@@ -1,21 +1,4 @@
 const SaveLoad = {
-  init() {
-    document.getElementById('gameMain').insertAdjacentHTML(
-      'beforeend',
-      Game.section(
-        'Tallennus',
-        'saveContent',
-        `
-          <p>Peli tallennetaan vain pilveen. Kirjaudu sisään Tili-osiossa ennen tallennusta tai latausta.</p>
-          <button onclick="SaveLoad.save()">Tallenna pilveen</button>
-          <button onclick="SaveLoad.load()">Lataa pilvestä</button>
-          <button onclick="SaveLoad.reset()">Aloita alusta tallentamatta</button>
-          <p id="saveStatus" class="smallHint">Ei tallennustoimintoa käynnissä.</p>
-        `
-      )
-    );
-  },
-
   getSaveData() {
     const data = {
       state: Game.state,
@@ -104,9 +87,5 @@ const SaveLoad = {
   reset() {
     if (!confirm('Aloitetaanko nykyinen selainistunto alusta tallentamatta sitä pilveen?')) return;
     location.reload();
-  },
-
-  render() {}
+  }
 };
-
-Game.register(SaveLoad);
