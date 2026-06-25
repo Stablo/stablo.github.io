@@ -24,6 +24,9 @@ const UI = {
     gamblingContent: 'gambling',
     accountContent: 'account'
   },
+  eventAlertsEnabled: false,
+  eventAlertStorageKey: 'villisikaSeppoEventAlerts',
+  eventAlertAudioContext: null,
 
   init() {
     document.querySelectorAll('.leftNav button[data-target]').forEach(button => {
@@ -54,6 +57,7 @@ const UI = {
     this.setStatsDock(window.matchMedia('(max-width: 900px)').matches);
 
     this.initVolumeControl();
+    this.initEventTicker();
     window.addEventListener('keydown', event => this.handleKeydown(event));
   },
 
@@ -96,6 +100,127 @@ const UI = {
     if (typeof Gambling !== 'undefined' && typeof Gambling.updateKaraokeVolume === 'function') {
       Gambling.updateKaraokeVolume();
     }
+  },
+
+  initEventTicker() {
+    let stored = false;
+    try {
+      stored = typeof localStorage !== 'undefined' && localStorage.getItem(this.eventAlertStorageKey) === 'true';
+    } catch (error) {
+      stored = false;
+    }
+
+    this.setEventAlerts(stored);
+    const list = document.getElementById('eventTickerList');
+    if (list && !list.children.length) {
+      this.announceEvent('Tapahtumasyöte valmis. Karaokeillat ja Kela-sähläykset näkyvät tässä.', { sound: false, type: 'event' });
+    }
+  },
+
+  toggleEventAlerts() {
+    this.setEventAlerts(!this.eventAlertsEnabled);
+    this.announceEvent(
+      this.eventAlertsEnabled ? 'Äänihälytykset käytössä.' : 'Äänihälytykset pois käytöstä.',
+      { sound: this.eventAlertsEnabled, type: this.eventAlertsEnabled ? 'good' : 'event' }
+    );
+  },
+
+  setEventAlerts(enabled) {
+    this.eventAlertsEnabled = !!enabled;
+
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(this.eventAlertStorageKey, this.eventAlertsEnabled ? 'true' : 'false');
+      }
+    } catch (error) {
+      // Browser storage is optional; the toggle still works for the current session.
+    }
+
+    const button = document.getElementById('eventAlarmToggle');
+    if (button) {
+      button.textContent = this.eventAlertsEnabled ? 'Hälytykset: päällä' : 'Hälytykset: pois';
+      button.setAttribute('aria-pressed', String(this.eventAlertsEnabled));
+    }
+  },
+
+  announceEvent(text, options = {}) {
+    const list = document.getElementById('eventTickerList');
+    const message = String(text || '').trim();
+    if (!list || !message) return;
+
+    const type = ['good', 'bad', 'karaoke', 'kela'].includes(options.type) ? options.type : 'event';
+    const item = document.createElement('div');
+    item.className = `eventTickerItem ${type}`;
+
+    const time = document.createElement('span');
+    time.className = 'eventTickerTime';
+    time.textContent = this.eventTimeLabel();
+
+    const body = document.createElement('span');
+    body.textContent = message;
+
+    item.appendChild(time);
+    item.appendChild(body);
+    list.prepend(item);
+    this.trimEventTicker();
+
+    if (options.sound !== false) this.playEventAlert(type);
+  },
+
+  eventTimeLabel() {
+    try {
+      return new Date().toLocaleTimeString('fi-FI', { hour: '2-digit', minute: '2-digit' });
+    } catch (error) {
+      return '--:--';
+    }
+  },
+
+  trimEventTicker() {
+    const list = document.getElementById('eventTickerList');
+    if (!list) return;
+    while (list.children.length > 12) list.lastElementChild.remove();
+  },
+
+  getEventAlertAudioContext() {
+    if (!this.eventAlertsEnabled || typeof window === 'undefined') return null;
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return null;
+
+    try {
+      if (!this.eventAlertAudioContext) this.eventAlertAudioContext = new AudioContextClass();
+      if (this.eventAlertAudioContext.state === 'suspended') this.eventAlertAudioContext.resume();
+      return this.eventAlertAudioContext;
+    } catch (error) {
+      return null;
+    }
+  },
+
+  playEventAlert(type = 'event') {
+    const context = this.getEventAlertAudioContext();
+    if (!context) return;
+
+    const volume = Game.clamp(Number(Game.config.soundVolume ?? 0.5), 0, 1);
+    if (volume <= 0) return;
+
+    const now = context.currentTime;
+    const gain = context.createGain();
+    const level = Math.max(0.0001, volume * 0.16);
+    const base = type === 'kela' || type === 'bad' ? 430 : type === 'karaoke' ? 660 : 540;
+    const peak = type === 'karaoke' ? 990 : base * 1.25;
+
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(level, now + 0.018);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.32);
+    gain.connect(context.destination);
+
+    const tone = context.createOscillator();
+    tone.type = 'triangle';
+    tone.frequency.setValueAtTime(base, now);
+    tone.frequency.exponentialRampToValueAtTime(peak, now + 0.18);
+    tone.connect(gain);
+    tone.start(now);
+    tone.stop(now + 0.34);
+    tone.onended = () => gain.disconnect();
   },
 
   handleKeydown(event) {
@@ -196,6 +321,7 @@ const UI = {
         <h3>Mittarit</h3>
         <ul>
           <li><strong>Pikatilastot</strong> näkyvät oikeassa reunassa kaikilla sivuilla ja ne voi pienentää sivuun.</li>
+          <li><strong>Tapahtumasyöte</strong> näyttää karaokeillat, satunnaistapahtumat ja Kela-ongelmat. Hälytysäänen voi kytkeä päälle syötteen omasta painikkeesta.</li>
           <li><strong>Juodut oluet</strong> on nykyinen pistetaulun tulos. Myös apurien juomat oluet lasketaan.</li>
           <li><strong>Prestige</strong> nollaa nykyisen kierroksen, mutta lisää nimimerkin viereen pysyvän tähden pistetaululla.</li>
           <li><strong>Ryypyt</strong> ovat etenemisvaluuttaa apureihin, parannuksiin ja satunnaisiin tapahtumiin.</li>
@@ -224,7 +350,7 @@ const UI = {
           <li>Puulantorilla osumat palauttavat tölkkejä, mutta huti lukitsee sen hetkeksi.</li>
           <li>Kilinäkoneessa valitse järkevin toiminta. Huonot päätökset voivat maksaa tölkkejä ja nostaa stressiä.</li>
           <li>Pikkukeikoissa paina nuolinäppäimet oikeassa järjestyksessä. Stressi lisää vaikeutta.</li>
-          <li>Karaokessa paina oikea nuoli keskimerkin kohdalla. Äänet voi laittaa päälle tai pois karaokeikkunasta.</li>
+          <li>Karaoke avautuu karaokeiltoina. Paina oikea nuoli keskimerkin kohdalla. Äänet voi laittaa päälle tai pois karaokeikkunasta.</li>
           <li>Uhkapelit käyttävät euroja panoksina ja voittoina, eivät ryyppyjä.</li>
         </ul>
 

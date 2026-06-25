@@ -1,8 +1,14 @@
-Villisika-Sepon juomapeli — versio 0.4.23-prestige-sqlfix
+Villisika-Sepon juomapeli — versio 0.4.24-karaokeilta
 
 Avaa index.html selaimessa.
 
 Uutta tässä versiossa:
+- Karaoketuomio on nyt ajastettu karaokeilta: se avautuu keskimäärin 2-3 kertaa tunnissa reaaliajassa.
+- Karaokeilta pysyy auki 5 pelipäivää ja sen ajastus tallentuu autosaveen, jotta sivun lataus ei arvo sitä uusiksi.
+- Karaokevoittoja tasapainotettu: tasot maksavat nyt 1.5x, 2.1x ja 3x panoksen.
+- Sivun yläosaan lisätty tapahtumasyöte karaokeilloille, satunnaistapahtumille ja Kela-ongelmille.
+- Tapahtumasyötteessä on valinnainen äänihälytys, joka on oletuksena pois päältä ja seuraa yleistä äänenvoimakkuutta.
+- Tämä versio ei lisää uusia Supabase SQL -muutoksia; aiemmat prestige- ja pilvitalousvaatimukset ovat ennallaan.
 - Korjattu Supabase-prestige-funktion lifetime_oluet-viittaus, joka saattoi estää prestigen virheellä "column reference lifetime_oluet is ambiguous".
 - Lisätty Prestige-järjestelmä kirjautuneille pelaajille.
 - Prestige nollaa nykyisen kierroksen, poistaa vanhan pilvitallennuksen ja lisää pistetaululle tähtimerkin.

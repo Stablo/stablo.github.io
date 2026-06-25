@@ -16,12 +16,21 @@ const Gambling = {
   karaokeMasterGain: null,
   karaokeBeatTimer: null,
   karaokeBeatStep: 0,
+  karaokeEvent: {
+    active: false,
+    activeUntilDay: 0,
+    nextCheckAt: 0,
+    openedAt: 0
+  },
+  karaokeMinDelayMs: 20 * 60 * 1000,
+  karaokeMaxDelayMs: 30 * 60 * 1000,
+  karaokeDurationDays: 5,
 
   karaokeDifficulties: {
     double: {
       name: 'Kellarikaraoke',
-      label: '2x panos',
-      multiplier: 2,
+      label: '1.5x panos',
+      multiplier: 1.5,
       bpm: 92,
       notes: 12,
       speed: 215,
@@ -33,8 +42,8 @@ const Gambling = {
     },
     triple: {
       name: 'Räkälän semifinaali',
-      label: '3x panos',
-      multiplier: 3,
+      label: '2.1x panos',
+      multiplier: 2.1,
       bpm: 116,
       notes: 16,
       speed: 265,
@@ -46,8 +55,8 @@ const Gambling = {
     },
     quadruple: {
       name: 'Kansallinen tuomioilta',
-      label: '4x panos',
-      multiplier: 4,
+      label: '3x panos',
+      multiplier: 3,
       bpm: 140,
       notes: 21,
       speed: 320,
@@ -61,6 +70,7 @@ const Gambling = {
 
   init() {
     this.injectStyles();
+    this.normalizeKaraokeEvent();
 
     document.getElementById('gamblingMain').insertAdjacentHTML(
       'beforeend',
@@ -93,11 +103,12 @@ const Gambling = {
 
             <div class="gambleCard">
               <h3>Karaoketuomio</h3>
-              <p>Nuolirytmipeli, jossa merkit kulkevat vasemmalta oikealle. Paina oikea näppäin merkin kohdalla.</p>
-              <button id="karaokeDoubleButton" onclick="Gambling.startKaraoke('double')">Kellarikaraoke — 2x</button>
-              <button id="karaokeTripleButton" onclick="Gambling.startKaraoke('triple')">Räkälän semifinaali — 3x</button>
-              <button id="karaokeQuadrupleButton" onclick="Gambling.startKaraoke('quadruple')">Kansallinen tuomioilta — 4x</button>
-              <p class="smallHint">Vaikeammat tasot maksavat paremmin, mutta virheet loppuvat nopeasti.</p>
+              <p>Nuolirytmipeli, joka avautuu karaokeiltoina. Paina oikea näppäin merkin kohdalla.</p>
+              <p id="karaokeEventStatus" class="smallHint"></p>
+              <button id="karaokeDoubleButton" onclick="Gambling.startKaraoke('double')">Kellarikaraoke — 1.5x</button>
+              <button id="karaokeTripleButton" onclick="Gambling.startKaraoke('triple')">Räkälän semifinaali — 2.1x</button>
+              <button id="karaokeQuadrupleButton" onclick="Gambling.startKaraoke('quadruple')">Kansallinen tuomioilta — 3x</button>
+              <p class="smallHint">Karaokeilta ilmestyy keskimäärin 2-3 kertaa tunnissa ja pysyy auki 5 pelipäivää.</p>
             </div>
 
             <div class="gambleCard">
@@ -111,6 +122,104 @@ const Gambling = {
         `
       )
     );
+  },
+
+  normalizeKaraokeEvent() {
+    const source = this.karaokeEvent && typeof this.karaokeEvent === 'object' ? this.karaokeEvent : {};
+    const toNumber = value => {
+      const number = Number(value);
+      return Number.isFinite(number) ? Math.max(0, number) : 0;
+    };
+
+    this.karaokeEvent = {
+      active: !!source.active,
+      activeUntilDay: Math.floor(toNumber(source.activeUntilDay)),
+      nextCheckAt: toNumber(source.nextCheckAt),
+      openedAt: toNumber(source.openedAt)
+    };
+
+    if (this.karaokeEvent.active && !this.karaokeEvent.activeUntilDay) {
+      this.karaokeEvent.activeUntilDay = Game.state.day + this.karaokeDurationDays;
+    }
+
+    if (!this.karaokeEvent.active && !this.karaokeEvent.nextCheckAt) {
+      this.scheduleNextKaraokeEvent();
+    }
+  },
+
+  randomKaraokeDelayMs() {
+    return Math.round(Game.randFloat(this.karaokeMinDelayMs, this.karaokeMaxDelayMs));
+  },
+
+  scheduleNextKaraokeEvent() {
+    this.karaokeEvent.active = false;
+    this.karaokeEvent.activeUntilDay = 0;
+    this.karaokeEvent.openedAt = 0;
+    this.karaokeEvent.nextCheckAt = Date.now() + this.randomKaraokeDelayMs();
+  },
+
+  openKaraokeEvent() {
+    this.karaokeEvent.active = true;
+    this.karaokeEvent.openedAt = Date.now();
+    this.karaokeEvent.activeUntilDay = Game.state.day + this.karaokeDurationDays;
+    this.karaokeEvent.nextCheckAt = 0;
+
+    const lastDay = this.karaokeEvent.activeUntilDay - 1;
+    const text = `Karaokeilta alkoi! Karaoketuomio on auki päivän ${lastDay} loppuun.`;
+    this.log = text;
+    Game.state.eventLog = text;
+    this.announceKaraokeEvent(text, true);
+  },
+
+  closeKaraokeEvent() {
+    this.scheduleNextKaraokeEvent();
+    const text = `Karaokeilta päättyi. Seuraava arvio: ${this.formatKaraokeDelay(this.karaokeEvent.nextCheckAt - Date.now())}.`;
+    this.announceKaraokeEvent(text, false);
+  },
+
+  updateKaraokeEvent() {
+    this.normalizeKaraokeEvent();
+
+    if (this.karaokeEvent.active && Game.state.day >= this.karaokeEvent.activeUntilDay) {
+      this.closeKaraokeEvent();
+      return;
+    }
+
+    if (!this.karaokeEvent.active && this.karaokeEvent.nextCheckAt && Date.now() >= this.karaokeEvent.nextCheckAt) {
+      this.openKaraokeEvent();
+    }
+  },
+
+  isKaraokeAvailable() {
+    this.updateKaraokeEvent();
+    return this.karaokeEvent.active;
+  },
+
+  karaokeEventStatusText() {
+    this.updateKaraokeEvent();
+
+    if (this.karaokeEvent.active) {
+      const daysLeft = Math.max(1, this.karaokeEvent.activeUntilDay - Game.state.day);
+      return `Karaokeilta auki. Aikaa jäljellä ${daysLeft} pelipäivää.`;
+    }
+
+    return `Karaokeilta kiinni. Seuraava arvio: ${this.formatKaraokeDelay(this.karaokeEvent.nextCheckAt - Date.now())}.`;
+  },
+
+  formatKaraokeDelay(ms) {
+    const minutes = Math.max(0, Math.ceil(Number(ms || 0) / 60000));
+    if (minutes <= 1) return 'alle minuutti';
+    if (minutes < 60) return `noin ${minutes} min`;
+
+    const hours = Math.floor(minutes / 60);
+    const rest = minutes % 60;
+    return rest ? `noin ${hours} h ${rest} min` : `noin ${hours} h`;
+  },
+
+  announceKaraokeEvent(text, sound) {
+    if (typeof UI !== 'undefined' && typeof UI.announceEvent === 'function') {
+      UI.announceEvent(text, { sound, type: 'karaoke' });
+    }
   },
 
   injectStyles() {
@@ -1024,6 +1133,14 @@ const Gambling = {
 
   startKaraoke(level) {
     if (this.karaokeActive || this.cupActive || this.cardActive) return;
+    if (!this.isKaraokeAvailable()) {
+      const text = `Karaoketuomio on kiinni. Seuraava arvio: ${this.formatKaraokeDelay(this.karaokeEvent.nextCheckAt - Date.now())}.`;
+      this.log = text;
+      Game.state.eventLog = text;
+      Game.update();
+      return;
+    }
+
     const config = this.karaokeDifficulties[level];
     if (!config) return;
     if (!this.payBet()) return;
@@ -1225,16 +1342,25 @@ const Gambling = {
     }, 260);
   },
 
+  tick() {
+    this.updateKaraokeEvent();
+  },
+
   render() {
+    this.updateKaraokeEvent();
+
     const euros = document.getElementById('gamblingEuros');
     const betText = document.getElementById('currentBetText');
     const log = document.getElementById('gamblingLog');
+    const karaokeStatus = document.getElementById('karaokeEventStatus');
 
     if (euros) euros.textContent = this.formatEuros(Game.state.euros);
     if (betText) betText.textContent = this.formatEuros(this.bet);
     if (log) log.textContent = this.log;
+    if (karaokeStatus) karaokeStatus.textContent = this.karaokeEventStatusText();
 
     const disabled = !this.canPay() || this.cupActive || this.karaokeActive || this.cardActive;
+    const karaokeDisabled = disabled || !this.karaokeEvent.active;
 
     const cupButton = document.getElementById('cupGameButton');
     const doubleButton = document.getElementById('karaokeDoubleButton');
@@ -1242,9 +1368,9 @@ const Gambling = {
     const quadrupleButton = document.getElementById('karaokeQuadrupleButton');
 
     if (cupButton) cupButton.disabled = disabled;
-    if (doubleButton) doubleButton.disabled = disabled;
-    if (tripleButton) tripleButton.disabled = disabled;
-    if (quadrupleButton) quadrupleButton.disabled = disabled;
+    if (doubleButton) doubleButton.disabled = karaokeDisabled;
+    if (tripleButton) tripleButton.disabled = karaokeDisabled;
+    if (quadrupleButton) quadrupleButton.disabled = karaokeDisabled;
 
     document.querySelectorAll('#section-gamblingContent .gambleCard button').forEach(button => {
       if (!['cupGameButton', 'karaokeDoubleButton', 'karaokeTripleButton', 'karaokeQuadrupleButton'].includes(button.id)) {

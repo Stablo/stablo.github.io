@@ -71,6 +71,14 @@
         <button id="siteButtonAccount" type="button" onclick="UI.showSite('account')">5. Tili</button>
       </nav>
 
+      <section id="eventTicker" class="eventTicker" aria-label="Tapahtumasyöte">
+        <div class="eventTickerHeader">
+          <strong>Tapahtumasyöte</strong>
+          <button id="eventAlarmToggle" type="button" onclick="UI.toggleEventAlerts()">Hälytykset: pois</button>
+        </div>
+        <div id="eventTickerList" class="eventTickerList"></div>
+      </section>
+
       <section id="site-daily" class="sitePanel activeSite">
         <main id="dailyMain" class="siteSingleColumn"></main>
       </section>
@@ -91,7 +99,7 @@
         <main id="accountMain" class="siteSingleColumn"></main>
       </section>
 
-      <footer>Villisika-Sepon juomapeli — versio 0.4.23-prestige-sqlfix</footer>
+      <footer>Villisika-Sepon juomapeli — versio 0.4.24-karaokeilta</footer>
     </div>
 
     <aside id="statsDock" class="statsDock" aria-label="Pikatilastot">

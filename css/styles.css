@@ -677,6 +677,70 @@ body.statsDockMinimized .statsDock {
   transform: translateY(-1px);
 }
 
+.eventTicker {
+  --theme-1: #ffcf73;
+  --theme-2: #543b12;
+  margin: -4px 0 18px;
+  border: 1px solid rgba(255, 207, 115, .48);
+  border-left: 6px solid #ffcf73;
+  border-radius: 10px;
+  background:
+    linear-gradient(135deg, rgba(46, 30, 11, .76), rgba(11, 13, 18, .92)),
+    radial-gradient(circle at top right, rgba(255, 207, 115, .12), transparent 18rem);
+  overflow: hidden;
+}
+
+.eventTickerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(255, 207, 115, .22);
+}
+
+.eventTickerHeader strong {
+  color: #ffe0a3;
+}
+
+.eventTickerHeader button {
+  width: auto;
+  min-width: 142px;
+  margin: 0;
+  padding: 6px 10px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.eventTickerList {
+  max-height: 86px;
+  overflow: auto;
+  padding: 6px 10px 8px;
+}
+
+.eventTickerItem {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: 10px;
+  padding: 3px 0;
+  border-bottom: 1px dotted rgba(255, 207, 115, .18);
+  color: #f4eee5;
+  font-size: 12px;
+}
+
+.eventTickerItem:last-child {
+  border-bottom: 0;
+}
+
+.eventTickerTime {
+  color: #c9b58f;
+}
+
+.eventTickerItem.good { color: #caffd8; }
+.eventTickerItem.bad { color: #ffd0d0; }
+.eventTickerItem.karaoke { color: #ffc5ec; }
+.eventTickerItem.kela { color: #bfe2ff; }
+
 .sitePanel { width: 100%; }
 .hiddenSite { display: none; }
 .activeSite { display: block; }

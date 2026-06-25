@@ -10,7 +10,7 @@ private tokens, personal account details, or other secrets in this file.
 
 Current version
 ---------------
-Game.version is currently 0.4.23-prestige-sqlfix.
+Game.version is currently 0.4.24-karaokeilta.
 
 README.txt should always mirror the actual Game.version in js/core.js whenever
 the core game version is changed.
@@ -48,7 +48,8 @@ Main file map
 - assets/seppo-logo.jpeg: sidebar logo shown at the top-left of the app.
 - css/styles.css: shared page layout and visual styling.
 - js/core.js: Game object, version, base state, module registration/update loop.
-- js/ui.js: side navigation, guide overlay, top site switching, quick stats.
+- js/ui.js: side navigation, guide overlay, top site switching, event ticker,
+  optional event alarm sound, and quick stats.
 - js/supabase-config.js: public Supabase client config.
 - js/modules/player.js: drinking beer, producing ryypyt and empty cans.
 - js/modules/beer-shop.js: beer prices, pack buying, price graphs.
@@ -62,7 +63,8 @@ Main file map
 - js/modules/collapse.js: Romahdus and game-over flow.
 - js/modules/helpers.js: Lauri, Jarski, Tuomas helper drinking/ryyppy output.
 - js/modules/upgrades.js: permanent upgrades bought with ryypyt.
-- js/modules/gambling.js: euro-based gambling minigames.
+- js/modules/gambling.js: euro-based gambling minigames, including timed
+  Karaokeilta availability for Karaoketuomio.
 - js/modules/account.js: Supabase login/signup/password reset/cloud save UI.
 - js/modules/save.js: save sanitation, always-on browser autosave, paced cloud
   autosave, and save/load state packaging.
@@ -70,6 +72,22 @@ Main file map
 
 Recent version notes
 --------------------
+0.4.24-karaokeilta
+- Karaoketuomio is now gated behind a timed Karaokeilta event. It opens on a
+  real-time schedule with a random 20-30 minute delay between windows, which is
+  roughly 2-3 appearances per hour, and each window lasts 5 in-game days.
+- Karaoke event state is saved/restored through SaveLoad.gamblingKaraokeEvent
+  so reloads do not reroll the timer.
+- Karaoke payouts were reduced to 1.5x, 2.1x, and 3x to keep it useful without
+  overwhelming other money sources.
+- Added a persistent top event ticker for Karaokeilta notices, random events,
+  and Kela problems. UI.announceEvent(text, options) is the shared entrypoint.
+- Added optional event alarm sounds controlled by the event ticker button.
+  They are off by default, remembered in localStorage, and respect
+  Game.config.soundVolume.
+- This is local gameplay/UI/audio/save packaging only; no Supabase SQL/schema
+  change is needed.
+
 0.4.23-prestige-sqlfix
 - Fixed claim_prestige(run_oluet) in supabase-setup.sql so the profile table is
   aliased when updating lifetime_oluet. Without this, Supabase could fail

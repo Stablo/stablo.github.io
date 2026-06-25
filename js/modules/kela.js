@@ -245,9 +245,21 @@ const Kela = {
     const b = this.normalizeBenefit(type);
     if (Math.random() > this.problemChance(type, fromApplication)) return;
 
-    b.problems.push(this.createProblem(type, fromApplication));
+    const problem = this.createProblem(type, fromApplication);
+    b.problems.push(problem);
     if (typeof Stress !== 'undefined') Game.changeStress(fromApplication ? 6 : 8);
     if (!this.activeProblem) this.activeProblem = { benefitType: type, problemId: b.problems[0].id };
+    this.announceProblem(type, problem);
+  },
+
+  announceProblem(type, problem) {
+    const benefit = this.benefitDefaults[type]?.name || 'Kela';
+    const text = `Kela-ongelma: ${benefit} - ${problem.title || 'selvityspyyntö'}.`;
+    Game.state.eventLog = text;
+
+    if (typeof UI !== 'undefined' && typeof UI.announceEvent === 'function') {
+      UI.announceEvent(text, { sound: true, type: 'kela' });
+    }
   },
 
   createProblem(type, fromApplication) {

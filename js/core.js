@@ -1,5 +1,5 @@
 const Game = {
-  version: "0.4.23-prestige-sqlfix",
+  version: "0.4.24-karaokeilta",
   modules: [],
   config: {
     canValue: 0.20,

@@ -89,6 +89,14 @@ const SaveLoad = {
       clean.economy.history = Array.isArray(clean.economy.history) ? clean.economy.history.slice(-20) : [];
     }
 
+    if (clean.gamblingKaraokeEvent) {
+      const event = clean.gamblingKaraokeEvent;
+      event.active = !!event.active;
+      event.activeUntilDay = this.clampInteger(event.activeUntilDay, 0, maxResource, 0);
+      event.nextCheckAt = this.clampNumber(event.nextCheckAt, 0, 9999999999999, 0);
+      event.openedAt = this.clampNumber(event.openedAt, 0, 9999999999999, 0);
+    }
+
     return clean;
   },
 
@@ -108,7 +116,8 @@ const SaveLoad = {
       returnsCooldown: Returns.puulantoriCooldown,
       upgradesPurchased: typeof Upgrades !== 'undefined' ? Upgrades.purchased : {},
       gamblingBet: typeof Gambling !== 'undefined' ? Gambling.bet : 25,
-      gamblingLog: typeof Gambling !== 'undefined' ? Gambling.log : ''
+      gamblingLog: typeof Gambling !== 'undefined' ? Gambling.log : '',
+      gamblingKaraokeEvent: typeof Gambling !== 'undefined' ? Gambling.karaokeEvent : null
     };
 
     return this.sanitizeSaveData(data);
@@ -147,6 +156,10 @@ const SaveLoad = {
     if (typeof Gambling !== 'undefined') {
       Gambling.bet = data.gamblingBet ?? 25;
       Gambling.log = data.gamblingLog || Gambling.log;
+      if (data.gamblingKaraokeEvent) {
+        Gambling.karaokeEvent = data.gamblingKaraokeEvent;
+        Gambling.normalizeKaraokeEvent();
+      }
     }
 
     Game.update();
