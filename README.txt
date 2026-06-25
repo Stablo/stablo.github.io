@@ -1,8 +1,12 @@
-Villisika-Sepon juomapeli — versio 0.4.11-sivujako
+Villisika-Sepon juomapeli — versio 0.4.12-kelapaatokset
 
 Avaa index.html selaimessa.
 
 Uutta tässä versiossa:
+- Kela-maksut vaihtelevat nyt tukikohtaisen summavälin ja päätöstyypin mukaan.
+- Kela-ongelmiin lisätty paperirumban lisäksi puhelujono, liitejahti ja tulotarkistus.
+- Väärät Kela-valinnat lisäävät käsittelyyn päivän ja stressiä.
+- Virastovaisto-parannus auttaa nyt selvästi paperirumba-ongelmiin.
 - Ylävalikko jaettu viiteen sivuun: Arki, Raha & ostokset, Apurit & kehitys, Uhkapelit ja Tili.
 - Peruspelin ruuhkaa kevennetty siirtämällä ostokset, rahanteko, apurit, parannukset ja tili omille sivuilleen.
 - Numeropikanäppäimet toimivat nyt sivuille 1-5 uuden ylävalikon mukaan.

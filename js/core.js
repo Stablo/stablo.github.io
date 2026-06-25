@@ -1,5 +1,5 @@
 const Game = {
-  version: "0.4.11-sivujako",
+  version: "0.4.12-kelapaatokset",
   modules: [],
   config: {
     canValue: 0.20,

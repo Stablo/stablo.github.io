@@ -23,7 +23,7 @@ const Upgrades = {
       id: 'virastovaisto',
       name: 'Virastovaisto ja varakynä',
       cost: 1400,
-      effect: 'Uusissa Kela-ongelmissa on kaksi lomaketta vähemmän.'
+      effect: 'Kelan paperirumba-ongelmissa on kaksi lomaketta vähemmän.'
     },
     {
       id: 'keikkamuisti',

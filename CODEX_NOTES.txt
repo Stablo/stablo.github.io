@@ -10,7 +10,7 @@ private tokens, personal account details, or other secrets in this file.
 
 Current version
 ---------------
-Game.version is currently 0.4.11-sivujako.
+Game.version is currently 0.4.12-kelapaatokset.
 
 README.txt should always mirror the actual Game.version in js/core.js whenever
 the core game version is changed.
@@ -65,6 +65,20 @@ Main file map
 
 Recent version notes
 --------------------
+0.4.12-kelapaatokset
+- Kela was rewritten from a one-line module into a formatted module for easier
+  future tuning.
+- Kela payments now roll inside visible benefit ranges, then apply a decision
+  modifier:
+  Toimeentulotuki 45-75 €, Yleistuki 520-680 €, Asumistuki 220-340 €.
+- Decision types include Tavallinen päätös, Hyvä päätös, Osittainen hyväksyntä,
+  and Takautuva päätös. Takautuva can pay more but adds processing days.
+- Kela problems now have several flavors:
+  Paperirumba, Puhelujono, Liitejahti, and Tulotarkistus.
+- The old form-clicking problem is still present as Paperirumba.
+- Wrong choices in Liitejahti/Tulotarkistus add one processing day and stress.
+- Virastovaisto now clearly reduces forms only in Paperirumba problems.
+
 0.4.11-sivujako
 - Top navigation was split into five pages to reduce Peruspeli clutter:
   1 Arki, 2 Raha & ostokset, 3 Apurit & kehitys, 4 Uhkapelit, 5 Tili.

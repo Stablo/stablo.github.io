@@ -215,6 +215,12 @@ h1 {
 
 .formButton { min-width: 160px; }
 
+.kelaWrongChoice {
+  color: #ffb0b0;
+  border-color: #8f3434;
+  background: rgba(90, 0, 0, .22);
+}
+
 .beerRow,
 .marketRow {
   display: grid;
