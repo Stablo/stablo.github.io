@@ -113,6 +113,7 @@ input:disabled {
 .leftNav button[data-target="marketContent"] { --theme-1:#8bd450; --theme-2:#174b2b; border-left-color:#8bd450; }
 .leftNav button[data-target="eventContent"] { --theme-1:#d86cff; --theme-2:#55146f; border-left-color:#d86cff; }
 .leftNav button[data-target="helpersContent"] { --theme-1:#ff9c42; --theme-2:#683016; border-left-color:#ff9c42; }
+.leftNav button[data-target="upgradesContent"] { --theme-1:#8ef7b2; --theme-2:#135232; border-left-color:#8ef7b2; }
 .leftNav button[data-target="moneyContent"] { --theme-1:#b5d7e8; --theme-2:#31576b; border-left-color:#b5d7e8; }
 .leftNav button[data-target="jobsContent"] { --theme-1:#ffd166; --theme-2:#5f4213; border-left-color:#ffd166; }
 .leftNav button[data-target="kelaContent"] { --theme-1:#f8b516; --theme-2:#003580; border-left-color:#f8b516; }
@@ -481,7 +482,7 @@ footer {
   top: 0;
   z-index: 30;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
   gap: 10px;
   margin: 0 0 18px;
   padding: 10px;
@@ -499,8 +500,10 @@ footer {
 }
 
 .topSiteNav button:nth-child(1) { --theme-1:#f2bd45; --theme-2:#66410f; }
-.topSiteNav button:nth-child(2) { --theme-1:#8ef7b2; --theme-2:#135232; }
-.topSiteNav button:nth-child(3) { --theme-1:#ff5fb7; --theme-2:#5f1240; }
+.topSiteNav button:nth-child(2) { --theme-1:#ffcf47; --theme-2:#2d5c2f; }
+.topSiteNav button:nth-child(3) { --theme-1:#8ef7b2; --theme-2:#135232; }
+.topSiteNav button:nth-child(4) { --theme-1:#ff5fb7; --theme-2:#5f1240; }
+.topSiteNav button:nth-child(5) { --theme-1:#72f2d0; --theme-2:#145b50; }
 
 .topSiteNav button.active {
   color: #fff;

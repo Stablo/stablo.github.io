@@ -23,7 +23,7 @@ const Helpers = {
   init() {
     this.normalize();
 
-    document.getElementById('gameMain').insertAdjacentHTML(
+    document.getElementById('progressMain').insertAdjacentHTML(
       'beforeend',
       Game.section(
         'Apurit',

@@ -1,8 +1,11 @@
-Villisika-Sepon juomapeli — versio 0.4.10-oluttasapaino
+Villisika-Sepon juomapeli — versio 0.4.11-sivujako
 
 Avaa index.html selaimessa.
 
 Uutta tässä versiossa:
+- Ylävalikko jaettu viiteen sivuun: Arki, Raha & ostokset, Apurit & kehitys, Uhkapelit ja Tili.
+- Peruspelin ruuhkaa kevennetty siirtämällä ostokset, rahanteko, apurit, parannukset ja tili omille sivuilleen.
+- Numeropikanäppäimet toimivat nyt sivuille 1-5 uuden ylävalikon mukaan.
 - Olutkaupan pakkauskoot tasapainotettu: 6-pack on edullisin, 12-pack ja 24-pack maksavat mukavuudesta.
 - 24-packien hintavaihtelu on nostettu korkeammalle, jotta varastointi ei ole automaattisesti paras valinta.
 - Kolmen kupin katastrofissa on nyt punaiset muovikupit, jotka kääntyvät sekoituksen jälkeen.

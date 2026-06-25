@@ -15,7 +15,7 @@ const BeerShop = {
   init() {
     this.createPackages();
     this.averagePriceHistory = [this.getAveragePricePerCan()];
-    document.getElementById('gameMain').insertAdjacentHTML(
+    document.getElementById('moneyMain').insertAdjacentHTML(
       'beforeend',
       Game.section(
         'Olutkauppa',

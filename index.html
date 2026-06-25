@@ -20,6 +20,7 @@
       <button data-target="marketContent">Supermarket</button>
       <button data-target="eventContent">Tapahtumat</button>
       <button data-target="helpersContent">Apurit</button>
+      <button data-target="upgradesContent">Pysyvät parannukset</button>
       <button data-target="moneyContent">Palautukset</button>
       <button data-target="jobsContent">Pikkukeikat</button>
       <button data-target="kelaContent">Kela</button>
@@ -30,27 +31,37 @@
       <h1>🍺 Villisika-Sepon juomapeli 🍺</h1>
 
       <nav class="topSiteNav" aria-label="Pelin pääsivut">
-        <button id="siteButtonGame" class="active" type="button" onclick="UI.showSite('game')">1. Peruspeli</button>
-        <button id="siteButtonUpgrades" type="button" onclick="UI.showSite('upgrades')">2. Pysyvät parannukset</button>
-        <button id="siteButtonGambling" type="button" onclick="UI.showSite('gambling')">3. Uhkapelit</button>
+        <button id="siteButtonDaily" class="active" type="button" onclick="UI.showSite('daily')">1. Arki</button>
+        <button id="siteButtonMoney" type="button" onclick="UI.showSite('money')">2. Raha & ostokset</button>
+        <button id="siteButtonProgress" type="button" onclick="UI.showSite('progress')">3. Apurit & kehitys</button>
+        <button id="siteButtonGambling" type="button" onclick="UI.showSite('gambling')">4. Uhkapelit</button>
+        <button id="siteButtonAccount" type="button" onclick="UI.showSite('account')">5. Tili</button>
       </nav>
 
-      <section id="site-game" class="sitePanel activeSite">
+      <section id="site-daily" class="sitePanel activeSite">
         <div class="layout">
-          <main id="gameMain"></main>
+          <main id="dailyMain"></main>
           <aside id="statsPanel" class="box"></aside>
         </div>
       </section>
 
-      <section id="site-upgrades" class="sitePanel hiddenSite">
-        <main id="upgradesMain" class="siteSingleColumn"></main>
+      <section id="site-money" class="sitePanel hiddenSite">
+        <main id="moneyMain" class="siteSingleColumn"></main>
+      </section>
+
+      <section id="site-progress" class="sitePanel hiddenSite">
+        <main id="progressMain" class="siteSingleColumn"></main>
       </section>
 
       <section id="site-gambling" class="sitePanel hiddenSite">
         <main id="gamblingMain" class="siteSingleColumn"></main>
       </section>
 
-      <footer>Villisika-Sepon juomapeli — versio 0.4.10-oluttasapaino</footer>
+      <section id="site-account" class="sitePanel hiddenSite">
+        <main id="accountMain" class="siteSingleColumn"></main>
+      </section>
+
+      <footer>Villisika-Sepon juomapeli — versio 0.4.11-sivujako</footer>
     </div>
   </div>
 

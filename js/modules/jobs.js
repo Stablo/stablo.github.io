@@ -38,7 +38,7 @@ const Jobs = {
     this.jobs = this.pickRandomJobs(5);
     this.jobs.forEach(job => this.cooldowns[job.slotId] = 0);
 
-    document.getElementById('gameMain').insertAdjacentHTML(
+    document.getElementById('moneyMain').insertAdjacentHTML(
       'beforeend',
       Game.section(
         'Pikkukeikat',

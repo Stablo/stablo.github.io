@@ -13,7 +13,7 @@ const Stress = {
   dailyMeltdownDone: false,
 
   init() {
-    document.getElementById('gameMain').insertAdjacentHTML(
+    document.getElementById('dailyMain').insertAdjacentHTML(
       'beforeend',
       Game.section(
         'Stressi',

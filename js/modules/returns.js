@@ -7,7 +7,7 @@ const Returns = {
   puulantoriCooldown: 0,
 
   init() {
-    document.getElementById('gameMain').insertAdjacentHTML(
+    document.getElementById('moneyMain').insertAdjacentHTML(
       'beforeend',
       Game.section(
         'Eurojen tienaaminen',

@@ -1,5 +1,5 @@
 const Game = {
-  version: "0.4.10-oluttasapaino",
+  version: "0.4.11-sivujako",
   modules: [],
   config: {
     canValue: 0.20,

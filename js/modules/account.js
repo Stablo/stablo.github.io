@@ -22,7 +22,7 @@ const Account = {
   },
 
   init() {
-    document.getElementById('gameMain').insertAdjacentHTML(
+    document.getElementById('accountMain').insertAdjacentHTML(
       'beforeend',
       Game.section(
         'Tili ja tallennus',

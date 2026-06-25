@@ -78,7 +78,7 @@ const Upgrades = {
       Game.state.manualDrinksForTiiviste = 0;
     }
 
-    document.getElementById('upgradesMain').insertAdjacentHTML(
+    document.getElementById('progressMain').insertAdjacentHTML(
       'beforeend',
       Game.section(
         'Pysyvät parannukset',

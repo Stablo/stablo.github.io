@@ -1,6 +1,6 @@
 const Player = {
   init() {
-    document.getElementById('gameMain').insertAdjacentHTML(
+    document.getElementById('dailyMain').insertAdjacentHTML(
       'beforeend',
       Game.section(
         'Peli',

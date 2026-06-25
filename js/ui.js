@@ -1,9 +1,27 @@
 const UI = {
+  sites: ['daily', 'money', 'progress', 'gambling', 'account'],
+  sectionSites: {
+    mainContent: 'daily',
+    stressContent: 'daily',
+    collapseContent: 'daily',
+    timeContent: 'daily',
+    eventContent: 'daily',
+    beerShopContent: 'money',
+    marketContent: 'money',
+    moneyContent: 'money',
+    jobsContent: 'money',
+    kelaContent: 'money',
+    helpersContent: 'progress',
+    upgradesContent: 'progress',
+    gamblingContent: 'gambling',
+    accountContent: 'account'
+  },
+
   init() {
     document.querySelectorAll('.leftNav button[data-target]').forEach(button => {
       button.onclick = () => {
-        this.showSite('game');
         const id = button.dataset.target;
+        this.showSite(this.sectionSites[id] || 'daily');
         if (id === 'mainContent') {
           setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 40);
           return;
@@ -27,12 +45,16 @@ const UI = {
       return;
     }
 
+    if (document.getElementById('guideOverlay')) return;
+
     if (event.ctrlKey || event.altKey || event.metaKey || this.isTypingTarget(event.target)) return;
 
     const sitesByKey = {
-      1: 'game',
-      2: 'upgrades',
-      3: 'gambling'
+      1: 'daily',
+      2: 'money',
+      3: 'progress',
+      4: 'gambling',
+      5: 'account'
     };
 
     const site = sitesByKey[event.key];
@@ -49,7 +71,7 @@ const UI = {
   },
 
   showSite(site) {
-    ['game', 'upgrades', 'gambling'].forEach(name => {
+    this.sites.forEach(name => {
       const panel = document.getElementById('site-' + name);
       const button = document.getElementById('siteButton' + name.charAt(0).toUpperCase() + name.slice(1));
 
@@ -110,7 +132,7 @@ const UI = {
 
         <h3>Pysyvät parannukset</h3>
         <ul>
-          <li>Parannukset ostetaan ryypyillä omalla ylävalikon sivullaan.</li>
+          <li>Parannukset ostetaan ryypyillä Apurit & kehitys -sivulla.</li>
           <li>Ne ovat kalliita, mutta pysyviä. Osta niitä vasta kun perusarki ei kaadu joka päivä.</li>
           <li>Teräsmaksan tiiviste vahvistuu hitaasti: se vaatii 50 itse juotua olutta ennen pysyvää +1 ryyppyä per olut.</li>
           <li>Apuriparannukset voivat säästää tölkkejä tai kasvattaa tuotantoa, joten ne sopivat pitkään peliin.</li>
