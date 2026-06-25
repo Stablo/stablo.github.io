@@ -1,8 +1,10 @@
-Villisika-Sepon juomapeli — versio 0.4.6-tilikorjaus
+Villisika-Sepon juomapeli — versio 0.4.7-olutpisteet
 
 Avaa index.html selaimessa.
 
 Uutta tässä versiossa:
+- Pistetaulu näyttää nyt parhaat juodut oluet ryypyn sijaan.
+- Supabase-tietokanta tarvitsee päivitetyn supabase-setup.sql-ajon olutpisteitä varten.
 - Tilinluonti ohjaa sähköpostivahvistuksen takaisin nykyiseen peliosoitteeseen.
 - Tiliosioon lisätty salasanan palautus sähköpostilinkin kautta.
 - Uusi apuri Tuomas: halpa mutta arvaamaton, juo päivittäin satunnaisen osuuden täysistä tölkeistäsi.

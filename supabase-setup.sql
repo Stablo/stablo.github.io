@@ -96,12 +96,20 @@ add column if not exists current_ryypyt bigint not null default 0;
 alter table public.profiles
 add column if not exists best_ryypyt bigint not null default 0;
 
+alter table public.profiles
+add column if not exists current_oluet bigint not null default 0;
+
+alter table public.profiles
+add column if not exists best_oluet bigint not null default 0;
+
 update public.profiles
 set
   nickname = btrim(regexp_replace(nickname, '\s+', ' ', 'g')),
   current_ryypyt = greatest(0, least(1000000000, coalesce(current_ryypyt, ryypyt, 0))),
   best_ryypyt = greatest(0, least(1000000000, greatest(coalesce(best_ryypyt, 0), coalesce(ryypyt, 0), coalesce(current_ryypyt, 0)))),
-  ryypyt = greatest(0, least(1000000000, greatest(coalesce(best_ryypyt, 0), coalesce(ryypyt, 0), coalesce(current_ryypyt, 0))));
+  ryypyt = greatest(0, least(1000000000, greatest(coalesce(best_ryypyt, 0), coalesce(ryypyt, 0), coalesce(current_ryypyt, 0)))),
+  current_oluet = greatest(0, least(1000000000, coalesce(current_oluet, 0))),
+  best_oluet = greatest(0, least(1000000000, greatest(coalesce(best_oluet, 0), coalesce(current_oluet, 0))));
 
 alter table public.profiles
 drop constraint if exists profiles_nickname_format;
@@ -123,7 +131,10 @@ check (
   current_ryypyt between 0 and 1000000000
   and best_ryypyt between 0 and 1000000000
   and ryypyt between 0 and 1000000000
+  and current_oluet between 0 and 1000000000
+  and best_oluet between 0 and 1000000000
   and best_ryypyt >= current_ryypyt
+  and best_oluet >= current_oluet
   and ryypyt = best_ryypyt
 )
 not valid;
@@ -223,6 +234,53 @@ begin
 end;
 $$;
 
+create or replace function public.safe_oluet_from_save(save_data jsonb)
+returns bigint
+language plpgsql
+immutable
+as $$
+declare
+  raw_value text;
+  parsed_value numeric;
+begin
+  raw_value := save_data #>> '{state,oluet}';
+
+  if raw_value is null or raw_value !~ '^-?[0-9]+(\.[0-9]+)?$' then
+    return 0;
+  end if;
+
+  parsed_value := floor(raw_value::numeric);
+
+  if parsed_value < 0 then
+    return 0;
+  end if;
+
+  if parsed_value > 1000000000 then
+    return 1000000000;
+  end if;
+
+  return parsed_value::bigint;
+end;
+$$;
+
+with latest_saves as (
+  select distinct on (user_id)
+    user_id,
+    public.safe_ryypyt_from_save(save_data) as ryypyt_score,
+    public.safe_oluet_from_save(save_data) as oluet_score
+  from public.game_saves
+  order by user_id, updated_at desc
+)
+update public.profiles as profiles
+set
+  current_ryypyt = latest_saves.ryypyt_score,
+  best_ryypyt = greatest(profiles.best_ryypyt, latest_saves.ryypyt_score),
+  ryypyt = greatest(profiles.best_ryypyt, latest_saves.ryypyt_score),
+  current_oluet = latest_saves.oluet_score,
+  best_oluet = greatest(profiles.best_oluet, latest_saves.oluet_score)
+from latest_saves
+where profiles.user_id = latest_saves.user_id;
+
 create or replace function public.sync_profile_score_from_save()
 returns trigger
 language plpgsql
@@ -230,15 +288,19 @@ security definer
 set search_path = public
 as $$
 declare
-  score bigint;
+  ryypyt_score bigint;
+  oluet_score bigint;
 begin
-  score := public.safe_ryypyt_from_save(new.save_data);
+  ryypyt_score := public.safe_ryypyt_from_save(new.save_data);
+  oluet_score := public.safe_oluet_from_save(new.save_data);
 
   update public.profiles
   set
-    current_ryypyt = score,
-    best_ryypyt = greatest(best_ryypyt, score),
-    ryypyt = greatest(best_ryypyt, score),
+    current_ryypyt = ryypyt_score,
+    best_ryypyt = greatest(best_ryypyt, ryypyt_score),
+    ryypyt = greatest(best_ryypyt, ryypyt_score),
+    current_oluet = oluet_score,
+    best_oluet = greatest(best_oluet, oluet_score),
     updated_at = now()
   where user_id = new.user_id;
 
@@ -259,11 +321,12 @@ drop view if exists public.scoreboard;
 create view public.scoreboard as
 select
   nickname,
+  best_oluet as oluet,
   best_ryypyt as ryypyt,
   updated_at
 from public.profiles
 where
-  best_ryypyt > 0
+  best_oluet > 0
   and nickname ~ '^[A-Za-z0-9ÅÄÖåäö _-]{2,24}$';
 
 grant select on public.scoreboard to anon, authenticated;

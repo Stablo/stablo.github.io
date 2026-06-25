@@ -74,7 +74,7 @@ const Account = {
           <hr>
 
           <h3>Pistetaulu</h3>
-          <p class="smallHint">Pistetaulu näyttää tilien parhaimman pilvitallennetun ryyppymäärän.</p>
+          <p class="smallHint">Pistetaulu näyttää tilien parhaimman pilvitallennetun juotujen oluiden määrän.</p>
           <ol id="scoreboardList" class="scoreboardList"></ol>
           <button id="accountRefreshScoreboardButton" onclick="Account.refreshScoreboard()">Päivitä pistetaulu</button>
         `
@@ -457,11 +457,19 @@ const Account = {
   async loadProfile() {
     if (!this.client || !this.user) return;
 
-    const { data, error } = await this.client
+    let { data, error } = await this.client
       .from('profiles')
-      .select('nickname, current_ryypyt, best_ryypyt, updated_at')
+      .select('nickname, current_oluet, best_oluet, current_ryypyt, best_ryypyt, updated_at')
       .eq('user_id', this.user.id)
       .maybeSingle();
+
+    if (error && this.isMissingColumnError(error, 'oluet')) {
+      ({ data, error } = await this.client
+        .from('profiles')
+        .select('nickname, current_ryypyt, best_ryypyt, updated_at')
+        .eq('user_id', this.user.id)
+        .maybeSingle());
+    }
 
     if (error) {
       this.message = error.message;
@@ -530,12 +538,27 @@ const Account = {
   async loadScoreboard() {
     if (!this.client) return false;
 
-    const { data, error } = await this.client
+    let { data, error } = await this.client
       .from('scoreboard')
-      .select('nickname, ryypyt, updated_at')
-      .order('ryypyt', { ascending: false })
+      .select('nickname, oluet, updated_at')
+      .order('oluet', { ascending: false })
       .order('updated_at', { ascending: true })
       .limit(10);
+
+    if (error && this.isMissingColumnError(error, 'oluet')) {
+      const fallback = await this.client
+        .from('scoreboard')
+        .select('nickname, ryypyt, updated_at')
+        .order('ryypyt', { ascending: false })
+        .order('updated_at', { ascending: true })
+        .limit(10);
+
+      data = (fallback.data || []).map(row => ({ ...row, oluet: row.ryypyt }));
+      error = fallback.error;
+      if (!error) {
+        this.message = 'Pistetaulu käyttää vanhaa tietokantaa, kunnes Supabase SQL päivitetään.';
+      }
+    }
 
     if (error) {
       this.scoreboard = [];
@@ -547,6 +570,15 @@ const Account = {
     this.scoreboard = data || [];
     this.render();
     return true;
+  },
+
+  isMissingColumnError(error, column) {
+    const text = (error?.message || error?.details || error?.hint || '').toLowerCase();
+    return text.includes(column.toLowerCase()) && (
+      text.includes('column') ||
+      text.includes('does not exist') ||
+      text.includes('not found')
+    );
   },
 
   async refreshScoreboard() {
@@ -805,9 +837,13 @@ const Account = {
     if (password) password.disabled = this.busy || loggedIn;
     if (nickname) nickname.disabled = this.busy || !loggedIn;
     if (nicknameStatus) {
-      nicknameStatus.textContent = this.profile
-        ? `Paras pistetaulun tulos: ${Number(this.profile.best_ryypyt || 0).toLocaleString('fi-FI')} ryyppyä`
-        : 'Valitse nimimerkki, jotta näyt pistetaululla.';
+      if (this.profile && this.profile.best_oluet !== undefined) {
+        nicknameStatus.textContent = `Paras pistetaulun tulos: ${Number(this.profile.best_oluet || 0).toLocaleString('fi-FI')} juotua olutta`;
+      } else if (this.profile) {
+        nicknameStatus.textContent = 'Tallenna peli, jotta juodut oluet päivittyvät pistetaululle.';
+      } else {
+        nicknameStatus.textContent = 'Valitse nimimerkki, jotta näyt pistetaululla.';
+      }
     }
     if (register) register.disabled = this.busy || !configured || !connected || loggedIn || registerCooling;
     if (login) login.disabled = this.busy || !configured || !connected || loggedIn || loginCooling;
@@ -831,9 +867,10 @@ const Account = {
           const item = document.createElement('li');
           const name = document.createElement('span');
           const score = document.createElement('strong');
+          const drinks = Number(row.oluet ?? row.ryypyt ?? 0);
 
           name.textContent = row.nickname || 'Nimetön';
-          score.textContent = `${Number(row.ryypyt || 0).toLocaleString('fi-FI')} ryyppyä`;
+          score.textContent = `${drinks.toLocaleString('fi-FI')} juotua olutta`;
 
           item.appendChild(name);
           item.appendChild(score);
