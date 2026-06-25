@@ -76,8 +76,13 @@ input:disabled {
 
 .appShell {
   display: grid;
-  grid-template-columns: 220px 1fr;
+  grid-template-columns: 220px minmax(0, 1fr) clamp(260px, 22vw, 320px);
   min-height: 100vh;
+  transition: grid-template-columns .18s ease;
+}
+
+body.statsDockMinimized .appShell {
+  grid-template-columns: 220px minmax(0, 1fr) 48px;
 }
 
 .leftNav {
@@ -95,10 +100,17 @@ input:disabled {
   overflow: auto;
 }
 
-.leftNav h2 {
-  margin-top: 0;
-  color: #ffe3a1;
-  text-shadow: 0 0 14px rgba(255, 180, 80, 0.3);
+.sidebarLogo {
+  width: min(174px, 100%);
+  margin: -4px auto 12px;
+}
+
+.sidebarLogo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 50%;
+  filter: drop-shadow(0 8px 14px rgba(0,0,0,.42)) drop-shadow(0 0 12px rgba(240,184,75,.18));
 }
 
 .leftNav button {
@@ -448,9 +460,11 @@ footer {
   --theme-2: #5e3b13;
   --theme-3: #1c1207;
   --theme-glow: rgba(246, 211, 141, .14);
-  position: sticky;
-  top: 18px;
-  align-self: start;
+  width: 100%;
+  min-width: 0;
+  max-height: calc(100vh - 32px);
+  margin: 0;
+  overflow: auto;
 }
 
 #statsPanel h2 {
@@ -458,8 +472,50 @@ footer {
   color: #ffe6ad;
 }
 
+.statsDock {
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 16px 16px 16px 0;
+  overflow: hidden;
+}
+
+.statsDockToggle {
+  --theme-1: #f6d38d;
+  --theme-2: #5e3b13;
+  flex: 0 0 36px;
+  width: 36px;
+  min-height: 128px;
+  margin: 0;
+  padding: 8px 5px;
+  border-left-width: 1px;
+  border-right-width: 6px;
+  text-align: center;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+.statsDockToggle:hover:not(:disabled) {
+  transform: rotate(180deg) translateY(1px);
+}
+
+body.statsDockMinimized #statsPanel {
+  display: none;
+}
+
+body.statsDockMinimized .statsDock {
+  padding-right: 6px;
+}
+
 @media (max-width: 900px) {
-  .appShell { grid-template-columns: 1fr; }
+  .appShell,
+  body.statsDockMinimized .appShell {
+    grid-template-columns: 1fr;
+  }
   .leftNav {
     position: relative;
     height: auto;
@@ -469,7 +525,11 @@ footer {
     grid-template-columns: repeat(2,1fr);
     gap: 4px;
   }
-  .leftNav h2 { grid-column: 1/-1; }
+  .sidebarLogo {
+    grid-column: 1/-1;
+    width: min(160px, 52vw);
+    margin-bottom: 8px;
+  }
   .navAudioControl {
     grid-column: 1/-1;
     margin-top: 8px;
@@ -485,7 +545,23 @@ footer {
   .layout { grid-template-columns: 1fr; }
   .beerRow,
   .marketRow { grid-template-columns: 1fr; }
-  #statsPanel { position: static; }
+  .statsDock {
+    position: fixed;
+    top: 92px;
+    right: 0;
+    width: min(320px, calc(100vw - 16px));
+    height: auto;
+    max-height: calc(100vh - 108px);
+    padding: 0 10px 0 0;
+    transform: translateX(0);
+    transition: transform .18s ease;
+  }
+  body.statsDockMinimized .statsDock {
+    transform: translateX(calc(100% - 44px));
+  }
+  #statsPanel {
+    max-height: calc(100vh - 108px);
+  }
 }
 
 .guideButton {

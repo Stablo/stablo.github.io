@@ -10,7 +10,7 @@ private tokens, personal account details, or other secrets in this file.
 
 Current version
 ---------------
-Game.version is currently 0.4.18-aanensaato.
+Game.version is currently 0.4.21-pikatilastot.
 
 README.txt should always mirror the actual Game.version in js/core.js whenever
 the core game version is changed.
@@ -45,6 +45,7 @@ Important project rules
 Main file map
 -------------
 - index.html: page shell, navigation, script loading, visible footer version.
+- assets/seppo-logo.jpeg: sidebar logo shown at the top-left of the app.
 - css/styles.css: shared page layout and visual styling.
 - js/core.js: Game object, version, base state, module registration/update loop.
 - js/ui.js: side navigation, guide overlay, top site switching, quick stats.
@@ -63,11 +64,45 @@ Main file map
 - js/modules/upgrades.js: permanent upgrades bought with ryypyt.
 - js/modules/gambling.js: euro-based gambling minigames.
 - js/modules/account.js: Supabase login/signup/password reset/cloud save UI.
-- js/modules/save.js: local save sanitation and save/load state packaging.
+- js/modules/save.js: save sanitation, always-on browser autosave, paced cloud
+  autosave, and save/load state packaging.
 - supabase-setup.sql: database tables, RLS, triggers, scoreboard view.
 
 Recent version notes
 --------------------
+0.4.21-pikatilastot
+- Moved Pikatilastot out of the Arki page layout into a persistent right-side
+  stats dock that is visible across all top-level pages.
+- The dock can be minimized to a narrow side handle. The old left-sidebar
+  Pikatilastot button now reopens the minimized dock.
+- Daily page layout now uses dailyMain as a normal single-column page because
+  statsPanel is no longer inside site-daily.
+- The Peliopas was adjusted to describe Pikatilastot as a global side panel.
+- This is UI/layout only; no Supabase or save schema changes.
+
+0.4.20-logo
+- Replaced the top-left sidebar "Seppo" text/beer icon with the provided
+  Villisika-Sepon juomapeli logo.
+- Added the logo as assets/seppo-logo.jpeg and sized it through .sidebarLogo
+  styles, including a mobile rule for the sidebar grid layout.
+- This is a local UI asset/style change only; no Supabase or save schema
+  changes.
+
+0.4.19-autosave
+- Added always-on browser autosave via localStorage. SaveLoad is now registered
+  as a module and restores the latest browser autosave during startup.
+- Logged-in players also get paced Supabase autosaves to the existing
+  game_saves row. Normal cloud autosave is throttled to about 45 seconds, with
+  important risk events allowed to retry after the existing 5 second database
+  guardrail.
+- Gambling bets/results and Romahdus request faster cloud autosaves, but the
+  code does not bypass Supabase rate limiting and backs off after failed cloud
+  attempts.
+- Starting the browser session over now clears the browser autosave but leaves
+  the cloud save intact.
+- Peliopas and account save text now describe autosaves. No SQL/schema change
+  is needed for this version.
+
 0.4.18-aanensaato
 - Added a separated volume slider to the bottom of the left sidebar.
 - Default/current volume is 50 %, stored as Game.config.soundVolume = 0.50.
@@ -158,7 +193,8 @@ Recent version notes
 - Top navigation was split into five pages to reduce Peruspeli clutter:
   1 Arki, 2 Raha & ostokset, 3 Apurit & kehitys, 4 Uhkapelit, 5 Tili.
 - Module homes:
-  Arki = Peli, Stressi, Romahdus, Aika, Satunnaiset tapahtumat, Pikatilastot.
+  Arki = Peli, Stressi, Romahdus, Aika, Satunnaiset tapahtumat.
+  Pikatilastot is a persistent right-side dock since 0.4.21.
   Raha & ostokset = Talous, Olutkauppa, Supermarket, Palautukset, Pikkukeikat, Kela.
   Apurit & kehitys = Apurit, Pysyvät parannukset.
   Uhkapelit = gambling minigames.

@@ -9,7 +9,9 @@
 <body>
   <div class="appShell">
     <aside class="leftNav">
-      <h2>🍺 Seppo</h2>
+      <div class="sidebarLogo">
+        <img src="assets/seppo-logo.jpeg" alt="Villisika-Sepon juomapeli">
+      </div>
       <button id="guideButton" class="guideButton" type="button">📖 Peliopas</button>
       <div class="navDivider"></div>
 
@@ -70,10 +72,7 @@
       </nav>
 
       <section id="site-daily" class="sitePanel activeSite">
-        <div class="layout">
-          <main id="dailyMain"></main>
-          <aside id="statsPanel" class="box"></aside>
-        </div>
+        <main id="dailyMain" class="siteSingleColumn"></main>
       </section>
 
       <section id="site-money" class="sitePanel hiddenSite">
@@ -92,8 +91,19 @@
         <main id="accountMain" class="siteSingleColumn"></main>
       </section>
 
-      <footer>Villisika-Sepon juomapeli — versio 0.4.18-aanensaato</footer>
+      <footer>Villisika-Sepon juomapeli — versio 0.4.21-pikatilastot</footer>
     </div>
+
+    <aside id="statsDock" class="statsDock" aria-label="Pikatilastot">
+      <button
+        id="statsDockToggle"
+        class="statsDockToggle"
+        type="button"
+        aria-expanded="true"
+        aria-controls="statsPanel"
+      >Piilota</button>
+      <div id="statsPanel" class="box"></div>
+    </aside>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

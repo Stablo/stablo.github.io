@@ -1,4 +1,30 @@
 const SaveLoad = {
+  localKey: 'villisikaSeppoAutosaveV1',
+  autoSaveReady: false,
+  restoring: false,
+  localTimer: null,
+  cloudTimer: null,
+  cloudAutosaveBusy: false,
+  cloudAutosaveForced: false,
+  lastLocalWrite: 0,
+  lastCloudWrite: 0,
+  cloudFailureCount: 0,
+  lastAutoSaveJson: '',
+  lastLocalStatus: null,
+  lastCloudStatus: null,
+  localDebounceMs: 800,
+  localMinIntervalMs: 2500,
+  cloudDebounceMs: 2500,
+  cloudMinIntervalMs: 45000,
+  cloudForcedMinIntervalMs: 6500,
+
+  init() {
+    const restored = this.restoreLocalAutoSave();
+    this.autoSaveReady = true;
+    this.requestAutoSave(restored ? 'autosave-loaded' : 'startup');
+    if (!restored) this.reportAutoSave();
+  },
+
   maxScore() {
     return typeof Account !== 'undefined' && Account.maxScore ? Account.maxScore : 1000000000;
   },
@@ -127,6 +153,180 @@ const SaveLoad = {
     return true;
   },
 
+  readLocalAutoSave() {
+    try {
+      return typeof localStorage === 'undefined' ? null : localStorage.getItem(this.localKey);
+    } catch (error) {
+      return null;
+    }
+  },
+
+  restoreLocalAutoSave() {
+    const raw = this.readLocalAutoSave();
+    if (!raw) return false;
+
+    try {
+      const payload = JSON.parse(raw);
+      const saveData = payload && payload.saveData ? payload.saveData : payload;
+      this.restoring = true;
+      const ok = this.restoreData(saveData);
+      this.restoring = false;
+
+      if (ok) {
+        this.lastAutoSaveJson = raw;
+        this.lastLocalWrite = Date.now();
+        this.lastLocalStatus = this.formatStatusTime();
+        this.report('Automaattitallennus ladattu selaimesta.');
+      }
+
+      return ok;
+    } catch (error) {
+      this.restoring = false;
+      this.clearLocalAutoSave();
+      this.report('Selainautosave oli viallinen ja tyhjennettiin.');
+      return false;
+    }
+  },
+
+  writeLocalAutoSave() {
+    try {
+      if (typeof localStorage === 'undefined') return false;
+      const payload = {
+        gameVersion: Game.version,
+        savedAt: new Date().toISOString(),
+        saveData: this.getSaveData()
+      };
+      const json = JSON.stringify(payload);
+      if (json === this.lastAutoSaveJson) return false;
+
+      localStorage.setItem(this.localKey, json);
+      this.lastAutoSaveJson = json;
+      this.lastLocalWrite = Date.now();
+      this.lastLocalStatus = this.formatStatusTime();
+      return true;
+    } catch (error) {
+      return false;
+    }
+  },
+
+  clearLocalAutoSave() {
+    try {
+      if (typeof localStorage !== 'undefined') localStorage.removeItem(this.localKey);
+    } catch (error) {
+      // localStorage can be unavailable in private or restricted browser modes.
+    }
+    this.lastAutoSaveJson = '';
+    this.lastLocalStatus = null;
+  },
+
+  clearAutoSaveTimers() {
+    if (this.localTimer) {
+      clearTimeout(this.localTimer);
+      this.localTimer = null;
+    }
+    if (this.cloudTimer) {
+      clearTimeout(this.cloudTimer);
+      this.cloudTimer = null;
+    }
+  },
+
+  requestAutoSave(reason = 'update', options = {}) {
+    if (!this.autoSaveReady || this.restoring) return;
+    if (options.forceCloud) this.cloudAutosaveForced = true;
+
+    if (this.localTimer) clearTimeout(this.localTimer);
+    this.localTimer = setTimeout(() => this.flushLocalAutoSave(reason), this.localDebounceMs);
+  },
+
+  flushLocalAutoSave(reason = 'update') {
+    this.localTimer = null;
+    if (!this.autoSaveReady || this.restoring) return;
+
+    const elapsed = Date.now() - this.lastLocalWrite;
+    if (elapsed < this.localMinIntervalMs) {
+      this.localTimer = setTimeout(() => this.flushLocalAutoSave(reason), this.localMinIntervalMs - elapsed);
+      return;
+    }
+
+    this.writeLocalAutoSave();
+    this.reportAutoSave();
+    this.scheduleCloudAutoSave(reason);
+  },
+
+  scheduleCloudAutoSave(reason = 'update') {
+    if (!this.canUseCloudAutoSave()) return;
+    if (this.cloudTimer) clearTimeout(this.cloudTimer);
+    this.cloudTimer = setTimeout(() => this.flushCloudAutoSave(reason), this.cloudDebounceMs);
+  },
+
+  canUseCloudAutoSave() {
+    return typeof Account !== 'undefined'
+      && Account.client
+      && Account.user
+      && !Account.busy
+      && !this.cloudAutosaveBusy;
+  },
+
+  async flushCloudAutoSave(reason = 'update') {
+    this.cloudTimer = null;
+    if (!this.canUseCloudAutoSave()) return false;
+
+    const now = Date.now();
+    const minimumInterval = this.cloudAutosaveForced ? this.cloudForcedMinIntervalMs : this.cloudMinIntervalMs;
+    const remaining = minimumInterval - (now - this.lastCloudWrite);
+    if (remaining > 0) {
+      this.cloudTimer = setTimeout(() => this.flushCloudAutoSave(reason), remaining);
+      return false;
+    }
+
+    this.cloudAutosaveBusy = true;
+    this.lastCloudWrite = now;
+    const saveData = this.getSaveData();
+    const { error } = await Account.client
+      .from('game_saves')
+      .upsert(
+        {
+          user_id: Account.user.id,
+          slot: Account.slot,
+          game_version: Game.version,
+          save_data: saveData,
+          updated_at: new Date().toISOString()
+        },
+        { onConflict: 'user_id,slot' }
+      );
+
+    this.cloudAutosaveBusy = false;
+
+    if (error) {
+      this.cloudFailureCount += 1;
+      if (this.cloudAutosaveForced) {
+        const retryDelay = Math.min(60000, this.cloudForcedMinIntervalMs * this.cloudFailureCount);
+        this.cloudTimer = setTimeout(() => this.flushCloudAutoSave(reason), retryDelay);
+      }
+      return false;
+    }
+
+    this.cloudFailureCount = 0;
+    this.lastCloudStatus = this.formatStatusTime();
+    this.cloudAutosaveForced = false;
+    this.reportAutoSave();
+    return true;
+  },
+
+  formatStatusTime() {
+    return new Date().toLocaleTimeString('fi-FI', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  },
+
+  reportAutoSave() {
+    const browserPart = this.lastLocalStatus ? `selain ${this.lastLocalStatus}` : 'selain valmiina';
+    const cloudPart = this.lastCloudStatus ? `, pilvi ${this.lastCloudStatus}` : '';
+    this.report(`Automaattitallennus käytössä: ${browserPart}${cloudPart}.`);
+  },
+
   report(message) {
     const status = document.getElementById('saveStatus');
     if (status) status.textContent = message;
@@ -139,6 +339,12 @@ const SaveLoad = {
     }
 
     const ok = await Account.cloudSave();
+    if (ok) {
+      this.lastCloudWrite = Date.now();
+      this.lastCloudStatus = this.formatStatusTime();
+      this.cloudAutosaveForced = false;
+      this.cloudFailureCount = 0;
+    }
     this.report(Account.message);
     return ok;
   },
@@ -151,11 +357,16 @@ const SaveLoad = {
 
     const ok = await Account.cloudLoad();
     this.report(Account.message);
+    if (ok) this.requestAutoSave('cloud-load');
     return ok;
   },
 
   reset() {
-    if (!confirm('Aloitetaanko nykyinen selainistunto alusta tallentamatta sitä pilveen?')) return;
+    if (!confirm('Aloitetaanko nykyinen selainistunto alusta? Selainautosave tyhjennetään, mutta pilvitallennusta ei poisteta.')) return;
+    this.clearAutoSaveTimers();
+    this.clearLocalAutoSave();
     location.reload();
   }
 };
+
+Game.register(SaveLoad);

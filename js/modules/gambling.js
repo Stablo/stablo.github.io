@@ -553,7 +553,14 @@ const Gambling = {
   payBet() {
     if (!this.canPay()) return false;
     Game.state.euros -= this.bet;
+    this.markRiskSave('gambling-bet');
     return true;
+  },
+
+  markRiskSave(reason) {
+    if (typeof SaveLoad !== 'undefined' && SaveLoad.requestAutoSave) {
+      SaveLoad.requestAutoSave(reason, { forceCloud: true });
+    }
   },
 
   win(amount, text) {
@@ -561,6 +568,7 @@ const Gambling = {
     this.log = text;
     Game.state.eventLog = text;
     Game.update();
+    this.markRiskSave('gambling-result');
   },
 
   lose(text, stress = 0, hangover = 0) {
@@ -569,6 +577,7 @@ const Gambling = {
     this.log = text;
     Game.state.eventLog = text;
     Game.update();
+    this.markRiskSave('gambling-result');
   },
 
   startCupGame() {
@@ -670,6 +679,7 @@ const Gambling = {
     };
 
     Game.update();
+    this.markRiskSave('cup-result');
   },
 
   cardDraw() {
@@ -744,6 +754,7 @@ const Gambling = {
         };
 
         Game.update();
+        this.markRiskSave('card-result');
       }, spinTime);
     }, 900);
   },

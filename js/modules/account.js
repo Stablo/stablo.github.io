@@ -67,9 +67,9 @@ const Account = {
           <div class="accountActions">
             <button id="accountCloudSaveButton" onclick="SaveLoad.save()">Tallenna peli</button>
             <button id="accountCloudLoadButton" onclick="SaveLoad.load()">Lataa peli</button>
-            <button id="accountResetButton" onclick="SaveLoad.reset()">Aloita alusta tallentamatta</button>
+            <button id="accountResetButton" onclick="SaveLoad.reset()">Aloita selainpeli alusta</button>
           </div>
-          <p id="saveStatus" class="smallHint">Ei tallennustoimintoa käynnissä.</p>
+          <p id="saveStatus" class="smallHint">Automaattitallennus käynnistyy.</p>
 
           <hr>
 

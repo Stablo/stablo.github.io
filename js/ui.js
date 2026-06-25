@@ -12,7 +12,6 @@ const UI = {
     stressContent: 'daily',
     collapseContent: 'daily',
     timeContent: 'daily',
-    statsPanel: 'daily',
     economyContent: 'money',
     eventContent: 'daily',
     beerShopContent: 'money',
@@ -30,6 +29,11 @@ const UI = {
     document.querySelectorAll('.leftNav button[data-target]').forEach(button => {
       button.onclick = () => {
         const id = button.dataset.target;
+        if (id === 'statsPanel') {
+          this.setStatsDock(false);
+          return;
+        }
+
         this.showSite(this.sectionSites[id] || 'daily');
         if (id === 'mainContent') {
           setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 40);
@@ -45,8 +49,27 @@ const UI = {
     const guideButton = document.getElementById('guideButton');
     if (guideButton) guideButton.onclick = () => this.showGuide();
 
+    const statsDockToggle = document.getElementById('statsDockToggle');
+    if (statsDockToggle) statsDockToggle.onclick = () => this.toggleStatsDock();
+    this.setStatsDock(window.matchMedia('(max-width: 900px)').matches);
+
     this.initVolumeControl();
     window.addEventListener('keydown', event => this.handleKeydown(event));
+  },
+
+  toggleStatsDock() {
+    this.setStatsDock(!document.body.classList.contains('statsDockMinimized'));
+  },
+
+  setStatsDock(minimized) {
+    document.body.classList.toggle('statsDockMinimized', minimized);
+
+    const button = document.getElementById('statsDockToggle');
+    if (!button) return;
+
+    button.textContent = minimized ? 'Pikatilastot' : 'Piilota';
+    button.setAttribute('aria-expanded', String(!minimized));
+    button.setAttribute('aria-label', minimized ? 'Näytä pikatilastot' : 'Piilota pikatilastot');
   },
 
   initVolumeControl() {
@@ -155,7 +178,7 @@ const UI = {
 
         <h3>Sivut</h3>
         <ul>
-          <li><strong>1. Arki</strong>: juominen, stressi, Romahdus, aika, tapahtumat ja pikatilastot.</li>
+          <li><strong>1. Arki</strong>: juominen, stressi, Romahdus, aika ja tapahtumat.</li>
           <li><strong>2. Raha & ostokset</strong>: Talous, Olutkauppa, Supermarket, palautukset, pikkukeikat ja Kela.</li>
           <li><strong>3. Apurit & kehitys</strong>: apurit ja pysyvät parannukset.</li>
           <li><strong>4. Uhkapelit</strong>: kuppipeli, karaoke ja korttipakka.</li>
@@ -172,6 +195,7 @@ const UI = {
 
         <h3>Mittarit</h3>
         <ul>
+          <li><strong>Pikatilastot</strong> näkyvät oikeassa reunassa kaikilla sivuilla ja ne voi pienentää sivuun.</li>
           <li><strong>Juodut oluet</strong> on nykyinen pistetaulun tulos. Myös apurien juomat oluet lasketaan.</li>
           <li><strong>Ryypyt</strong> ovat etenemisvaluuttaa apureihin, parannuksiin ja satunnaisiin tapahtumiin.</li>
           <li><strong>Eurot</strong> tarvitaan ostoksiin, palautusten ja tukien rytmittämään selviytymiseen sekä uhkapeleihin.</li>
@@ -214,9 +238,10 @@ const UI = {
         <h3>Tili</h3>
         <ul>
           <li>Pilvitallennus toimii kirjautuneena Supabasen kautta.</li>
+          <li>Peli tallentuu automaattisesti selaimeen ja kirjautuneena myös pilveen rauhallisella tahdilla.</li>
           <li>Nimimerkki tarvitaan pistetaululle näkymiseen.</li>
           <li>Salasanan palautus lähettää sähköpostilinkin, jos osoitteella on tili.</li>
-          <li>Tallenna ennen isoja riskejä ja lataa pilvestä vain, kun haluat korvata nykyisen selainistunnon.</li>
+          <li>Lataa pilvestä vain, kun haluat korvata nykyisen selainistunnon pilvitallennuksella.</li>
         </ul>
       </div>
     `;
@@ -240,7 +265,10 @@ const UI = {
     const stress = s.stress ?? 0;
     const stressLabel = typeof Stress !== 'undefined' ? Stress.label() : '';
 
-    document.getElementById('statsPanel').innerHTML = `
+    const panel = document.getElementById('statsPanel');
+    if (!panel) return;
+
+    panel.innerHTML = `
       <h2>Pikatilastot</h2>
       <div class="statLine">Ryypyt: ${Math.floor(s.ryypyt)}</div>
       <div class="statLine">Eurot: ${s.euros.toFixed(2)} €</div>

@@ -1,8 +1,18 @@
-Villisika-Sepon juomapeli — versio 0.4.18-aanensaato
+Villisika-Sepon juomapeli — versio 0.4.21-pikatilastot
 
 Avaa index.html selaimessa.
 
 Uutta tässä versiossa:
+- Pikatilastot näkyy nyt omana oikean reunan paneelinaan kaikilla pääsivuilla.
+- Pikatilastot-paneelin voi pienentää sivuun Piilota/Pikatilastot-kahvasta.
+- Vasemman reunan Pikatilastot-painike avaa pienennetyn tilastopaneelin takaisin näkyviin.
+- Vasemman yläkulman Seppo-teksti korvattu uudella Villisika-Sepon juomapeli -logolla.
+- Logo lisätty paikalliseksi tiedostoksi assets/seppo-logo.jpeg ja sovitettu sivupalkkiin CSS:llä.
+- Peli tallentuu nyt automaattisesti selaimeen aina taustalla.
+- Kirjautuneena automaattitallennus päivittää myös pilvitallennuksen rauhallisella tahdilla.
+- Supabase-pilvitallennus käyttää samaa game_saves-riviä kuin käsin tallentaminen, joten uutta SQL-muutosta ei tarvita.
+- Uhkapelipanokset, uhkapelitulokset ja Romahdus yrittävät nopeampaa pilviautosavea ilman että Supabasen 5 sekunnin tallennussuoja ohitetaan.
+- Selainpelin aloitus alusta tyhjentää selainautosaven, mutta ei poista pilvitallennusta.
 - Vasemman sivupalkin alaosaan lisätty äänenvoimakkuuden säädin.
 - Äänenvoimakkuuden oletus ja aloitusarvo on 50 %.
 - Karaokebiitti seuraa nyt yleistä äänenvoimakkuutta.
@@ -51,6 +61,7 @@ Uutta tässä versiossa:
 Tiedostorakenne:
 - index.html
 - css/styles.css
+- assets/seppo-logo.jpeg
 - js/core.js
 - js/ui.js
 - js/modules/*.js

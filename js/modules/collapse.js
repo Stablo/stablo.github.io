@@ -164,6 +164,9 @@ const Collapse = {
 
     document.body.appendChild(overlay);
     Game.update();
+    if (typeof SaveLoad !== 'undefined' && SaveLoad.requestAutoSave) {
+      SaveLoad.requestAutoSave(final ? 'collapse-final' : 'collapse', { forceCloud: true });
+    }
   },
 
   closeOverlay() {
@@ -173,6 +176,10 @@ const Collapse = {
   },
 
   hardReset() {
+    if (typeof SaveLoad !== 'undefined') {
+      if (SaveLoad.clearAutoSaveTimers) SaveLoad.clearAutoSaveTimers();
+      if (SaveLoad.clearLocalAutoSave) SaveLoad.clearLocalAutoSave();
+    }
     location.reload();
   },
 

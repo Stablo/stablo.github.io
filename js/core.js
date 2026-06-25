@@ -1,5 +1,5 @@
 const Game = {
-  version: "0.4.18-aanensaato",
+  version: "0.4.21-pikatilastot",
   modules: [],
   config: {
     canValue: 0.20,
@@ -81,5 +81,8 @@ const Game = {
   update() {
     this.modules.forEach(module => module.render && module.render());
     UI.renderStats();
+    if (typeof SaveLoad !== 'undefined' && SaveLoad.requestAutoSave) {
+      SaveLoad.requestAutoSave('update');
+    }
   }
 };
