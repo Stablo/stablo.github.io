@@ -817,6 +817,48 @@ body.statsDockMinimized .statsDock {
   color: #cdbdca;
 }
 
+.prestigeStatus {
+  min-height: 44px;
+}
+
+.prestigeMeter {
+  max-width: 520px;
+  height: 14px;
+  border: 1px solid color-mix(in srgb, var(--theme-1) 45%, #333);
+  border-radius: 999px;
+  background: rgba(0,0,0,.34);
+  overflow: hidden;
+}
+
+.prestigeProgressFill {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, #9c6037, #d9dce4, #ffd666, #e5fbff);
+  transition: width .2s ease;
+}
+
+.prestigeBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  margin-right: 6px;
+  font-size: 15px;
+  font-weight: bold;
+  letter-spacing: .04em;
+  text-shadow: 0 0 8px rgba(0,0,0,.7);
+}
+
+.prestige-bronze { color: #d38a4a; }
+.prestige-silver { color: #d9e0eb; text-shadow: 0 0 10px rgba(190, 220, 255, .35); }
+.prestige-gold { color: #ffd65c; text-shadow: 0 0 10px rgba(255, 214, 92, .38); }
+.prestige-platinum { color: #e9fdff; text-shadow: 0 0 12px rgba(134, 216, 255, .62); }
+
+.prestigeWarningText {
+  color: #ffd6d6;
+  font-weight: bold;
+}
+
 .scoreboardList {
   max-width: 520px;
   margin: 10px 0;
@@ -833,9 +875,10 @@ body.statsDockMinimized .statsDock {
   font-weight: bold;
 }
 
-.scoreboardList span {
-  display: inline-block;
-  min-width: 180px;
+.scoreboardList .scoreName {
+  display: inline-flex;
+  align-items: center;
+  min-width: 200px;
 }
 
 .scoreboardList strong {
@@ -874,5 +917,5 @@ body.statsDockMinimized .statsDock {
 
 @media (max-width: 900px) {
   .accountGrid { grid-template-columns: 1fr; }
-  .scoreboardList span { min-width: 120px; }
+  .scoreboardList .scoreName { min-width: 120px; }
 }

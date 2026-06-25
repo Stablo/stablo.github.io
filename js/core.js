@@ -1,5 +1,5 @@
 const Game = {
-  version: "0.4.21-pikatilastot",
+  version: "0.4.22-prestige",
   modules: [],
   config: {
     canValue: 0.20,

@@ -102,6 +102,15 @@ add column if not exists current_oluet bigint not null default 0;
 alter table public.profiles
 add column if not exists best_oluet bigint not null default 0;
 
+alter table public.profiles
+add column if not exists prestige_level integer not null default 0;
+
+alter table public.profiles
+add column if not exists lifetime_oluet bigint not null default 0;
+
+alter table public.profiles
+add column if not exists last_prestiged_at timestamptz;
+
 update public.profiles
 set
   nickname = btrim(regexp_replace(nickname, '\s+', ' ', 'g')),
@@ -109,7 +118,9 @@ set
   best_ryypyt = greatest(0, least(1000000000, greatest(coalesce(best_ryypyt, 0), coalesce(ryypyt, 0), coalesce(current_ryypyt, 0)))),
   ryypyt = greatest(0, least(1000000000, greatest(coalesce(best_ryypyt, 0), coalesce(ryypyt, 0), coalesce(current_ryypyt, 0)))),
   current_oluet = greatest(0, least(1000000000, coalesce(current_oluet, 0))),
-  best_oluet = greatest(0, least(1000000000, greatest(coalesce(best_oluet, 0), coalesce(current_oluet, 0))));
+  best_oluet = greatest(0, least(1000000000, greatest(coalesce(best_oluet, 0), coalesce(current_oluet, 0)))),
+  prestige_level = greatest(0, least(10, coalesce(prestige_level, 0))),
+  lifetime_oluet = greatest(0, least(1000000000000, coalesce(lifetime_oluet, 0)));
 
 alter table public.profiles
 drop constraint if exists profiles_nickname_format;
@@ -136,6 +147,17 @@ check (
   and best_ryypyt >= current_ryypyt
   and best_oluet >= current_oluet
   and ryypyt = best_ryypyt
+)
+not valid;
+
+alter table public.profiles
+drop constraint if exists profiles_prestige_bounds;
+
+alter table public.profiles
+add constraint profiles_prestige_bounds
+check (
+  prestige_level between 0 and 10
+  and lifetime_oluet between 0 and 1000000000000
 )
 not valid;
 
@@ -316,6 +338,97 @@ on public.game_saves
 for each row
 execute function public.sync_profile_score_from_save();
 
+create or replace function public.prestige_required_oluet(current_level integer)
+returns bigint
+language sql
+immutable
+as $$
+  select case current_level
+    when 0 then 1000
+    when 1 then 2000
+    when 2 then 3500
+    when 3 then 6000
+    when 4 then 10000
+    when 5 then 16000
+    when 6 then 25000
+    when 7 then 40000
+    when 8 then 65000
+    when 9 then 100000
+    else null
+  end;
+$$;
+
+create or replace function public.claim_prestige(run_oluet bigint)
+returns table (
+  prestige_level integer,
+  lifetime_oluet bigint,
+  next_required_oluet bigint
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  player_id uuid := auth.uid();
+  profile_row public.profiles%rowtype;
+  safe_run_oluet bigint;
+  required_oluet bigint;
+begin
+  if player_id is null then
+    raise exception 'Kirjaudu ensin ennen prestigeä.';
+  end if;
+
+  select *
+  into profile_row
+  from public.profiles
+  where user_id = player_id
+  for update;
+
+  if not found then
+    raise exception 'Valitse nimimerkki ennen prestigeä.';
+  end if;
+
+  if profile_row.prestige_level >= 10 then
+    raise exception 'Korkein prestige-taso on jo saavutettu.';
+  end if;
+
+  safe_run_oluet := greatest(0, least(1000000000, coalesce(run_oluet, 0)));
+  required_oluet := public.prestige_required_oluet(profile_row.prestige_level);
+
+  if required_oluet is null or safe_run_oluet < required_oluet then
+    raise exception 'Prestige vaatii % juotua olutta tällä kierroksella.', required_oluet;
+  end if;
+
+  update public.profiles
+  set
+    prestige_level = profile_row.prestige_level + 1,
+    lifetime_oluet = least(1000000000000, coalesce(lifetime_oluet, 0) + safe_run_oluet),
+    current_ryypyt = 0,
+    best_ryypyt = 0,
+    ryypyt = 0,
+    current_oluet = 0,
+    best_oluet = 0,
+    last_prestiged_at = now(),
+    updated_at = now()
+  where user_id = player_id
+  returning * into profile_row;
+
+  delete from public.game_saves
+  where user_id = player_id
+    and slot = 'main';
+
+  return query
+  select
+    profile_row.prestige_level,
+    profile_row.lifetime_oluet,
+    public.prestige_required_oluet(profile_row.prestige_level);
+end;
+$$;
+
+revoke all on function public.prestige_required_oluet(integer) from public;
+revoke all on function public.claim_prestige(bigint) from public;
+grant execute on function public.claim_prestige(bigint) to authenticated;
+
 drop view if exists public.scoreboard;
 
 create view public.scoreboard as
@@ -323,10 +436,12 @@ select
   nickname,
   best_oluet as oluet,
   best_ryypyt as ryypyt,
+  prestige_level,
+  lifetime_oluet,
   updated_at
 from public.profiles
 where
-  best_oluet > 0
+  (best_oluet > 0 or prestige_level > 0)
   and nickname ~ '^[A-Za-z0-9ÅÄÖåäö _-]{2,24}$';
 
 grant select on public.scoreboard to anon, authenticated;

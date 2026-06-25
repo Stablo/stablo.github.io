@@ -1,8 +1,14 @@
-Villisika-Sepon juomapeli — versio 0.4.21-pikatilastot
+Villisika-Sepon juomapeli — versio 0.4.22-prestige
 
 Avaa index.html selaimessa.
 
 Uutta tässä versiossa:
+- Lisätty Prestige-järjestelmä kirjautuneille pelaajille.
+- Prestige nollaa nykyisen kierroksen, poistaa vanhan pilvitallennuksen ja lisää pistetaululle tähtimerkin.
+- Prestige-tasot ovat 1-3 pronssitähteä, 1-3 hopeatähteä, 1-3 kultatähteä ja tasolla 10 platinatähti.
+- Prestige vaatii nykyiseltä kierrokselta juotuja oluita: 1 000, 2 000, 3 500, 6 000, 10 000, 16 000, 25 000, 40 000, 65 000 ja 100 000.
+- Prestige näyttää aina varoitusikkunan ennen nollausta.
+- Supabase-tietokanta tarvitsee päivitetyn supabase-setup.sql-ajon prestigeä varten.
 - Pikatilastot näkyy nyt omana oikean reunan paneelinaan kaikilla pääsivuilla.
 - Pikatilastot-paneelin voi pienentää sivuun Piilota/Pikatilastot-kahvasta.
 - Vasemman reunan Pikatilastot-painike avaa pienennetyn tilastopaneelin takaisin näkyviin.

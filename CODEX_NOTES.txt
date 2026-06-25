@@ -10,7 +10,7 @@ private tokens, personal account details, or other secrets in this file.
 
 Current version
 ---------------
-Game.version is currently 0.4.21-pikatilastot.
+Game.version is currently 0.4.22-prestige.
 
 README.txt should always mirror the actual Game.version in js/core.js whenever
 the core game version is changed.
@@ -70,6 +70,23 @@ Main file map
 
 Recent version notes
 --------------------
+0.4.22-prestige
+- Added an account-based Prestige system for logged-in players with a warning
+  popup before reset. Prestige levels 1-10 show as:
+  1-3 bronze stars, 1-3 silver stars, 1-3 gold stars, and level 10 platinum.
+- Prestige requirements by next level:
+  1000, 2000, 3500, 6000, 10000, 16000, 25000, 40000, 65000, 100000 juodut oluet.
+- Client flow: Account.claimPrestige pauses autosave, calls the
+  claim_prestige(run_oluet) Supabase RPC, clears browser autosave, then reloads
+  into a fresh run.
+- Supabase flow: supabase-setup.sql adds profiles.prestige_level,
+  lifetime_oluet, last_prestiged_at, prestige_required_oluet(), and
+  claim_prestige(). The RPC increments prestige, resets profile current/best
+  run scores, and deletes the old main cloud save so it cannot be reloaded.
+- Scoreboard now selects prestige_level and lifetime_oluet and keeps prestiged
+  players visible even when their current prestige-run score is 0.
+- This version requires running the updated supabase-setup.sql in Supabase.
+
 0.4.21-pikatilastot
 - Moved Pikatilastot out of the Arki page layout into a persistent right-side
   stats dock that is visible across all top-level pages.
@@ -231,8 +248,9 @@ Recent version notes
 - Account scoreboard UI now reads best_oluet / current_oluet when available.
 - supabase-setup.sql adds current_oluet and best_oluet, backfills them from
   latest cloud saves, and updates them from future saves.
-- The scoreboard SQL view exposes nickname, oluet, ryypyt fallback, and
-  updated_at. Public read access to the scoreboard view is intentional.
+- The scoreboard SQL view exposes nickname, oluet, ryypyt fallback,
+  prestige_level, lifetime_oluet, and updated_at. Public read access to the
+  scoreboard view is intentional.
 
 0.4.6-tilikorjaus
 - Account creation redirect was fixed so email confirmation returns to the

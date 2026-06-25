@@ -8,6 +8,8 @@ const Account = {
   message: 'Yhdistetään Supabaseen...',
   slot: 'main',
   maxScore: 1000000000,
+  maxPrestigeLevel: 10,
+  prestigeRequirements: [1000, 2000, 3500, 6000, 10000, 16000, 25000, 40000, 65000, 100000],
   cooldowns: {},
   cooldownSeconds: {
     register: 10,
@@ -16,6 +18,7 @@ const Account = {
     passwordReset: 20,
     passwordUpdate: 5,
     nickname: 5,
+    prestige: 10,
     save: 5,
     load: 5,
     scoreboard: 10
@@ -73,8 +76,19 @@ const Account = {
 
           <hr>
 
+          <h3>Prestige</h3>
+          <p id="prestigeStatus" class="prestigeStatus smallHint">Kirjaudu sisään ja kerää juotuja oluita avataksesi prestigen.</p>
+          <div class="prestigeMeter" aria-hidden="true">
+            <div id="prestigeProgressFill" class="prestigeProgressFill"></div>
+          </div>
+          <div class="accountActions">
+            <button id="accountPrestigeButton" onclick="Account.showPrestigeWarning()">Tee prestige</button>
+          </div>
+
+          <hr>
+
           <h3>Pistetaulu</h3>
-          <p class="smallHint">Pistetaulu näyttää tilien parhaimman pilvitallennetun juotujen oluiden määrän.</p>
+          <p class="smallHint">Pistetaulu näyttää prestige-tason ja nykyisen prestige-kierroksen parhaat juodut oluet.</p>
           <ol id="scoreboardList" class="scoreboardList"></ol>
           <button id="accountRefreshScoreboardButton" onclick="Account.refreshScoreboard()">Päivitä pistetaulu</button>
         `
@@ -90,6 +104,7 @@ const Account = {
 
     this.connect();
     this.render();
+    this.showPendingPrestigeNotice();
   },
 
   isConfigured() {
@@ -139,6 +154,19 @@ const Account = {
     if (overlay) overlay.remove();
   },
 
+  showPendingPrestigeNotice() {
+    try {
+      const message = sessionStorage.getItem('villisikaPrestigeNotice');
+      if (!message) return;
+      sessionStorage.removeItem('villisikaPrestigeNotice');
+      this.message = message;
+      this.showNotice('Prestige tehty', message);
+      this.render();
+    } catch (error) {
+      // sessionStorage can be unavailable in restricted browser modes.
+    }
+  },
+
   explainError(error) {
     const raw = typeof error === 'string' ? error : error?.message || 'Tuntematon virhe.';
     const text = raw.toLowerCase();
@@ -160,6 +188,9 @@ const Account = {
     }
     if (text.includes('odota hetki') || text.includes('too many') || text.includes('rate')) {
       return 'Teit tämän juuri äsken. Odota hetki ja yritä uudelleen.';
+    }
+    if (text.includes('claim_prestige') || text.includes('prestige_level') || text.includes('could not find the function')) {
+      return 'Prestige vaatii päivitetyn Supabase SQL:n. Aja supabase-setup.sql Supabasen SQL Editorissä ja yritä uudelleen.';
     }
 
     return raw;
@@ -451,6 +482,65 @@ const Account = {
     return Math.max(0, Math.min(this.maxScore, Math.floor(value)));
   },
 
+  currentOluet() {
+    const value = Number(Game.state.oluet);
+    if (!Number.isFinite(value)) return 0;
+    return Math.max(0, Math.min(this.maxScore, Math.floor(value)));
+  },
+
+  normalizeProfile(profile) {
+    if (!profile) return null;
+
+    const prestige = Math.floor(Number(profile.prestige_level ?? 0));
+    const lifetime = Math.floor(Number(profile.lifetime_oluet ?? 0));
+
+    return {
+      ...profile,
+      prestige_level: Math.max(0, Math.min(this.maxPrestigeLevel, Number.isFinite(prestige) ? prestige : 0)),
+      lifetime_oluet: Math.max(0, Number.isFinite(lifetime) ? lifetime : 0)
+    };
+  },
+
+  prestigeLevel() {
+    return this.normalizeProfile(this.profile)?.prestige_level ?? 0;
+  },
+
+  prestigeRequired(level = this.prestigeLevel()) {
+    if (level >= this.maxPrestigeLevel) return null;
+    return this.prestigeRequirements[level] ?? null;
+  },
+
+  prestigeInfo(level = this.prestigeLevel()) {
+    const safeLevel = Math.max(0, Math.min(this.maxPrestigeLevel, Math.floor(Number(level) || 0)));
+    if (safeLevel <= 0) return { text: '', className: 'none', label: 'Ei prestigeä' };
+    if (safeLevel >= 10) return { text: '★', className: 'platinum', label: 'Platinatähti' };
+
+    const tiers = [
+      { className: 'bronze', label: 'Pronssitähti' },
+      { className: 'silver', label: 'Hopeatähti' },
+      { className: 'gold', label: 'Kultatähti' }
+    ];
+    const tier = tiers[Math.floor((safeLevel - 1) / 3)];
+    const stars = ((safeLevel - 1) % 3) + 1;
+
+    return {
+      text: '★'.repeat(stars),
+      className: tier.className,
+      label: `${stars} ${tier.label.toLowerCase()}${stars > 1 ? 'ä' : ''}`
+    };
+  },
+
+  createPrestigeBadge(level = this.prestigeLevel()) {
+    const info = this.prestigeInfo(level);
+    if (!info.text) return null;
+
+    const badge = document.createElement('span');
+    badge.className = `prestigeBadge prestige-${info.className}`;
+    badge.textContent = info.text;
+    badge.title = `Prestige ${Math.floor(Number(level) || 0)}: ${info.label}`;
+    return badge;
+  },
+
   setNicknameInput(value) {
     const input = document.getElementById('accountNickname');
     if (input) input.value = value || '';
@@ -461,9 +551,20 @@ const Account = {
 
     let { data, error } = await this.client
       .from('profiles')
-      .select('nickname, current_oluet, best_oluet, current_ryypyt, best_ryypyt, updated_at')
+      .select('nickname, current_oluet, best_oluet, current_ryypyt, best_ryypyt, prestige_level, lifetime_oluet, last_prestiged_at, updated_at')
       .eq('user_id', this.user.id)
       .maybeSingle();
+
+    if (error && this.isMissingColumnError(error, 'prestige_level')) {
+      ({ data, error } = await this.client
+        .from('profiles')
+        .select('nickname, current_oluet, best_oluet, current_ryypyt, best_ryypyt, updated_at')
+        .eq('user_id', this.user.id)
+        .maybeSingle());
+      if (!error) {
+        this.message = 'Prestige vaatii päivitetyn Supabase SQL:n ennen kuin se näkyy tilillä.';
+      }
+    }
 
     if (error && this.isMissingColumnError(error, 'oluet')) {
       ({ data, error } = await this.client
@@ -479,7 +580,7 @@ const Account = {
       return;
     }
 
-    this.profile = data || null;
+    this.profile = this.normalizeProfile(data);
     if (this.profile) this.setNicknameInput(this.profile.nickname);
     this.render();
   },
@@ -530,9 +631,10 @@ const Account = {
       return;
     }
 
-    this.profile = data;
+    this.profile = this.normalizeProfile(data);
     this.setNicknameInput(data.nickname);
     this.message = 'Nimimerkki tallennettu. Tallenna peli, jotta tulos päivittyy pistetaululle.';
+    await this.loadProfile();
     await this.loadScoreboard();
     this.render();
   },
@@ -542,10 +644,24 @@ const Account = {
 
     let { data, error } = await this.client
       .from('scoreboard')
-      .select('nickname, oluet, updated_at')
+      .select('nickname, oluet, ryypyt, prestige_level, lifetime_oluet, updated_at')
+      .order('prestige_level', { ascending: false })
       .order('oluet', { ascending: false })
       .order('updated_at', { ascending: true })
       .limit(10);
+
+    if (error && this.isMissingColumnError(error, 'prestige_level')) {
+      ({ data, error } = await this.client
+        .from('scoreboard')
+        .select('nickname, oluet, updated_at')
+        .order('oluet', { ascending: false })
+        .order('updated_at', { ascending: true })
+        .limit(10));
+      data = (data || []).map(row => ({ ...row, prestige_level: 0, lifetime_oluet: 0 }));
+      if (!error) {
+        this.message = 'Pistetaulu toimii, mutta prestige vaatii päivitetyn Supabase SQL:n.';
+      }
+    }
 
     if (error && this.isMissingColumnError(error, 'oluet')) {
       const fallback = await this.client
@@ -555,7 +671,7 @@ const Account = {
         .order('updated_at', { ascending: true })
         .limit(10);
 
-      data = (fallback.data || []).map(row => ({ ...row, oluet: row.ryypyt }));
+      data = (fallback.data || []).map(row => ({ ...row, oluet: row.ryypyt, prestige_level: 0, lifetime_oluet: 0 }));
       error = fallback.error;
       if (!error) {
         this.message = 'Pistetaulu käyttää vanhaa tietokantaa, kunnes Supabase SQL päivitetään.';
@@ -569,7 +685,11 @@ const Account = {
       return false;
     }
 
-    this.scoreboard = data || [];
+    this.scoreboard = (data || []).map(row => ({
+      ...row,
+      prestige_level: this.normalizeProfile(row).prestige_level,
+      lifetime_oluet: this.normalizeProfile(row).lifetime_oluet
+    }));
     this.render();
     return true;
   },
@@ -796,6 +916,237 @@ const Account = {
     return true;
   },
 
+  renderPrestigePanel(loggedIn) {
+    const status = document.getElementById('prestigeStatus');
+    const fill = document.getElementById('prestigeProgressFill');
+    const button = document.getElementById('accountPrestigeButton');
+    if (!status || !fill || !button) return;
+
+    const level = this.prestigeLevel();
+    const current = this.currentOluet();
+    const required = this.prestigeRequired(level);
+    const nextLevel = level + 1;
+
+    status.replaceChildren();
+
+    if (!loggedIn) {
+      status.textContent = 'Kirjaudu sisään, jotta prestige voidaan tallentaa tilille.';
+      fill.style.width = '0%';
+      button.disabled = true;
+      button.textContent = 'Tee prestige';
+      return;
+    }
+
+    if (!this.profile) {
+      status.textContent = 'Valitse ensin nimimerkki. Prestige näkyy nimimerkin vieressä pistetaululla.';
+      fill.style.width = '0%';
+      button.disabled = true;
+      button.textContent = 'Tee prestige';
+      return;
+    }
+
+    const currentBadge = this.createPrestigeBadge(level);
+    if (currentBadge) {
+      status.appendChild(currentBadge);
+      status.appendChild(document.createTextNode(' '));
+    }
+
+    if (level >= this.maxPrestigeLevel) {
+      status.appendChild(document.createTextNode(`Prestige ${level}/${this.maxPrestigeLevel}: korkein taso saavutettu. Nykyinen kierros: ${current.toLocaleString('fi-FI')} juotua olutta.`));
+      fill.style.width = '100%';
+      button.disabled = true;
+      button.textContent = 'Prestige valmis';
+      return;
+    }
+
+    const nextBadge = this.createPrestigeBadge(nextLevel);
+    status.appendChild(document.createTextNode(`Prestige ${level}/${this.maxPrestigeLevel}. Seuraava taso vaatii ${required.toLocaleString('fi-FI')} juotua olutta tällä kierroksella. Nykyinen: ${current.toLocaleString('fi-FI')}. `));
+    if (nextBadge) {
+      status.appendChild(document.createTextNode('Palkinto: '));
+      status.appendChild(nextBadge);
+    }
+
+    fill.style.width = `${Math.max(0, Math.min(100, (current / required) * 100))}%`;
+    button.disabled = this.busy || this.cooldownLeft('prestige') > 0 || current < required;
+    button.textContent = `Tee prestige ${nextLevel}`;
+  },
+
+  showPrestigeWarning() {
+    if (this.busy) return;
+
+    if (!this.user) {
+      this.setProblem('Kirjaudu ensin', 'Prestige tallennetaan tilille, joten kirjaudu sisään ennen prestigeä.');
+      return;
+    }
+
+    if (!this.profile) {
+      this.setProblem('Nimimerkki puuttuu', 'Valitse nimimerkki ennen prestigeä, jotta tähti näkyy pistetaululla.');
+      return;
+    }
+
+    const level = this.prestigeLevel();
+    const required = this.prestigeRequired(level);
+    const current = this.currentOluet();
+
+    if (level >= this.maxPrestigeLevel) {
+      this.setProblem('Prestige valmis', 'Olet jo saavuttanut korkeimman prestige-tason.');
+      return;
+    }
+
+    if (current < required) {
+      this.setProblem(
+        'Prestige ei ole vielä valmis',
+        `Tarvitset ${required.toLocaleString('fi-FI')} juotua olutta tällä kierroksella. Nykyinen määrä on ${current.toLocaleString('fi-FI')}.`
+      );
+      return;
+    }
+
+    const old = document.getElementById('prestigeWarningOverlay');
+    if (old) old.remove();
+
+    const nextLevel = level + 1;
+    const overlay = document.createElement('div');
+    overlay.id = 'prestigeWarningOverlay';
+    overlay.className = 'overlay accountNoticeOverlay prestigeWarningOverlay';
+
+    const box = document.createElement('div');
+    box.className = 'overlayBox accountNoticeBox prestigeWarningBox';
+    box.setAttribute('role', 'dialog');
+    box.setAttribute('aria-modal', 'true');
+
+    const heading = document.createElement('h2');
+    heading.textContent = `Prestige ${nextLevel}`;
+
+    const badge = this.createPrestigeBadge(nextLevel);
+    const intro = document.createElement('p');
+    intro.appendChild(document.createTextNode(`Saat pistetaululle merkin `));
+    if (badge) intro.appendChild(badge);
+    intro.appendChild(document.createTextNode(`, mutta nykyinen kierros alkaa alusta.`));
+
+    const warning = document.createElement('p');
+    warning.className = 'prestigeWarningText';
+    warning.textContent = 'Tätä ei voi perua. Prestige nollaa nykyisen selain- ja pilvitallennuksen: eurot, ryypyt, juodut oluet, tölkit, apurit, pysyvät parannukset, Kela-tilanteen, minipelien tilanteet, stressin, krapulan ja päivän.';
+
+    const keep = document.createElement('p');
+    keep.textContent = 'Tili, nimimerkki, prestige-taso ja tilille kertyvä prestige-historia säilyvät.';
+
+    const actions = document.createElement('div');
+    actions.className = 'accountActions';
+
+    const confirm = document.createElement('button');
+    confirm.type = 'button';
+    confirm.textContent = 'Hyväksyn, tee prestige';
+    confirm.onclick = () => this.claimPrestige();
+
+    const cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.textContent = 'Peruuta';
+    cancel.onclick = () => this.closePrestigeWarning();
+
+    actions.appendChild(confirm);
+    actions.appendChild(cancel);
+    box.appendChild(heading);
+    box.appendChild(intro);
+    box.appendChild(warning);
+    box.appendChild(keep);
+    box.appendChild(actions);
+    overlay.appendChild(box);
+
+    overlay.addEventListener('click', event => {
+      if (event.target === overlay) this.closePrestigeWarning();
+    });
+
+    document.body.appendChild(overlay);
+  },
+
+  closePrestigeWarning() {
+    const overlay = document.getElementById('prestigeWarningOverlay');
+    if (overlay) overlay.remove();
+  },
+
+  async claimPrestige() {
+    if (this.busy) return false;
+    const user = await this.requireUser();
+    if (!user) return false;
+    if (this.isCoolingDown('prestige', 'Prestige')) return false;
+
+    if (!this.profile) await this.loadProfile();
+    if (!this.profile) {
+      this.setProblem('Nimimerkki puuttuu', 'Valitse nimimerkki ennen prestigeä.');
+      return false;
+    }
+
+    const level = this.prestigeLevel();
+    const required = this.prestigeRequired(level);
+    const current = this.currentOluet();
+
+    if (level >= this.maxPrestigeLevel) {
+      this.setProblem('Prestige valmis', 'Olet jo saavuttanut korkeimman prestige-tason.');
+      return false;
+    }
+
+    if (current < required) {
+      this.setProblem('Prestige ei ole vielä valmis', `Tarvitset ${required.toLocaleString('fi-FI')} juotua olutta tällä kierroksella.`);
+      return false;
+    }
+
+    if (typeof SaveLoad !== 'undefined' && SaveLoad.cloudAutosaveBusy) {
+      this.setProblem('Odota hetki', 'Pilviautosave on juuri kesken. Odota hetki ja tee prestige uudelleen.');
+      return false;
+    }
+
+    const nextLevel = level + 1;
+    const previousAutoSaveReady = typeof SaveLoad !== 'undefined' ? SaveLoad.autoSaveReady : false;
+
+    if (typeof SaveLoad !== 'undefined') {
+      SaveLoad.autoSaveReady = false;
+      if (SaveLoad.clearAutoSaveTimers) SaveLoad.clearAutoSaveTimers();
+    }
+
+    this.startCooldown('prestige');
+    this.busy = true;
+    this.message = 'Prestigeä tehdään...';
+    this.render();
+
+    let data = null;
+    let error = null;
+
+    try {
+      ({ data, error } = await this.client.rpc('claim_prestige', { run_oluet: current }));
+    } catch (caught) {
+      error = caught;
+    }
+
+    this.busy = false;
+
+    if (error) {
+      if (typeof SaveLoad !== 'undefined') SaveLoad.autoSaveReady = previousAutoSaveReady;
+      this.setProblem('Prestige epäonnistui', this.explainError(error));
+      return false;
+    }
+
+    const result = Array.isArray(data) ? data[0] : data;
+    const claimedLevel = Number(result?.prestige_level ?? nextLevel);
+    const claimedInfo = this.prestigeInfo(claimedLevel);
+    const message = `Prestige ${claimedLevel} avattu: ${claimedInfo.text || 'tähti'} ${claimedInfo.label}. Uusi kierros alkaa nyt.`;
+
+    this.closePrestigeWarning();
+
+    if (typeof SaveLoad !== 'undefined') {
+      if (SaveLoad.clearAutoSaveTimers) SaveLoad.clearAutoSaveTimers();
+      if (SaveLoad.clearLocalAutoSave) SaveLoad.clearLocalAutoSave();
+    }
+
+    try {
+      sessionStorage.setItem('villisikaPrestigeNotice', message);
+    } catch (storageError) {
+      // Reload still completes the prestige even if sessionStorage is blocked.
+    }
+
+    location.reload();
+    return true;
+  },
+
   render() {
     const status = document.getElementById('accountStatus');
     const message = document.getElementById('accountMessage');
@@ -809,6 +1160,7 @@ const Account = {
     const logoutCooling = this.cooldownLeft('logout') > 0;
     const passwordResetCooling = this.cooldownLeft('passwordReset') > 0;
     const nicknameCooling = this.cooldownLeft('nickname') > 0;
+    const prestigeCooling = this.cooldownLeft('prestige') > 0;
     const saveCooling = this.cooldownLeft('save') > 0;
     const loadCooling = this.cooldownLeft('load') > 0;
     const scoreboardCooling = this.cooldownLeft('scoreboard') > 0;
@@ -829,6 +1181,7 @@ const Account = {
     const passwordReset = document.getElementById('accountPasswordResetButton');
     const logout = document.getElementById('accountLogoutButton');
     const saveNickname = document.getElementById('accountNicknameButton');
+    const prestige = document.getElementById('accountPrestigeButton');
     const cloudSave = document.getElementById('accountCloudSaveButton');
     const cloudLoad = document.getElementById('accountCloudLoadButton');
     const reset = document.getElementById('accountResetButton');
@@ -852,10 +1205,13 @@ const Account = {
     if (passwordReset) passwordReset.disabled = this.busy || !configured || !connected || loggedIn || passwordResetCooling;
     if (logout) logout.disabled = this.busy || !connected || !loggedIn || logoutCooling;
     if (saveNickname) saveNickname.disabled = this.busy || !loggedIn || nicknameCooling;
+    if (prestige) prestige.disabled = this.busy || !loggedIn || prestigeCooling;
     if (cloudSave) cloudSave.disabled = this.busy || !loggedIn || saveCooling;
     if (cloudLoad) cloudLoad.disabled = this.busy || !loggedIn || loadCooling;
     if (reset) reset.disabled = this.busy;
     if (refreshScoreboard) refreshScoreboard.disabled = this.busy || !connected || scoreboardCooling;
+
+    this.renderPrestigePanel(loggedIn);
 
     if (scoreboardList) {
       scoreboardList.replaceChildren();
@@ -870,8 +1226,11 @@ const Account = {
           const name = document.createElement('span');
           const score = document.createElement('strong');
           const drinks = Number(row.oluet ?? row.ryypyt ?? 0);
+          const badge = this.createPrestigeBadge(row.prestige_level);
 
-          name.textContent = row.nickname || 'Nimetön';
+          name.className = 'scoreName';
+          if (badge) name.appendChild(badge);
+          name.appendChild(document.createTextNode(row.nickname || 'Nimetön'));
           score.textContent = `${drinks.toLocaleString('fi-FI')} juotua olutta`;
 
           item.appendChild(name);

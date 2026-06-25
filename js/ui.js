@@ -197,6 +197,7 @@ const UI = {
         <ul>
           <li><strong>Pikatilastot</strong> näkyvät oikeassa reunassa kaikilla sivuilla ja ne voi pienentää sivuun.</li>
           <li><strong>Juodut oluet</strong> on nykyinen pistetaulun tulos. Myös apurien juomat oluet lasketaan.</li>
+          <li><strong>Prestige</strong> nollaa nykyisen kierroksen, mutta lisää nimimerkin viereen pysyvän tähden pistetaululla.</li>
           <li><strong>Ryypyt</strong> ovat etenemisvaluuttaa apureihin, parannuksiin ja satunnaisiin tapahtumiin.</li>
           <li><strong>Eurot</strong> tarvitaan ostoksiin, palautusten ja tukien rytmittämään selviytymiseen sekä uhkapeleihin.</li>
           <li><strong>Krapula</strong> hidastaa päiviä. <strong>Stressi</strong> vaikeuttaa minipelejä ja voi pahentaa tilanteita.</li>
@@ -239,6 +240,7 @@ const UI = {
         <ul>
           <li>Pilvitallennus toimii kirjautuneena Supabasen kautta.</li>
           <li>Peli tallentuu automaattisesti selaimeen ja kirjautuneena myös pilveen rauhallisella tahdilla.</li>
+          <li>Prestige tarvitsee kirjautuneen tilin ja varoittaa aina ennen kierroksen nollausta.</li>
           <li>Nimimerkki tarvitaan pistetaululle näkymiseen.</li>
           <li>Salasanan palautus lähettää sähköpostilinkin, jos osoitteella on tili.</li>
           <li>Lataa pilvestä vain, kun haluat korvata nykyisen selainistunnon pilvitallennuksella.</li>
