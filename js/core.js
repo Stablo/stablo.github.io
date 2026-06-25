@@ -1,5 +1,5 @@
 const Game = {
-  version: "0.4.13-talousindeksi",
+  version: "0.4.14-pilvitalous",
   modules: [],
   config: {
     canValue: 0.20,

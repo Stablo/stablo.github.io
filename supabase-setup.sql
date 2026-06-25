@@ -330,3 +330,165 @@ where
   and nickname ~ '^[A-Za-z0-9ÅÄÖåäö _-]{2,24}$';
 
 grant select on public.scoreboard to anon, authenticated;
+
+create or replace function public.global_economy_next_shift(reference_time timestamptz default now())
+returns timestamptz
+language plpgsql
+stable
+as $$
+declare
+  local_time timestamp;
+  candidate timestamp;
+begin
+  local_time := reference_time at time zone 'Europe/Helsinki';
+  candidate := date_trunc('day', local_time) + interval '6 hours';
+
+  if local_time >= candidate then
+    candidate := candidate + interval '1 day';
+  end if;
+
+  return candidate at time zone 'Europe/Helsinki';
+end;
+$$;
+
+create or replace function public.global_economy_mood(index_value numeric)
+returns text
+language sql
+immutable
+as $$
+  select case
+    when index_value <= 0.92 then 'Halpuutuspaniikki'
+    when index_value <= 1.05 then 'Tavallinen nihkeys'
+    when index_value <= 1.20 then 'Hintahumppa'
+    when index_value <= 1.32 then 'Kuitinpolttokausi'
+    else 'Indeksihorkka'
+  end;
+$$;
+
+create table if not exists public.global_economy (
+  id text primary key default 'main',
+  current_index numeric(6,3) not null default 1.000,
+  last_shift_at timestamptz not null default now(),
+  next_shift_at timestamptz not null default public.global_economy_next_shift(now()),
+  delta numeric(6,3) not null default 0,
+  history jsonb not null default '[]'::jsonb,
+  updated_at timestamptz not null default now(),
+  constraint global_economy_singleton check (id = 'main'),
+  constraint global_economy_index_bounds check (current_index between 0.85 and 1.40)
+);
+
+alter table public.global_economy enable row level security;
+
+revoke all on public.global_economy from public;
+revoke all on public.global_economy from anon;
+revoke all on public.global_economy from authenticated;
+
+create or replace function public.get_global_economy()
+returns table (
+  current_index numeric,
+  mood text,
+  last_shift_at timestamptz,
+  next_shift_at timestamptz,
+  delta numeric,
+  updated_at timestamptz,
+  history jsonb
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  economy public.global_economy%rowtype;
+  changed boolean := false;
+  shift_delta numeric;
+  new_index numeric;
+  new_history jsonb;
+begin
+  insert into public.global_economy (
+    id,
+    current_index,
+    last_shift_at,
+    next_shift_at,
+    delta,
+    history
+  )
+  values (
+    'main',
+    1.000,
+    now(),
+    public.global_economy_next_shift(now()),
+    0,
+    jsonb_build_array(jsonb_build_object('at', now(), 'index', 1.000, 'delta', 0))
+  )
+  on conflict (id) do nothing;
+
+  select *
+  into economy
+  from public.global_economy
+  where id = 'main'
+  for update;
+
+  while economy.next_shift_at <= now() loop
+    shift_delta := (-0.04 + random() * 0.09)::numeric;
+
+    if random() < 0.12 then
+      shift_delta := shift_delta + (-0.03 + random() * 0.07)::numeric;
+    end if;
+
+    new_index := round(least(1.40, greatest(0.85, economy.current_index + shift_delta))::numeric, 3);
+    shift_delta := round((new_index - economy.current_index)::numeric, 3);
+
+    new_history := coalesce(economy.history, '[]'::jsonb)
+      || jsonb_build_array(jsonb_build_object(
+        'at', economy.next_shift_at,
+        'index', new_index,
+        'delta', shift_delta
+      ));
+
+    select coalesce(jsonb_agg(value order by ordinality), '[]'::jsonb)
+    into new_history
+    from (
+      select value, ordinality
+      from jsonb_array_elements(new_history) with ordinality
+      order by ordinality desc
+      limit 30
+    ) recent;
+
+    economy.current_index := new_index;
+    economy.delta := shift_delta;
+    economy.last_shift_at := economy.next_shift_at;
+    economy.next_shift_at := public.global_economy_next_shift(economy.next_shift_at + interval '1 second');
+    economy.updated_at := now();
+    economy.history := new_history;
+    changed := true;
+  end loop;
+
+  if changed then
+    update public.global_economy
+    set
+      current_index = economy.current_index,
+      last_shift_at = economy.last_shift_at,
+      next_shift_at = economy.next_shift_at,
+      delta = economy.delta,
+      history = economy.history,
+      updated_at = economy.updated_at
+    where id = 'main'
+    returning * into economy;
+  end if;
+
+  return query
+  select
+    economy.current_index,
+    public.global_economy_mood(economy.current_index),
+    economy.last_shift_at,
+    economy.next_shift_at,
+    economy.delta,
+    economy.updated_at,
+    economy.history;
+end;
+$$;
+
+revoke all on function public.global_economy_next_shift(timestamptz) from public;
+revoke all on function public.global_economy_mood(numeric) from public;
+revoke all on function public.get_global_economy() from public;
+grant execute on function public.get_global_economy() to anon, authenticated;

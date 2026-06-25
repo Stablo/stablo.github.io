@@ -397,6 +397,8 @@ const Account = {
       }
     );
 
+    if (typeof Economy !== 'undefined') Economy.refreshGlobal(true);
+
     this.client.auth.onAuthStateChange((event, session) => {
       this.user = session?.user ?? null;
       if (!this.user) this.profile = null;

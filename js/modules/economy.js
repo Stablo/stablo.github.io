@@ -1,15 +1,21 @@
 const Economy = {
   minIndex: 0.85,
   maxIndex: 1.40,
-  index: null,
-  nextShiftDay: null,
-  lastSeenDay: 1,
+  index: 1,
+  source: 'local',
+  status: 'Odottaa pilvitaloutta.',
+  delta: 0,
+  lastShiftAt: null,
+  nextShiftAt: null,
+  lastFetchAt: null,
+  nextRefreshAt: 0,
+  refreshIntervalMs: 15 * 60 * 1000,
+  fetchInFlight: false,
   startingAdjusted: false,
   history: [],
 
   init() {
     this.normalize();
-    this.adjustStartingEuros();
 
     document.getElementById('moneyMain').insertAdjacentHTML(
       'afterbegin',
@@ -17,36 +23,120 @@ const Economy = {
         'Talous',
         'economyContent',
         `
-          <p>Eurohinnat ja euromaksut elävät talousindeksin mukana. Ryypyt, apurit ja parannukset eivät.</p>
+          <p>Eurohinnat ja euromaksut elävät yhteisen pilvitalouden mukana. Ryypyt, apurit ja parannukset eivät.</p>
           <p>Talousindeksi: <strong><span id="economyIndex">100 %</span></strong></p>
           <p>Tila: <strong><span id="economyMood">Tavallinen nihkeys</span></strong></p>
-          <p>Seuraava indeksipäivitys: päivä <span id="economyNextDay">-</span></p>
+          <p>Seuraava indeksipäivitys: <span id="economyNextAt">haetaan...</span></p>
+          <p>Lähde: <span id="economySource">Paikallinen varatila</span></p>
           <div id="economyEffects" class="smallHint"></div>
+          <button id="economyRefreshButton" onclick="Economy.refreshGlobal(true)">Päivitä talous</button>
         `
       )
     );
+
+    this.refreshGlobal(true);
   },
 
   normalize() {
     const storedIndex = Number(this.index);
-    if (this.index === null || this.index === undefined || this.index === '' || !Number.isFinite(storedIndex)) {
-      this.index = Number(Game.randFloat(0.90, 1.22).toFixed(3));
-    } else {
-      this.index = storedIndex;
-    }
-
-    this.index = this.clampIndex(this.index);
-    this.lastSeenDay = Number(this.lastSeenDay || Game.state.day || 1);
-    this.nextShiftDay = Number(this.nextShiftDay || (Game.state.day + Game.randInt(4, 7)));
+    this.index = Number.isFinite(storedIndex) ? this.clampIndex(storedIndex) : 1;
+    this.delta = Number.isFinite(Number(this.delta)) ? Number(this.delta) : 0;
     this.startingAdjusted = !!this.startingAdjusted;
 
     if (!Array.isArray(this.history) || !this.history.length) {
-      this.history = [{ day: Game.state.day || 1, index: this.index }];
+      this.history = [{ at: new Date().toISOString(), index: this.index, delta: 0 }];
     }
   },
 
   clampIndex(value) {
     return Game.clamp(Number(value), this.minIndex, this.maxIndex);
+  },
+
+  getClient() {
+    if (typeof Account !== 'undefined' && Account.client) return Account.client;
+    return null;
+  },
+
+  async refreshGlobal(force = false) {
+    if (this.fetchInFlight) return false;
+    if (!force && Date.now() < this.nextRefreshAt) return false;
+
+    const client = this.getClient();
+    if (!client || typeof client.rpc !== 'function') {
+      this.status = 'Pilvitalous odottaa Supabase-yhteyttä.';
+      this.nextRefreshAt = Date.now() + 30000;
+      return false;
+    }
+
+    this.fetchInFlight = true;
+    this.status = 'Haetaan pilvitaloutta...';
+    this.render();
+
+    let response;
+    try {
+      response = await client.rpc('get_global_economy');
+    } catch (caught) {
+      response = { data: null, error: caught };
+    }
+
+    const { data, error } = response;
+    this.fetchInFlight = false;
+
+    if (error) {
+      this.status = 'Pilvitalous ei vastaa, käytössä viimeisin paikallinen arvo.';
+      this.source = this.source === 'global' ? 'global' : 'local';
+      this.nextRefreshAt = Date.now() + 60000;
+      this.render();
+      return false;
+    }
+
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row) {
+      this.status = 'Pilvitalous palautti tyhjän vastauksen.';
+      this.nextRefreshAt = Date.now() + 60000;
+      this.render();
+      return false;
+    }
+
+    this.applyGlobalState(row);
+    this.scheduleNextRefresh();
+    this.render();
+    if (typeof Game !== 'undefined' && typeof Game.update === 'function') Game.update();
+    return true;
+  },
+
+  applyGlobalState(row) {
+    const value = Number(row.index ?? row.current_index);
+    if (Number.isFinite(value)) this.index = this.clampIndex(value);
+
+    this.source = 'global';
+    this.status = 'Pilvitalous käytössä: sama arvo kaikille pelaajille.';
+    this.delta = Number(row.delta || 0);
+    this.lastShiftAt = row.last_shift_at || row.lastShiftAt || this.lastShiftAt;
+    this.nextShiftAt = row.next_shift_at || row.nextShiftAt || this.nextShiftAt;
+    this.lastFetchAt = new Date().toISOString();
+    this.history = this.parseHistory(row.history);
+    this.adjustStartingEuros();
+  },
+
+  parseHistory(history) {
+    if (Array.isArray(history)) return history.slice(-30);
+    if (typeof history === 'string') {
+      try {
+        const parsed = JSON.parse(history);
+        if (Array.isArray(parsed)) return parsed.slice(-30);
+      } catch (error) {
+        return this.history;
+      }
+    }
+    return this.history;
+  },
+
+  scheduleNextRefresh() {
+    const nextShift = this.nextShiftAt ? new Date(this.nextShiftAt).getTime() : 0;
+    const untilShift = nextShift ? nextShift - Date.now() + 15000 : this.refreshIntervalMs;
+    const delay = Game.clamp(untilShift, 60000, this.refreshIntervalMs);
+    this.nextRefreshAt = Date.now() + delay;
   },
 
   adjustStartingEuros() {
@@ -61,21 +151,7 @@ const Economy = {
   },
 
   tick() {
-    if (Game.state.day === this.lastSeenDay) return;
-    this.lastSeenDay = Game.state.day;
-    this.onNewDay();
-  },
-
-  onNewDay() {
-    if (Game.state.day < this.nextShiftDay) return;
-
-    let delta = Game.randFloat(-0.06, 0.08);
-    if (Math.random() < 0.18) delta += Game.randFloat(-0.07, 0.10);
-
-    this.index = Number(this.clampIndex(this.index + delta).toFixed(3));
-    this.nextShiftDay = Game.state.day + Game.randInt(4, 7);
-    this.history.push({ day: Game.state.day, index: this.index });
-    this.history = this.history.slice(-20);
+    if (Date.now() >= this.nextRefreshAt) this.refreshGlobal(false);
   },
 
   mood() {
@@ -121,8 +197,11 @@ const Economy = {
     this.normalize();
     return {
       index: this.index,
-      nextShiftDay: this.nextShiftDay,
-      lastSeenDay: this.lastSeenDay,
+      source: this.source,
+      delta: this.delta,
+      lastShiftAt: this.lastShiftAt,
+      nextShiftAt: this.nextShiftAt,
+      lastFetchAt: this.lastFetchAt,
       startingAdjusted: this.startingAdjusted,
       history: this.history
     };
@@ -130,27 +209,59 @@ const Economy = {
 
   restoreState(data) {
     if (!data) return;
-    this.index = Number(data.index);
-    this.nextShiftDay = Number(data.nextShiftDay);
-    this.lastSeenDay = Number(data.lastSeenDay || Game.state.day || 1);
+
     this.startingAdjusted = !!data.startingAdjusted;
-    this.history = Array.isArray(data.history) ? data.history : [];
+    if (this.source !== 'global') {
+      const value = Number(data.index ?? data.fallbackIndex);
+      if (Number.isFinite(value)) this.index = this.clampIndex(value);
+      this.source = data.source === 'global' ? 'local' : (data.source || 'local');
+      this.delta = Number(data.delta || 0);
+      this.lastShiftAt = data.lastShiftAt || data.last_shift_at || null;
+      this.nextShiftAt = data.nextShiftAt || data.next_shift_at || null;
+      this.history = this.parseHistory(data.history);
+      this.status = 'Käytössä tallennuksen viimeisin talousarvo, kunnes pilvi vastaa.';
+    }
+
     this.normalize();
+    this.nextRefreshAt = 0;
+    this.refreshGlobal(true);
+  },
+
+  formatDateTime(value) {
+    if (!value) return 'haetaan...';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return 'haetaan...';
+    return date.toLocaleString('fi-FI', {
+      day: '2-digit',
+      month: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  },
+
+  sourceLabel() {
+    return this.source === 'global' ? 'Pilvi (kaikille sama)' : 'Paikallinen varatila';
   },
 
   render() {
     const index = document.getElementById('economyIndex');
     const mood = document.getElementById('economyMood');
-    const nextDay = document.getElementById('economyNextDay');
+    const nextAt = document.getElementById('economyNextAt');
+    const source = document.getElementById('economySource');
     const effects = document.getElementById('economyEffects');
+    const refresh = document.getElementById('economyRefreshButton');
 
-    if (!index || !mood || !nextDay || !effects) return;
+    if (!index || !mood || !nextAt || !source || !effects) return;
 
+    const deltaText = this.delta === 0 ? '0 %' : `${this.delta > 0 ? '+' : ''}${Math.round(this.delta * 100)} %`;
     index.textContent = `${Math.round(this.index * 100)} %`;
     mood.textContent = this.mood();
-    nextDay.textContent = this.nextShiftDay;
+    nextAt.textContent = this.formatDateTime(this.nextShiftAt);
+    source.textContent = this.sourceLabel();
     effects.textContent =
-      `Olut ${Math.round(this.priceMultiplier('beer') * 100)} %, market ${Math.round(this.priceMultiplier('market') * 100)} %, Kela ${Math.round(this.paymentMultiplier('kela') * 100)} %, pikkukeikat ${Math.round(this.paymentMultiplier('jobs') * 100)} %.`;
+      `${this.status} Muutos: ${deltaText}. Olut ${Math.round(this.priceMultiplier('beer') * 100)} %, market ${Math.round(this.priceMultiplier('market') * 100)} %, Kela ${Math.round(this.paymentMultiplier('kela') * 100)} %, pikkukeikat ${Math.round(this.paymentMultiplier('jobs') * 100)} %. Päivitys noin klo 06.00 Suomen aikaa.`;
+
+    if (refresh) refresh.disabled = this.fetchInFlight;
   }
 };
 

@@ -54,8 +54,11 @@ const SaveLoad = {
 
     if (clean.economy) {
       clean.economy.index = this.clampNumber(clean.economy.index, 0.85, 1.40, 1);
-      clean.economy.nextShiftDay = this.clampInteger(clean.economy.nextShiftDay, 1, maxResource, 5);
-      clean.economy.lastSeenDay = this.clampInteger(clean.economy.lastSeenDay, 1, maxResource, 1);
+      clean.economy.delta = this.clampNumber(clean.economy.delta, -1, 1, 0);
+      clean.economy.source = ['global', 'local'].includes(clean.economy.source) ? clean.economy.source : 'local';
+      clean.economy.lastShiftAt = typeof clean.economy.lastShiftAt === 'string' ? clean.economy.lastShiftAt.slice(0, 64) : null;
+      clean.economy.nextShiftAt = typeof clean.economy.nextShiftAt === 'string' ? clean.economy.nextShiftAt.slice(0, 64) : null;
+      clean.economy.lastFetchAt = typeof clean.economy.lastFetchAt === 'string' ? clean.economy.lastFetchAt.slice(0, 64) : null;
       clean.economy.startingAdjusted = !!clean.economy.startingAdjusted;
       clean.economy.history = Array.isArray(clean.economy.history) ? clean.economy.history.slice(-20) : [];
     }

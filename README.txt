@@ -1,8 +1,12 @@
-Villisika-Sepon juomapeli — versio 0.4.13-talousindeksi
+Villisika-Sepon juomapeli — versio 0.4.14-pilvitalous
 
 Avaa index.html selaimessa.
 
 Uutta tässä versiossa:
+- Talousindeksi on nyt Supabase-pohjainen pilvitalous, eli sama arvo koskee kaikkia pelaajia.
+- Pilvitalous päivittyy noin kerran päivässä klo 06.00 Suomen aikaa.
+- Päivittäinen indeksiliike on yleensä noin -4 % - +5 %, harvinaisilla isommilla heilunnoilla.
+- Supabase-tietokanta tarvitsee päivitetyn supabase-setup.sql-ajon pilvitaloutta varten.
 - Lisätty Talous-järjestelmä Raha & ostokset -sivulle.
 - Talousindeksi vaikuttaa eurohintoihin ja euromaksuihin, mutta ei ryypyihin, apureihin tai parannuksiin.
 - Olutkauppa, Supermarket, Pikkukeikat ja Kela seuraavat talousindeksiä omilla painoillaan.

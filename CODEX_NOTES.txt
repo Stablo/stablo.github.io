@@ -10,7 +10,7 @@ private tokens, personal account details, or other secrets in this file.
 
 Current version
 ---------------
-Game.version is currently 0.4.13-talousindeksi.
+Game.version is currently 0.4.14-pilvitalous.
 
 README.txt should always mirror the actual Game.version in js/core.js whenever
 the core game version is changed.
@@ -24,6 +24,7 @@ current_oluet / best_oluet through supabase-setup.sql.
 The important economy split is:
 - Eurot: money for beer, market items, gambling, Kela survival, and general
   short-term recovery. Talousindeksi affects euro prices/payments only.
+  The live Talousindeksi is Supabase-backed and shared by all players.
 - Ryypyt: progression currency for helpers, permanent upgrades, and random
   events. Ryypyt are no longer the scoreboard score and are not inflation-linked.
 - Juodut oluet: the actual high-score number shown on the scoreboard.
@@ -50,7 +51,8 @@ Main file map
 - js/supabase-config.js: public Supabase client config.
 - js/modules/player.js: drinking beer, producing ryypyt and empty cans.
 - js/modules/beer-shop.js: beer prices, pack buying, price graphs.
-- js/modules/economy.js: euro-only global economy/inflation index.
+- js/modules/economy.js: Supabase-backed shared euro-only economy/inflation
+  index, with local fallback when the cloud is unavailable.
 - js/modules/supermarket.js: food/drinks/cigarettes and hangover/stress relief.
 - js/modules/returns.js: can return minigames and euro income.
 - js/modules/jobs.js: odd jobs minigame and euro income.
@@ -66,6 +68,21 @@ Main file map
 
 Recent version notes
 --------------------
+0.4.14-pilvitalous
+- Talousindeksi is now a shared Supabase-backed cloud economy rather than a
+  per-save local roll.
+- The game calls the get_global_economy() RPC when Supabase is ready and keeps
+  a local/last-seen fallback if the cloud is unavailable.
+- The shared index updates from Supabase around 06:00 Finnish time once per
+  real-world day.
+- Normal daily movement is roughly -4 % to +5 %, with rare larger swings.
+- Loading a save no longer overwrites an already fetched shared economy value.
+  Saves only keep the player-specific startingAdjusted flag plus last-seen
+  fallback economy data.
+- supabase-setup.sql now creates public.global_economy, helper functions, and
+  the get_global_economy() security definer RPC. Run the SQL manually in
+  Supabase after deploying this version.
+
 0.4.13-talousindeksi
 - Added an Economy/Talous module on Raha & ostokset.
 - Talousindeksi affects euro prices/payments only, not ryypyt, helpers,
@@ -77,7 +94,8 @@ Recent version notes
   Pikkukeikka rewards use 70 % of index movement.
 - New-game starting euros are partially adjusted:
   startingEuros * (0.75 + index * 0.25).
-- Economy state is saved/restored through SaveLoad.
+- Economy state was saved/restored through SaveLoad in this local version.
+  In 0.4.14, Supabase is authoritative and saves only keep fallback data.
 - Supermarket was rewritten into a readable module while preserving behavior,
   except item purchase prices now follow market inflation.
 
@@ -172,6 +190,8 @@ Gambling:
 Supabase/auth notes without secrets
 -----------------------------------
 - Auth, cloud save, profiles, and scoreboard are Supabase-backed.
+- Global economy is also Supabase-backed through get_global_economy(); players
+  should not get direct write access to public.global_economy.
 - Password reset exists in account.js.
 - Custom SMTP was configured outside the codebase and should not require game
   code changes unless redirect behavior changes.
