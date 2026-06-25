@@ -1,5 +1,5 @@
 const Game = {
-  version: "0.4.9-24pack-pikanapit",
+  version: "0.4.10-oluttasapaino",
   modules: [],
   config: {
     canValue: 0.20,

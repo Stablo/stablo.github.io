@@ -1,9 +1,12 @@
-Villisika-Sepon juomapeli — versio 0.4.9-24pack-pikanapit
+Villisika-Sepon juomapeli — versio 0.4.10-oluttasapaino
 
 Avaa index.html selaimessa.
 
 Uutta tässä versiossa:
-- Olutkauppaan lisätty 24-packit isommalla bulkkialennuksella.
+- Olutkaupan pakkauskoot tasapainotettu: 6-pack on edullisin, 12-pack ja 24-pack maksavat mukavuudesta.
+- 24-packien hintavaihtelu on nostettu korkeammalle, jotta varastointi ei ole automaattisesti paras valinta.
+- Kolmen kupin katastrofissa on nyt punaiset muovikupit, jotka kääntyvät sekoituksen jälkeen.
+- Olutkauppaan lisätty 24-packit.
 - Ylävälilehtiä voi vaihtaa näppäimistöllä: 1 peruspeli, 2 parannukset, 3 uhkapelit.
 - Uhkapelit käyttävät nyt euroja panoksina ja voittoina ryypyn sijaan.
 - Vasemman reunan Peli-painike vie takaisin sivun yläreunaan.

@@ -149,45 +149,39 @@ const Gambling = {
         position: relative;
         display: block;
         width: 82px;
-        height: 96px;
+        height: 98px;
         filter: drop-shadow(0 12px 12px rgba(0,0,0,.35));
+        transform-origin: center center;
       }
 
       .actualCup::before {
         content: '';
         position: absolute;
-        left: 2px;
-        right: 2px;
+        left: 4px;
+        right: 4px;
         top: 0;
-        height: 24px;
-        border: 4px solid #f6ead2;
+        height: 23px;
+        border: 3px solid #ffb8bc;
         border-radius: 50%;
-        background: radial-gradient(ellipse at center, #3a1b12 0 35%, #f6ead2 37% 100%);
+        background: radial-gradient(ellipse at center, #650511 0 42%, #c80f24 44% 66%, #ff737d 68% 100%);
+        box-shadow: inset 0 3px 5px rgba(255,255,255,.22), 0 2px 0 rgba(90,0,10,.45);
         z-index: 2;
       }
 
       .actualCup::after {
         content: '';
         position: absolute;
-        left: 10px;
+        left: 11px;
         top: 13px;
-        width: 62px;
-        height: 78px;
-        clip-path: polygon(7% 0, 93% 0, 76% 100%, 24% 100%);
-        background: linear-gradient(135deg, #fff7df, #e5b56d 58%, #9d5d24);
-        border-radius: 0 0 18px 18px;
-        box-shadow: inset -9px 0 14px rgba(90,45,12,.25), inset 9px 0 10px rgba(255,255,255,.28);
-      }
-
-      .actualCupHandle {
-        position: absolute;
-        right: -11px;
-        top: 33px;
-        width: 25px;
-        height: 34px;
-        border: 6px solid #e1aa5e;
-        border-left: 0;
-        border-radius: 0 18px 18px 0;
+        width: 60px;
+        height: 81px;
+        clip-path: polygon(0 0, 100% 0, 80% 100%, 20% 100%);
+        background:
+          linear-gradient(90deg, rgba(255,255,255,.30), transparent 24%, transparent 72%, rgba(0,0,0,.20)),
+          repeating-linear-gradient(0deg, transparent 0 18px, rgba(255,255,255,.12) 19px 20px),
+          linear-gradient(135deg, #ff5a63 0%, #d9152b 48%, #7f0616 100%);
+        border-radius: 0 0 15px 15px;
+        box-shadow: inset -7px 0 12px rgba(75,0,12,.35), inset 8px 0 10px rgba(255,255,255,.16);
         z-index: 1;
       }
 
@@ -199,6 +193,14 @@ const Gambling = {
         transform: translateY(-46px) rotate(-3deg) scale(1.08);
         filter: brightness(1.35);
         box-shadow: 0 0 28px rgba(255,255,255,.35);
+      }
+
+      .cupButton.cupReady .actualCup {
+        animation: cupFlipOver .46s ease both;
+      }
+
+      .cupButton.lifted .actualCup {
+        animation: cupRevealFlip .36s ease both;
       }
 
       .cupPrize {
@@ -226,6 +228,17 @@ const Gambling = {
         33% { transform: translateX(-12px) rotate(-5deg); }
         66% { transform: translateX(12px) rotate(5deg); }
         100% { transform: translateX(0) rotate(0deg); }
+      }
+
+      @keyframes cupFlipOver {
+        0% { transform: translateY(0) rotate(0deg) scale(1); }
+        45% { transform: translateY(-12px) rotate(92deg) scale(1.04); }
+        100% { transform: translateY(0) rotate(180deg) scale(1); }
+      }
+
+      @keyframes cupRevealFlip {
+        0% { transform: translateY(0) rotate(180deg) scale(1); }
+        100% { transform: translateY(-6px) rotate(0deg) scale(1.03); }
       }
 
       .karaokeBox {
@@ -540,12 +553,12 @@ const Gambling = {
     overlay.className = 'overlay';
     overlay.innerHTML = `
       <div class="overlayBox cupGameBox">
-        <h2>🥤 Kolmen kupin katastrofi</h2>
+        <h2>Kolmen kupin katastrofi</h2>
         <p id="cupStatus">Kupit sekoittuvat. Yritä näyttää siltä, että ymmärrät pelin.</p>
         <div class="cupTable" id="cupTable">
           ${multipliers.map((multiplier, index) => `
             <button class="cupButton" data-index="${index}" data-multiplier="${multiplier}" type="button" aria-label="Valitse kuppi ${index + 1}" disabled>
-              <span class="actualCup" aria-hidden="true"><span class="actualCupHandle"></span></span>
+              <span class="actualCup" aria-hidden="true"></span>
               <span class="cupPrize">${multiplier}x = ${this.formatEuros(paidBet * multiplier)}</span>
             </button>
           `).join('')}
@@ -575,9 +588,10 @@ const Gambling = {
 
       if (shuffleSteps >= 9) {
         clearInterval(shuffleTimer);
-        status.textContent = 'Valitse yksi kuppi. Yksi on tyhjä, yksi palauttaa panoksen ja yksi tuplaa sen.';
+        status.textContent = 'Kupit kääntyivät nurinpäin. Valitse yksi: yksi on tyhjä, yksi palauttaa panoksen ja yksi tuplaa sen.';
         result.textContent = 'Paina kuppia.';
         buttons.forEach(button => {
+          button.classList.add('cupReady');
           button.disabled = false;
           button.onclick = () => this.resolveCupGame(button, paidBet, overlay, buttons);
         });

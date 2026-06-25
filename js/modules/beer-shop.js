@@ -41,7 +41,7 @@ const BeerShop = {
 
   createPackages() {
     this.packages = [];
-    const packageDiscounts = { 1: 1, 6: .88, 12: .80, 24: .72 };
+    const packageDiscounts = { 1: 1, 6: .96, 12: 1.02, 24: 1.10 };
     this.brands.forEach(brand => [1, 6, 12, 24].forEach(cans => {
       const discount = packageDiscounts[cans] ?? 1;
       const basePrice = Number((brand.single * cans * discount).toFixed(2));
@@ -73,8 +73,14 @@ const BeerShop = {
 
   updatePrices() {
     this.packages.forEach(pack => {
-      let multiplier = pack.cans === 1 ? Game.randFloat(.75, 1.45) : pack.cans === 6 ? Game.randFloat(.72, 1.35) : Game.randFloat(.70, 1.30);
-      if (Math.random() < .12 && pack.cans > 1) multiplier += Game.randFloat(.10, .28);
+      const priceRanges = {
+        1: [.75, 1.45],
+        6: [.82, 1.38],
+        12: [.90, 1.45],
+        24: [1.00, 1.55]
+      };
+      const [min, max] = priceRanges[pack.cans] ?? [.75, 1.45];
+      const multiplier = Game.randFloat(min, max);
       pack.currentPrice = Math.max(.50, Number((pack.basePrice * multiplier).toFixed(2)));
       pack.history.push(pack.currentPrice);
     });

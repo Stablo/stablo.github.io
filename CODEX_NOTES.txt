@@ -10,7 +10,7 @@ private tokens, personal account details, or other secrets in this file.
 
 Current version
 ---------------
-Game.version is currently 0.4.9-24pack-pikanapit.
+Game.version is currently 0.4.10-oluttasapaino.
 
 README.txt should always mirror the actual Game.version in js/core.js whenever
 the core game version is changed.
@@ -65,8 +65,18 @@ Main file map
 
 Recent version notes
 --------------------
+0.4.10-oluttasapaino
+- Beer pack pricing was rebalanced for high-score economy:
+  1 can = 100 %, 6-pack = 96 %, 12-pack = 102 %, 24-pack = 110 % base
+  price before market fluctuation.
+- Beer market fluctuation ranges are now size-specific:
+  1 can 75-145 %, 6-pack 82-138 %, 12-pack 90-145 %, 24-pack 100-155 %.
+- Kolmen kupin katastrofi now uses red plastic cups with no side handles.
+- Cup-game cups flip over after the shuffle before the player chooses one.
+
 0.4.9-24pack-pikanapit
-- Beer shop now sells 24-packs with a stronger bulk discount.
+- Beer shop added 24-packs. Their first discount tuning was later rebalanced
+  in 0.4.10.
 - Keyboard shortcuts were added for the top site tabs: 1 = Peruspeli,
   2 = Pysyvät parannukset, 3 = Uhkapelit.
 - Number shortcuts intentionally do not fire while typing in inputs, textareas,
