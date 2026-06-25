@@ -52,6 +52,14 @@ const SaveLoad = {
       });
     }
 
+    if (clean.economy) {
+      clean.economy.index = this.clampNumber(clean.economy.index, 0.85, 1.40, 1);
+      clean.economy.nextShiftDay = this.clampInteger(clean.economy.nextShiftDay, 1, maxResource, 5);
+      clean.economy.lastSeenDay = this.clampInteger(clean.economy.lastSeenDay, 1, maxResource, 1);
+      clean.economy.startingAdjusted = !!clean.economy.startingAdjusted;
+      clean.economy.history = Array.isArray(clean.economy.history) ? clean.economy.history.slice(-20) : [];
+    }
+
     return clean;
   },
 
@@ -62,6 +70,7 @@ const SaveLoad = {
       beerPackages: BeerShop.packages,
       averagePriceHistory: BeerShop.averagePriceHistory,
       marketItems: Supermarket.items,
+      economy: typeof Economy !== 'undefined' ? Economy.stateForSave() : null,
       kelaBenefits: Kela.benefits,
       kelaActive: Kela.activeProblem,
       eventCost: Events.cost,
@@ -91,6 +100,7 @@ const SaveLoad = {
     if (data.marketItems) data.marketItems.forEach((item, i) => {
       if (Supermarket.items[i]) Supermarket.items[i].owned = item.owned ?? 0;
     });
+    if (typeof Economy !== 'undefined') Economy.restoreState(data.economy);
     if (data.kelaBenefits) Kela.benefits = data.kelaBenefits;
     Kela.activeProblem = data.kelaActive ?? null;
     Events.cost = data.eventCost ?? 20;

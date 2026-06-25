@@ -10,7 +10,7 @@ private tokens, personal account details, or other secrets in this file.
 
 Current version
 ---------------
-Game.version is currently 0.4.12-kelapaatokset.
+Game.version is currently 0.4.13-talousindeksi.
 
 README.txt should always mirror the actual Game.version in js/core.js whenever
 the core game version is changed.
@@ -23,9 +23,9 @@ current_oluet / best_oluet through supabase-setup.sql.
 
 The important economy split is:
 - Eurot: money for beer, market items, gambling, Kela survival, and general
-  short-term recovery.
+  short-term recovery. Talousindeksi affects euro prices/payments only.
 - Ryypyt: progression currency for helpers, permanent upgrades, and random
-  events. Ryypyt are no longer the scoreboard score.
+  events. Ryypyt are no longer the scoreboard score and are not inflation-linked.
 - Juodut oluet: the actual high-score number shown on the scoreboard.
 
 Important project rules
@@ -50,6 +50,7 @@ Main file map
 - js/supabase-config.js: public Supabase client config.
 - js/modules/player.js: drinking beer, producing ryypyt and empty cans.
 - js/modules/beer-shop.js: beer prices, pack buying, price graphs.
+- js/modules/economy.js: euro-only global economy/inflation index.
 - js/modules/supermarket.js: food/drinks/cigarettes and hangover/stress relief.
 - js/modules/returns.js: can return minigames and euro income.
 - js/modules/jobs.js: odd jobs minigame and euro income.
@@ -65,6 +66,21 @@ Main file map
 
 Recent version notes
 --------------------
+0.4.13-talousindeksi
+- Added an Economy/Talous module on Raha & ostokset.
+- Talousindeksi affects euro prices/payments only, not ryypyt, helpers,
+  permanent upgrades, event ryyppy costs, or score.
+- Economy multipliers:
+  Beer prices use 100 % of index movement.
+  Market prices use 80 % of index movement.
+  Kela payments use 50 % of index movement.
+  Pikkukeikka rewards use 70 % of index movement.
+- New-game starting euros are partially adjusted:
+  startingEuros * (0.75 + index * 0.25).
+- Economy state is saved/restored through SaveLoad.
+- Supermarket was rewritten into a readable module while preserving behavior,
+  except item purchase prices now follow market inflation.
+
 0.4.12-kelapaatokset
 - Kela was rewritten from a one-line module into a formatted module for easier
   future tuning.

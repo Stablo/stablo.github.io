@@ -1,10 +1,11 @@
 const Game = {
-  version: "0.4.12-kelapaatokset",
+  version: "0.4.13-talousindeksi",
   modules: [],
   config: {
     canValue: 0.20,
     baseSecondsPerDay: 15,
-    priceChangeIntervalDays: 7
+    priceChangeIntervalDays: 7,
+    startingEuros: 200
   },
   state: {
     ryypyt: 0,

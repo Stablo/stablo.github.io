@@ -84,6 +84,10 @@ const Jobs = {
     return Math.max(0, base - discount);
   },
 
+  displayPay(job) {
+    return typeof Economy !== 'undefined' ? Economy.scalePayment(job.pay, 'jobs') : job.pay;
+  },
+
   start(job) {
     if (this.active || this.cooldowns[job.slotId] > 0) return;
 
@@ -124,7 +128,7 @@ const Jobs = {
 
   renderOverlay() {
     if (!this.active || !document.getElementById('jobOverlay')) return;
-    document.getElementById('jobTitle').textContent = `${this.active.name} — ${this.active.pay.toFixed(2)} €`;
+    document.getElementById('jobTitle').textContent = `${this.active.name} — ${this.displayPay(this.active).toFixed(2)} €`;
     document.getElementById('jobStressHint').textContent = `Stressilisä: +${this.stressBonus()} nuolta, -${this.stressTimePenalty().toFixed(1)} s.`;
 
     const seq = document.getElementById('jobSeq');
@@ -162,13 +166,14 @@ const Jobs = {
   success() {
     const job = this.active;
     const slot = this.jobs.findIndex(j => j.slotId === job.slotId);
+    const pay = this.displayPay(job);
     this.cleanup();
 
-    Game.state.euros += job.pay;
+    Game.state.euros += pay;
     Game.changeHangover(job.difficulty);
     if (typeof Stress !== 'undefined') Game.changeStress(-Math.max(2, job.difficulty * 2));
 
-    Game.state.eventLog = `Pikkukeikka onnistui: ${job.name}. +${job.pay.toFixed(2)} €, krapula +${job.difficulty}, stressi -${Math.max(2, job.difficulty * 2)}.`;
+    Game.state.eventLog = `Pikkukeikka onnistui: ${job.name}. +${pay.toFixed(2)} €, krapula +${job.difficulty}, stressi -${Math.max(2, job.difficulty * 2)}.`;
     this.active = null;
     if (slot >= 0) this.replaceJob(slot);
     Game.update();
@@ -209,7 +214,7 @@ const Jobs = {
       const cooldown = this.cooldowns[job.slotId] || 0;
       list.insertAdjacentHTML(
         'beforeend',
-        `<button onclick="Jobs.start(Jobs.jobs[${index}])" ${this.active || cooldown > 0 ? 'disabled' : ''}>${job.name} — ${job.pay.toFixed(2)} €, vaikeus ${job.difficulty}, cooldown ${cooldown > 0 ? cooldown + 's' : job.cooldown + 's'}</button><br>`
+        `<button onclick="Jobs.start(Jobs.jobs[${index}])" ${this.active || cooldown > 0 ? 'disabled' : ''}>${job.name} — ${this.displayPay(job).toFixed(2)} €, vaikeus ${job.difficulty}, cooldown ${cooldown > 0 ? cooldown + 's' : job.cooldown + 's'}</button><br>`
       );
     });
 

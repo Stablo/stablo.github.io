@@ -5,6 +5,7 @@ const UI = {
     stressContent: 'daily',
     collapseContent: 'daily',
     timeContent: 'daily',
+    economyContent: 'money',
     eventContent: 'daily',
     beerShopContent: 'money',
     marketContent: 'money',
@@ -125,7 +126,7 @@ const UI = {
         <h3>Tärkeimmät mittarit</h3>
         <ul>
           <li><strong>Ryypyt</strong> ovat päävaluuttaa apureihin, parannuksiin ja tapahtumiin.</li>
-          <li><strong>Eurot</strong> tarvitaan olueen, markettiostoksiin, uhkapeleihin ja selviytymiseen.</li>
+          <li><strong>Eurot</strong> tarvitaan olueen, markettiostoksiin, uhkapeleihin ja selviytymiseen. Talousindeksi vaikuttaa vain eurohintoihin ja euromaksuihin.</li>
           <li><strong>Krapula</strong> hidastaa päivän kulkua. Ruoka ja sauna auttavat.</li>
           <li><strong>Stressi</strong> vaikeuttaa minipelejä ja voi aiheuttaa sekoilutapahtumia.</li>
         </ul>
@@ -199,6 +200,7 @@ const UI = {
       <h2>Pikatilastot</h2>
       <div class="statLine">Ryypyt: ${Math.floor(s.ryypyt)}</div>
       <div class="statLine">Eurot: ${s.euros.toFixed(2)} €</div>
+      <div class="statLine">Talousindeksi: ${typeof Economy !== 'undefined' ? Math.round(Economy.index * 100) + '%' : '100%'}</div>
       <div class="statLine">Krapula: ${Math.floor(s.hangover)}/100</div>
       <div class="statLine">Stressi: ${Math.floor(stress)}/100</div>
       <div class="statLine">Tila: ${stressLabel}</div>

@@ -71,15 +71,15 @@ const Kela = {
         'kelaContent',
         `
           <button id="toimeentulotukiButton" onclick="Kela.apply('toimeentulotuki')">Hae Toimeentulotuki</button>
-          <p>${this.rangeText('toimeentulotuki')}, käsittelyaika 25-35 päivää.</p>
+          <p><span id="toimeentulotukiRange">${this.rangeText('toimeentulotuki')}</span>, käsittelyaika 25-35 päivää.</p>
           <p id="toimeentulotukiStatus"></p>
           <hr>
           <button id="yleistukiButton" onclick="Kela.apply('yleistuki')">Hae Yleistuki</button>
-          <p>${this.rangeText('yleistuki')}, käsittelyaika 25-35 päivää.</p>
+          <p><span id="yleistukiRange">${this.rangeText('yleistuki')}</span>, käsittelyaika 25-35 päivää.</p>
           <p id="yleistukiStatus"></p>
           <hr>
           <button id="asumistukiButton" onclick="Kela.apply('asumistuki')">Hae Asumistuki</button>
-          <p>${this.rangeText('asumistuki')}, käsittelyaika 25-35 päivää. Ongelmat ovat harvinaisempia.</p>
+          <p><span id="asumistukiRange">${this.rangeText('asumistuki')}</span>, käsittelyaika 25-35 päivää. Ongelmat ovat harvinaisempia.</p>
           <p id="asumistukiStatus"></p>
           <div id="kelaProblemBox" class="kelaProblem hidden">
             <h3>Kelan ongelma</h3>
@@ -156,7 +156,11 @@ const Kela = {
 
   rangeText(type) {
     const range = this.benefitDefaults[type].range;
-    return `${range[0]}-${range[1]} €`;
+    const adjusted = range.map(amount => {
+      const value = typeof Economy !== 'undefined' ? Economy.scalePayment(amount, 'kela') : amount;
+      return Math.round(value);
+    });
+    return `${adjusted[0]}-${adjusted[1]} €`;
   },
 
   apply(type) {
@@ -182,7 +186,9 @@ const Kela = {
 
   rollAmount(type, multiplier = 1) {
     const [min, max] = this.benefitDefaults[type].range;
-    return Math.max(1, Math.round(Game.randInt(min, max) * multiplier));
+    const base = Game.randInt(min, max) * multiplier;
+    const adjusted = typeof Economy !== 'undefined' ? Economy.scalePayment(base, 'kela') : base;
+    return Math.max(1, Math.round(adjusted));
   },
 
   rollDecision() {
@@ -573,7 +579,9 @@ const Kela = {
     ['toimeentulotuki', 'yleistuki', 'asumistuki'].forEach(type => {
       const button = document.getElementById(type + 'Button');
       const status = document.getElementById(type + 'Status');
+      const range = document.getElementById(type + 'Range');
       if (button) button.disabled = this.benefits[type].applied;
+      if (range) range.textContent = this.rangeText(type);
       if (status) status.textContent = this.status(type);
     });
     this.renderProblem();

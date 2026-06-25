@@ -1,8 +1,12 @@
-Villisika-Sepon juomapeli — versio 0.4.12-kelapaatokset
+Villisika-Sepon juomapeli — versio 0.4.13-talousindeksi
 
 Avaa index.html selaimessa.
 
 Uutta tässä versiossa:
+- Lisätty Talous-järjestelmä Raha & ostokset -sivulle.
+- Talousindeksi vaikuttaa eurohintoihin ja euromaksuihin, mutta ei ryypyihin, apureihin tai parannuksiin.
+- Olutkauppa, Supermarket, Pikkukeikat ja Kela seuraavat talousindeksiä omilla painoillaan.
+- Uuden pelin aloitusraha säätyy osittain aloitusindeksin mukaan.
 - Kela-maksut vaihtelevat nyt tukikohtaisen summavälin ja päätöstyypin mukaan.
 - Kela-ongelmiin lisätty paperirumban lisäksi puhelujono, liitejahti ja tulotarkistus.
 - Väärät Kela-valinnat lisäävät käsittelyyn päivän ja stressiä.

@@ -36,7 +36,8 @@ const BeerShop = {
   },
 
   displayPrice(pack) {
-    return Number((pack.currentPrice * this.priceMultiplier()).toFixed(2));
+    const economy = typeof Economy !== 'undefined' ? Economy.priceMultiplier('beer') : 1;
+    return Number((pack.currentPrice * this.priceMultiplier() * economy).toFixed(2));
   },
 
   createPackages() {
