@@ -1,11 +1,12 @@
 const Game = {
-  version: "0.4.17-opasjajarjestys",
+  version: "0.4.18-aanensaato",
   modules: [],
   config: {
     canValue: 0.20,
     baseSecondsPerDay: 15,
     priceChangeIntervalDays: 7,
-    startingEuros: 200
+    startingEuros: 200,
+    soundVolume: 0.50
   },
   state: {
     ryypyt: 0,

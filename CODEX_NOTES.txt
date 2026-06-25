@@ -10,7 +10,7 @@ private tokens, personal account details, or other secrets in this file.
 
 Current version
 ---------------
-Game.version is currently 0.4.17-opasjajarjestys.
+Game.version is currently 0.4.18-aanensaato.
 
 README.txt should always mirror the actual Game.version in js/core.js whenever
 the core game version is changed.
@@ -68,6 +68,15 @@ Main file map
 
 Recent version notes
 --------------------
+0.4.18-aanensaato
+- Added a separated volume slider to the bottom of the left sidebar.
+- Default/current volume is 50 %, stored as Game.config.soundVolume = 0.50.
+- UI.setSoundVolume updates the visible percent label and calls
+  Gambling.updateKaraokeVolume() when available.
+- Karaoke Web Audio now routes through the shared volume value instead of a
+  hardcoded master gain.
+- This is local UI/audio only; no Supabase or save schema changes.
+
 0.4.17-opasjajarjestys
 - Peliopas was rewritten to reflect the current five-page structure, shared
   Talousindeksi, beer-score leaderboard, euro gambling, karaoke sound toggle,

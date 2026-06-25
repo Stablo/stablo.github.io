@@ -840,14 +840,27 @@ const Gambling = {
 
       if (!this.karaokeMasterGain) {
         this.karaokeMasterGain = this.karaokeAudioContext.createGain();
-        this.karaokeMasterGain.gain.value = 0.72;
+        this.karaokeMasterGain.gain.value = this.getKaraokeVolume();
         this.karaokeMasterGain.connect(this.karaokeAudioContext.destination);
       }
+
+      this.updateKaraokeVolume();
     } catch (error) {
       return null;
     }
 
     return this.karaokeAudioContext;
+  },
+
+  getKaraokeVolume() {
+    const volume = typeof Game !== 'undefined' && Game.config ? Number(Game.config.soundVolume) : 0.5;
+    const safeVolume = Number.isFinite(volume) ? volume : 0.5;
+    return Math.max(0, Math.min(1, safeVolume));
+  },
+
+  updateKaraokeVolume() {
+    if (!this.karaokeMasterGain) return;
+    this.karaokeMasterGain.gain.value = this.karaokeSoundEnabled ? this.getKaraokeVolume() : 0;
   },
 
   startKaraokeBeat(config) {
@@ -893,10 +906,12 @@ const Gambling = {
   toggleKaraokeSound() {
     this.karaokeSoundEnabled = !this.karaokeSoundEnabled;
     if (!this.karaokeSoundEnabled) {
+      this.updateKaraokeVolume();
       this.stopKaraokeBeat();
     } else if (this.karaokeActive && this.karaoke && !this.karaoke.ended) {
       this.startKaraokeBeat(this.karaoke.config);
     }
+    this.updateKaraokeVolume();
     this.renderKaraokeSoundButton();
   },
 

@@ -45,7 +45,34 @@ const UI = {
     const guideButton = document.getElementById('guideButton');
     if (guideButton) guideButton.onclick = () => this.showGuide();
 
+    this.initVolumeControl();
     window.addEventListener('keydown', event => this.handleKeydown(event));
+  },
+
+  initVolumeControl() {
+    this.setSoundVolume(Game.config.soundVolume ?? 0.5);
+
+    const slider = document.getElementById('gameVolumeSlider');
+    if (!slider) return;
+
+    slider.oninput = () => {
+      this.setSoundVolume(Number(slider.value) / 100);
+    };
+  },
+
+  setSoundVolume(value) {
+    const volume = Game.clamp(Number(value), 0, 1);
+    Game.config.soundVolume = Number(volume.toFixed(2));
+
+    const slider = document.getElementById('gameVolumeSlider');
+    const label = document.getElementById('gameVolumeValue');
+    const percent = Math.round(Game.config.soundVolume * 100);
+
+    if (slider) slider.value = String(percent);
+    if (label) label.textContent = `${percent}%`;
+    if (typeof Gambling !== 'undefined' && typeof Gambling.updateKaraokeVolume === 'function') {
+      Gambling.updateKaraokeVolume();
+    }
   },
 
   handleKeydown(event) {

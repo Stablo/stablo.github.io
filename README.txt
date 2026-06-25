@@ -1,8 +1,11 @@
-Villisika-Sepon juomapeli — versio 0.4.17-opasjajarjestys
+Villisika-Sepon juomapeli — versio 0.4.18-aanensaato
 
 Avaa index.html selaimessa.
 
 Uutta tässä versiossa:
+- Vasemman sivupalkin alaosaan lisätty äänenvoimakkuuden säädin.
+- Äänenvoimakkuuden oletus ja aloitusarvo on 50 %.
+- Karaokebiitti seuraa nyt yleistä äänenvoimakkuutta.
 - Peliopas päivitetty vastaamaan nykyistä viisisivuista rakennetta, pilvitaloutta ja olutpisteitä.
 - Vasemman reunan navigaatio on nyt ryhmitelty samassa järjestyksessä kuin ylävalikon sivut.
 - Vasempaan navigaatioon lisätty erillinen Uhkapelit-painike.
