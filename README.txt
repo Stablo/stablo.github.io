@@ -1,8 +1,11 @@
-Villisika-Sepon juomapeli — versio 0.4.7-olutpisteet
+Villisika-Sepon juomapeli — versio 0.4.8-eurouhkapelit
 
 Avaa index.html selaimessa.
 
 Uutta tässä versiossa:
+- Uhkapelit käyttävät nyt euroja panoksina ja voittoina ryypyn sijaan.
+- Vasemman reunan Peli-painike vie takaisin sivun yläreunaan.
+- Kolmen kupin katastrofin kupit vaihdettu pois pillimukeista.
 - Pistetaulu näyttää nyt parhaat juodut oluet ryypyn sijaan.
 - Supabase-tietokanta tarvitsee päivitetyn supabase-setup.sql-ajon olutpisteitä varten.
 - Tilinluonti ohjaa sähköpostivahvistuksen takaisin nykyiseen peliosoitteeseen.

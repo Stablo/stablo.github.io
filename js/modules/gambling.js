@@ -61,11 +61,11 @@ const Gambling = {
         'gamblingContent',
         `
           <p>
-            Täällä ryypyt muuttuvat huonoiksi päätöksiksi. Panokset maksetaan ryyppyinä, voitot maksetaan ryyppyinä,
+            Täällä eurot muuttuvat huonoiksi päätöksiksi. Panokset maksetaan euroina, voitot maksetaan euroina,
             ja tappiot tuntuvat yleensä stressissä tai krapulassa.
           </p>
 
-          <p>Nykyiset ryypyt: <strong><span id="gamblingRyypyt">0</span></strong></p>
+          <p>Nykyiset eurot: <strong><span id="gamblingEuros">0.00 €</span></strong></p>
 
           <div class="gambleChoices">
             <span>Panostaso:</span>
@@ -73,7 +73,7 @@ const Gambling = {
             <button onclick="Gambling.setBet(25)">25</button>
             <button onclick="Gambling.setBet(50)">50</button>
             <button onclick="Gambling.setBet(100)">100</button>
-            <strong id="currentBetText">25 ryyppyä</strong>
+            <strong id="currentBetText">25.00 €</strong>
           </div>
 
           <div class="gamblingGrid">
@@ -136,10 +136,59 @@ const Gambling = {
         position: relative;
         width: 130px;
         height: 150px;
-        font-size: 58px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
         border-radius: 18px;
         transition: transform .42s ease, filter .25s ease, box-shadow .25s ease;
         text-align: center;
+      }
+
+      .actualCup {
+        position: relative;
+        display: block;
+        width: 82px;
+        height: 96px;
+        filter: drop-shadow(0 12px 12px rgba(0,0,0,.35));
+      }
+
+      .actualCup::before {
+        content: '';
+        position: absolute;
+        left: 2px;
+        right: 2px;
+        top: 0;
+        height: 24px;
+        border: 4px solid #f6ead2;
+        border-radius: 50%;
+        background: radial-gradient(ellipse at center, #3a1b12 0 35%, #f6ead2 37% 100%);
+        z-index: 2;
+      }
+
+      .actualCup::after {
+        content: '';
+        position: absolute;
+        left: 10px;
+        top: 13px;
+        width: 62px;
+        height: 78px;
+        clip-path: polygon(7% 0, 93% 0, 76% 100%, 24% 100%);
+        background: linear-gradient(135deg, #fff7df, #e5b56d 58%, #9d5d24);
+        border-radius: 0 0 18px 18px;
+        box-shadow: inset -9px 0 14px rgba(90,45,12,.25), inset 9px 0 10px rgba(255,255,255,.28);
+      }
+
+      .actualCupHandle {
+        position: absolute;
+        right: -11px;
+        top: 33px;
+        width: 25px;
+        height: 34px;
+        border: 6px solid #e1aa5e;
+        border-left: 0;
+        border-radius: 0 18px 18px 0;
+        z-index: 1;
       }
 
       .cupButton.shuffleWiggle {
@@ -447,18 +496,22 @@ const Gambling = {
     this.render();
   },
 
+  formatEuros(amount) {
+    return `${Number(amount).toFixed(2)} €`;
+  },
+
   canPay() {
-    return Game.state.ryypyt >= this.bet;
+    return Game.state.euros >= this.bet;
   },
 
   payBet() {
     if (!this.canPay()) return false;
-    Game.state.ryypyt -= this.bet;
+    Game.state.euros -= this.bet;
     return true;
   },
 
   win(amount, text) {
-    Game.state.ryypyt += amount;
+    Game.state.euros += amount;
     this.log = text;
     Game.state.eventLog = text;
     Game.update();
@@ -491,9 +544,9 @@ const Gambling = {
         <p id="cupStatus">Kupit sekoittuvat. Yritä näyttää siltä, että ymmärrät pelin.</p>
         <div class="cupTable" id="cupTable">
           ${multipliers.map((multiplier, index) => `
-            <button class="cupButton" data-index="${index}" data-multiplier="${multiplier}" disabled>
-              🥤
-              <span class="cupPrize">${multiplier}x = ${paidBet * multiplier}</span>
+            <button class="cupButton" data-index="${index}" data-multiplier="${multiplier}" type="button" aria-label="Valitse kuppi ${index + 1}" disabled>
+              <span class="actualCup" aria-hidden="true"><span class="actualCupHandle"></span></span>
+              <span class="cupPrize">${multiplier}x = ${this.formatEuros(paidBet * multiplier)}</span>
             </button>
           `).join('')}
         </div>
@@ -543,20 +596,20 @@ const Gambling = {
 
     button.classList.add('lifted');
 
-    if (payout > 0) Game.state.ryypyt += payout;
+    if (payout > 0) Game.state.euros += payout;
 
     const result = document.getElementById('cupResultText');
     const close = document.getElementById('cupCloseButton');
 
-    result.textContent = `Kupin alta löytyi ${payout} ryyppyä takaisin (${multiplier}x panos).`;
+    result.textContent = `Kupin alta löytyi ${this.formatEuros(payout)} takaisin (${multiplier}x panos).`;
 
     if (multiplier === 0) {
-      this.log = `Kolmen kupin katastrofi: kuppi oli tyhjä. Menetit ${paidBet} ryyppyä. Stressi +4.`;
+      this.log = `Kolmen kupin katastrofi: kuppi oli tyhjä. Menetit ${this.formatEuros(paidBet)}. Stressi +4.`;
       Game.changeStress(4);
     } else if (multiplier === 1) {
       this.log = `Kolmen kupin katastrofi: sait panoksen takaisin. Ei voittoa, mutta ei täydellistä häpeää.`;
     } else {
-      this.log = `Kolmen kupin katastrofi: kuppi tuplasi panoksen! Sait ${payout} ryyppyä takaisin.`;
+      this.log = `Kolmen kupin katastrofi: kuppi tuplasi panoksen! Sait ${this.formatEuros(payout)} takaisin.`;
       Game.changeStress(-2);
     }
 
@@ -629,7 +682,7 @@ const Gambling = {
 
         this.spawnCardParticles(stage, outcome.good);
 
-        if (outcome.payout > 0) Game.state.ryypyt += outcome.payout;
+        if (outcome.payout > 0) Game.state.euros += outcome.payout;
         if (outcome.stress) Game.changeStress(outcome.stress);
         if (outcome.hangover) Game.changeHangover(outcome.hangover);
 
@@ -661,8 +714,8 @@ const Gambling = {
         payout: prize,
         stress: -4,
         hangover: 0,
-        text: `Jättipotti: kortti sylkäisi ${prize} ryyppyä takaisin ja pöytä teeskentelee, että tämä on normaalia.`,
-        log: `Korttipakka: vedät kortin, jota ei pitäisi olla olemassa. Jättipotti +${prize} ryyppyä! Stressi -4.`
+        text: `Jättipotti: kortti sylkäisi ${this.formatEuros(prize)} takaisin ja pöytä teeskentelee, että tämä on normaalia.`,
+        log: `Korttipakka: vedät kortin, jota ei pitäisi olla olemassa. Jättipotti +${this.formatEuros(prize)}! Stressi -4.`
       };
     }
 
@@ -674,8 +727,8 @@ const Gambling = {
         payout: prize,
         stress: -1,
         hangover: 0,
-        text: `Hyvä kortti: saat ${prize} ryyppyä takaisin. Joku nurkassa taputtaa yhdellä kädellä.`,
-        log: `Korttipakka: jotenkin tämä laskettiin voitoksi. +${prize} ryyppyä, stressi -1.`
+        text: `Hyvä kortti: saat ${this.formatEuros(prize)} takaisin. Joku nurkassa taputtaa yhdellä kädellä.`,
+        log: `Korttipakka: jotenkin tämä laskettiin voitoksi. +${this.formatEuros(prize)}, stressi -1.`
       };
     }
 
@@ -687,8 +740,8 @@ const Gambling = {
         payout: prize,
         stress: 3,
         hangover: 0,
-        text: `Outo kortti: saat vain ${prize} ryyppyä takaisin. Kortti tuijottaa sinua liian pitkään.`,
-        log: `Korttipakka: saat osan takaisin, mutta tunnelma pilaantuu. +${prize} ryyppyä, stressi +3.`
+        text: `Outo kortti: saat vain ${this.formatEuros(prize)} takaisin. Kortti tuijottaa sinua liian pitkään.`,
+        log: `Korttipakka: saat osan takaisin, mutta tunnelma pilaantuu. +${this.formatEuros(prize)}, stressi +3.`
       };
     }
 
@@ -699,7 +752,7 @@ const Gambling = {
       stress: 5,
       hangover: 2,
       text: `Paha kortti: et saa mitään takaisin. Pöytä katsoo sinua hiljaa ja krapula hiipii lähemmäs.`,
-      log: `Korttipakka: pöytä katsoo sinua hiljaa. Menetit ${paidBet} ryyppyä. Krapula +2, stressi +5.`
+      log: `Korttipakka: pöytä katsoo sinua hiljaa. Menetit ${this.formatEuros(paidBet)}. Krapula +2, stressi +5.`
     };
   },
 
@@ -744,8 +797,8 @@ const Gambling = {
         <h2>🎤 ${config.name} — ${config.label}</h2>
         <p>Paina oikeaa nuolinäppäintä, kun nuoli osuu keskellä olevaan merkkiin.</p>
         <div class="karaokeHud">
-          <span>Panoksesi: <strong>${paidBet}</strong></span>
-          <span>Voitto onnistuessa: <strong>${paidBet * config.multiplier}</strong></span>
+          <span>Panoksesi: <strong>${this.formatEuros(paidBet)}</strong></span>
+          <span>Voitto onnistuessa: <strong>${this.formatEuros(paidBet * config.multiplier)}</strong></span>
           <span>Virheet: <strong id="karaokeMisses">0</strong>/${config.allowedMisses}</span>
           <span>Osumat: <strong id="karaokeHits">0</strong>/${config.notes}</span>
         </div>
@@ -903,7 +956,7 @@ const Gambling = {
     state.ended = true;
 
     const prize = state.paidBet * state.config.multiplier;
-    const text = `Karaoketuomio: ${state.config.name} meni läpi! Sait ${prize} ryyppyä (${state.config.multiplier}x panos). Stressi -6.`;
+    const text = `Karaoketuomio: ${state.config.name} meni läpi! Sait ${this.formatEuros(prize)} (${state.config.multiplier}x panos). Stressi -6.`;
 
     setTimeout(() => {
       this.cleanupKaraoke();
@@ -917,7 +970,7 @@ const Gambling = {
 
     const state = this.karaoke;
     state.ended = true;
-    const text = `Karaoketuomio: ${reason} Menetit ${state.paidBet} ryyppyä. Krapula +${state.config.hangoverFail}, stressi +${state.config.stressFail}.`;
+    const text = `Karaoketuomio: ${reason} Menetit ${this.formatEuros(state.paidBet)}. Krapula +${state.config.hangoverFail}, stressi +${state.config.stressFail}.`;
 
     setTimeout(() => {
       this.cleanupKaraoke();
@@ -926,12 +979,12 @@ const Gambling = {
   },
 
   render() {
-    const ryypyt = document.getElementById('gamblingRyypyt');
+    const euros = document.getElementById('gamblingEuros');
     const betText = document.getElementById('currentBetText');
     const log = document.getElementById('gamblingLog');
 
-    if (ryypyt) ryypyt.textContent = Math.floor(Game.state.ryypyt);
-    if (betText) betText.textContent = this.bet + ' ryyppyä';
+    if (euros) euros.textContent = this.formatEuros(Game.state.euros);
+    if (betText) betText.textContent = this.formatEuros(this.bet);
     if (log) log.textContent = this.log;
 
     const disabled = !this.canPay() || this.cupActive || this.karaokeActive || this.cardActive;

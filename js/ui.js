@@ -4,6 +4,10 @@ const UI = {
       button.onclick = () => {
         this.showSite('game');
         const id = button.dataset.target;
+        if (id === 'mainContent') {
+          setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 40);
+          return;
+        }
         setTimeout(() => {
           const element = document.getElementById('section-' + id) || document.getElementById(id);
           if (element) element.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -74,8 +78,8 @@ const UI = {
 
         <h3>Tärkeimmät mittarit</h3>
         <ul>
-          <li><strong>Ryypyt</strong> ovat päävaluuttaa apureihin ja tapahtumiin.</li>
-          <li><strong>Eurot</strong> tarvitaan olueen, markettiostoksiin ja selviytymiseen.</li>
+          <li><strong>Ryypyt</strong> ovat päävaluuttaa apureihin, parannuksiin ja tapahtumiin.</li>
+          <li><strong>Eurot</strong> tarvitaan olueen, markettiostoksiin, uhkapeleihin ja selviytymiseen.</li>
           <li><strong>Krapula</strong> hidastaa päivän kulkua. Ruoka ja sauna auttavat.</li>
           <li><strong>Stressi</strong> vaikeuttaa minipelejä ja voi aiheuttaa sekoilutapahtumia.</li>
         </ul>
@@ -95,7 +99,7 @@ const UI = {
           <li>Pikkukeikoissa paina nuolinäppäimet oikeassa järjestyksessä. Stressi lisää askelia ja lyhentää aikaa.</li>
           <li>Karaokessa nuolet liikkuvat kohti keskimerkkiä. Paina oikea nuoli merkin kohdalla; vaikeammat tasot maksavat enemmän mutta ovat usein huono idea spammata.</li>
           <li>Kuppipelissä näet kupit sekoittuvan. Lopputulos voi olla 0x, 1x tai 2x panos.</li>
-          <li>Korttipakka on kaoottinen: hyvä merkki voi palkita, paha merkki voi viedä ryyppyjä tai pahentaa oloa.</li>
+          <li>Korttipakka on kaoottinen: hyvä merkki voi palkita euroilla, paha merkki voi viedä panoksen tai pahentaa oloa.</li>
         </ul>
 
         <h3>Romahdus ja pelin loppu</h3>
