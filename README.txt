@@ -1,8 +1,9 @@
-Villisika-Sepon juomapeli — versio 0.4.22-prestige
+Villisika-Sepon juomapeli — versio 0.4.23-prestige-sqlfix
 
 Avaa index.html selaimessa.
 
 Uutta tässä versiossa:
+- Korjattu Supabase-prestige-funktion lifetime_oluet-viittaus, joka saattoi estää prestigen virheellä "column reference lifetime_oluet is ambiguous".
 - Lisätty Prestige-järjestelmä kirjautuneille pelaajille.
 - Prestige nollaa nykyisen kierroksen, poistaa vanhan pilvitallennuksen ja lisää pistetaululle tähtimerkin.
 - Prestige-tasot ovat 1-3 pronssitähteä, 1-3 hopeatähteä, 1-3 kultatähteä ja tasolla 10 platinatähti.

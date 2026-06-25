@@ -399,10 +399,10 @@ begin
     raise exception 'Prestige vaatii % juotua olutta tällä kierroksella.', required_oluet;
   end if;
 
-  update public.profiles
+  update public.profiles as profiles
   set
     prestige_level = profile_row.prestige_level + 1,
-    lifetime_oluet = least(1000000000000, coalesce(lifetime_oluet, 0) + safe_run_oluet),
+    lifetime_oluet = least(1000000000000, coalesce(profiles.lifetime_oluet, 0) + safe_run_oluet),
     current_ryypyt = 0,
     best_ryypyt = 0,
     ryypyt = 0,
@@ -410,8 +410,8 @@ begin
     best_oluet = 0,
     last_prestiged_at = now(),
     updated_at = now()
-  where user_id = player_id
-  returning * into profile_row;
+  where profiles.user_id = player_id
+  returning profiles.* into profile_row;
 
   delete from public.game_saves
   where user_id = player_id

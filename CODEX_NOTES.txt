@@ -10,7 +10,7 @@ private tokens, personal account details, or other secrets in this file.
 
 Current version
 ---------------
-Game.version is currently 0.4.22-prestige.
+Game.version is currently 0.4.23-prestige-sqlfix.
 
 README.txt should always mirror the actual Game.version in js/core.js whenever
 the core game version is changed.
@@ -70,6 +70,13 @@ Main file map
 
 Recent version notes
 --------------------
+0.4.23-prestige-sqlfix
+- Fixed claim_prestige(run_oluet) in supabase-setup.sql so the profile table is
+  aliased when updating lifetime_oluet. Without this, Supabase could fail
+  prestige with "column reference lifetime_oluet is ambiguous" because the RPC
+  also returns an output column named lifetime_oluet.
+- Run the updated supabase-setup.sql again in Supabase to replace the function.
+
 0.4.22-prestige
 - Added an account-based Prestige system for logged-in players with a warning
   popup before reset. Prestige levels 1-10 show as:
