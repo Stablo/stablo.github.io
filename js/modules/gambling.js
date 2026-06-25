@@ -13,6 +13,7 @@ const Gambling = {
   karaokeKeyHandler: null,
   karaokeSoundEnabled: true,
   karaokeAudioContext: null,
+  karaokeMasterGain: null,
   karaokeBeatTimer: null,
   karaokeBeatStep: 0,
 
@@ -837,9 +838,10 @@ const Gambling = {
         this.karaokeAudioContext = new AudioContextClass();
       }
 
-      if (this.karaokeAudioContext.state === 'suspended') {
-        const resume = this.karaokeAudioContext.resume();
-        if (resume && typeof resume.catch === 'function') resume.catch(() => {});
+      if (!this.karaokeMasterGain) {
+        this.karaokeMasterGain = this.karaokeAudioContext.createGain();
+        this.karaokeMasterGain.gain.value = 0.72;
+        this.karaokeMasterGain.connect(this.karaokeAudioContext.destination);
       }
     } catch (error) {
       return null;
@@ -856,10 +858,29 @@ const Gambling = {
     const context = this.getKaraokeAudioContext();
     if (!context) return;
 
-    this.karaokeBeatStep = 0;
-    const stepMs = Math.max(90, 60000 / config.bpm / 2);
-    this.playKaraokeBeatStep(config);
-    this.karaokeBeatTimer = setInterval(() => this.playKaraokeBeatStep(config), stepMs);
+    const startLoop = () => {
+      if (!this.karaokeActive || !this.karaoke || this.karaoke.ended || !this.karaokeSoundEnabled) return;
+      this.stopKaraokeBeat();
+      this.karaokeBeatStep = 0;
+      const stepMs = Math.max(90, 60000 / config.bpm / 2);
+      this.playKaraokeBeatStep(config);
+      this.karaokeBeatTimer = setInterval(() => this.playKaraokeBeatStep(config), stepMs);
+      this.renderKaraokeSoundButton();
+    };
+
+    if (context.state === 'suspended' && typeof context.resume === 'function') {
+      const resume = context.resume();
+      if (resume && typeof resume.then === 'function') {
+        resume.then(startLoop).catch(() => {
+          this.renderKaraokeSoundButton();
+        });
+      } else {
+        startLoop();
+      }
+      return;
+    }
+
+    startLoop();
   },
 
   stopKaraokeBeat() {
@@ -889,11 +910,12 @@ const Gambling = {
     if (!context) return;
 
     const step = this.karaokeBeatStep % 8;
-    const intensity = Game.clamp((config.multiplier - 1) * 0.018, 0.018, 0.06);
+    const intensity = Game.clamp((config.multiplier - 1) * 0.035, 0.035, 0.12);
 
-    this.playKaraokeNoise(context, 0.018, 0.010 + intensity * 0.18, 'highpass', 5600);
-    if (step === 0 || step === 4) this.playKaraokeKick(context, 0.055 + intensity);
-    if (step === 2 || step === 6) this.playKaraokeNoise(context, 0.070, 0.026 + intensity * 0.35, 'bandpass', 1450);
+    this.playKaraokeNoise(context, 0.020, 0.028 + intensity * 0.20, 'highpass', 5200);
+    if (step === 0 || step === 4) this.playKaraokeKick(context, 0.16 + intensity);
+    if (step === 2 || step === 6) this.playKaraokeNoise(context, 0.080, 0.075 + intensity * 0.45, 'bandpass', 1500);
+    if (step % 2 === 0) this.playKaraokeTone(context, step === 0 ? 220 : 330, 0.045, 0.055 + intensity * 0.18);
 
     this.karaokeBeatStep++;
   },
@@ -911,9 +933,27 @@ const Gambling = {
     gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.15);
 
     oscillator.connect(gain);
-    gain.connect(context.destination);
+    gain.connect(this.karaokeMasterGain || context.destination);
     oscillator.start(now);
     oscillator.stop(now + 0.16);
+  },
+
+  playKaraokeTone(context, frequency, duration, volume) {
+    const now = context.currentTime;
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+
+    oscillator.type = 'triangle';
+    oscillator.frequency.setValueAtTime(frequency, now);
+
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.linearRampToValueAtTime(volume, now + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+    oscillator.connect(gain);
+    gain.connect(this.karaokeMasterGain || context.destination);
+    oscillator.start(now);
+    oscillator.stop(now + duration + 0.02);
   },
 
   playKaraokeNoise(context, duration, volume, filterType, frequency) {
@@ -939,7 +979,7 @@ const Gambling = {
 
     source.connect(filter);
     filter.connect(gain);
-    gain.connect(context.destination);
+    gain.connect(this.karaokeMasterGain || context.destination);
     source.start(now);
     source.stop(now + duration);
   },

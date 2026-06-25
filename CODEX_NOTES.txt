@@ -10,7 +10,7 @@ private tokens, personal account details, or other secrets in this file.
 
 Current version
 ---------------
-Game.version is currently 0.4.15-karaokebiitti.
+Game.version is currently 0.4.16-karaokeaani.
 
 README.txt should always mirror the actual Game.version in js/core.js whenever
 the core game version is changed.
@@ -68,6 +68,15 @@ Main file map
 
 Recent version notes
 --------------------
+0.4.16-karaokeaani
+- Fixed the generated karaoke beat so it waits for the browser AudioContext to
+  resume before scheduling the loop.
+- Added a controlled master gain and raised beat levels because the first
+  0.4.15 version could be effectively silent on normal speakers.
+- Added a short triangle synth pulse on quarter beats so the karaoke rhythm is
+  audibly clear without needing audio files.
+- This is local browser audio only; no Supabase or save schema changes.
+
 0.4.15-karaokebiitti
 - Karaoketuomio now has a lightweight generated Web Audio beat during the
   minigame. No audio files were added.

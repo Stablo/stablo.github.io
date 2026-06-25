@@ -1,8 +1,10 @@
-Villisika-Sepon juomapeli — versio 0.4.15-karaokebiitti
+Villisika-Sepon juomapeli — versio 0.4.16-karaokeaani
 
 Avaa index.html selaimessa.
 
 Uutta tässä versiossa:
+- Korjattu karaokebiitin käynnistys odottamaan selaimen äänikontekstin avautumista.
+- Karaokebiitti on nyt selvästi kuuluvampi ja siinä on kevyt syntikkapulssi rummun tukena.
 - Karaoketuomioon lisätty kevyt selaimessa luotu biitti, joka vaihtuu vaikeustason mukaan.
 - Karaokebiitille lisätty pieni äänet päälle/pois -painike karaokeikkunaan.
 - Onnistunut karaokeosuma tekee nyt hillityn laajenevan rengas-efektin nuolen kohdalle.
