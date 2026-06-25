@@ -225,7 +225,19 @@ h1 {
 }
 
 .marketRow { grid-template-columns: 190px 1fr 130px; }
-.packButtons button { font-size: 12px; padding: 6px; }
+.packButtons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+  gap: 6px;
+}
+
+.packButtons button {
+  width: 100%;
+  min-height: 52px;
+  margin: 0;
+  font-size: 12px;
+  padding: 6px;
+}
 
 canvas {
   background: rgba(0,0,0,.28);

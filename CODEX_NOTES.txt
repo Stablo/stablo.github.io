@@ -1,0 +1,137 @@
+Codex notes for Villisika-Sepon juomapeli
+========================================
+
+Purpose of this file
+--------------------
+Read this first when continuing the project in a fresh Codex chat. It is a
+memory refresh for the game's structure, current design direction, recent
+changes, and a few things to avoid breaking. Do not put passwords, SMTP keys,
+private tokens, personal account details, or other secrets in this file.
+
+Current version
+---------------
+Game.version is currently 0.4.9-24pack-pikanapit.
+
+README.txt should always mirror the actual Game.version in js/core.js whenever
+the core game version is changed.
+
+Core game idea
+--------------
+The high score is now total beers consumed, including beers consumed by helpers.
+This is tracked as Game.state.oluet and synced to Supabase scoreboard columns
+current_oluet / best_oluet through supabase-setup.sql.
+
+The important economy split is:
+- Eurot: money for beer, market items, gambling, Kela survival, and general
+  short-term recovery.
+- Ryypyt: progression currency for helpers, permanent upgrades, and random
+  events. Ryypyt are no longer the scoreboard score.
+- Juodut oluet: the actual high-score number shown on the scoreboard.
+
+Important project rules
+-----------------------
+- Keep changes scoped and avoid breaking Supabase auth/cloud saves.
+- If Game.version changes, update index.html footer and README.txt too.
+- After each meaningful patch, update CODEX_NOTES.txt when the change affects
+  game direction, core systems, version history, Supabase behavior, or future
+  handoff context.
+- Do not commit private service credentials. Supabase/Brevo setup should stay
+  in dashboards, not in repository notes.
+- Supabase SQL changes usually require running supabase-setup.sql manually in
+  the Supabase SQL Editor after pushing files.
+- The project is a static browser game; opening index.html should work.
+
+Main file map
+-------------
+- index.html: page shell, navigation, script loading, visible footer version.
+- css/styles.css: shared page layout and visual styling.
+- js/core.js: Game object, version, base state, module registration/update loop.
+- js/ui.js: side navigation, guide overlay, top site switching, quick stats.
+- js/supabase-config.js: public Supabase client config.
+- js/modules/player.js: drinking beer, producing ryypyt and empty cans.
+- js/modules/beer-shop.js: beer prices, pack buying, price graphs.
+- js/modules/supermarket.js: food/drinks/cigarettes and hangover/stress relief.
+- js/modules/returns.js: can return minigames and euro income.
+- js/modules/jobs.js: odd jobs minigame and euro income.
+- js/modules/kela.js: benefit applications, delays, paperwork/calls.
+- js/modules/stress.js: stress state and relief actions.
+- js/modules/collapse.js: Romahdus and game-over flow.
+- js/modules/helpers.js: Lauri, Jarski, Tuomas helper drinking/ryyppy output.
+- js/modules/upgrades.js: permanent upgrades bought with ryypyt.
+- js/modules/gambling.js: euro-based gambling minigames.
+- js/modules/account.js: Supabase login/signup/password reset/cloud save UI.
+- js/modules/save.js: local save sanitation and save/load state packaging.
+- supabase-setup.sql: database tables, RLS, triggers, scoreboard view.
+
+Recent version notes
+--------------------
+0.4.9-24pack-pikanapit
+- Beer shop now sells 24-packs with a stronger bulk discount.
+- Keyboard shortcuts were added for the top site tabs: 1 = Peruspeli,
+  2 = Pysyvät parannukset, 3 = Uhkapelit.
+- Number shortcuts intentionally do not fire while typing in inputs, textareas,
+  selects, or editable content.
+
+0.4.8-eurouhkapelit
+- Gambling was changed from ryypyt to euros.
+- Ryypyt stayed as the progression currency for helpers, upgrades, and events.
+- Left-side Peli button now scrolls to the top of the page.
+- Kolmen kupin katastrofi now uses CSS-drawn cup visuals instead of straw-cup
+  emojis.
+
+0.4.7-olutpisteet
+- Scoreboard changed from best ryypyt to best total beers consumed.
+- Account scoreboard UI now reads best_oluet / current_oluet when available.
+- supabase-setup.sql adds current_oluet and best_oluet, backfills them from
+  latest cloud saves, and updates them from future saves.
+- The scoreboard SQL view exposes nickname, oluet, ryypyt fallback, and
+  updated_at. Public read access to the scoreboard view is intentional.
+
+0.4.6-tilikorjaus
+- Account creation redirect was fixed so email confirmation returns to the
+  current game address.
+- Password recovery was added through Supabase auth email reset links.
+- Email recovery/account-name recovery was intentionally not added.
+
+Important current behavior
+--------------------------
+Romahdus:
+- Triggered by severe failure state: stress 100, hangover 100, euros below 1,
+  no full cans, and not already collapsed that same day.
+- First and second Romahdus halve euros and ryypyt, give a small rescue stock,
+  push the day forward, and reset some pressure.
+- Third Romahdus sets gameOver true. It does not automatically cloud-save.
+
+Permanent upgrades:
+- Upgrades are currently saved as part of the save data.
+- A fresh restart/new save loses them unless a cloud/local save containing them
+  is loaded.
+
+Scoreboard:
+- The score that matters is juodut oluet, including helper drinking.
+- The game has fallback code for older Supabase schemas that only have ryypyt,
+  but the intended live schema is the olut-score version.
+
+Gambling:
+- Uses euros for bets and payouts.
+- Should not directly create or remove ryypyt.
+- Stress/hangover consequences are still allowed.
+
+Supabase/auth notes without secrets
+-----------------------------------
+- Auth, cloud save, profiles, and scoreboard are Supabase-backed.
+- Password reset exists in account.js.
+- Custom SMTP was configured outside the codebase and should not require game
+  code changes unless redirect behavior changes.
+- Deleting an auth user should cascade profile/save rows if the current SQL
+  setup is in place.
+
+Useful checks before handing off changes
+----------------------------------------
+- Confirm Game.version in js/core.js matches README.txt and index.html footer.
+- Confirm CODEX_NOTES.txt still reflects the current direction after gameplay,
+  save/account, Supabase, or version changes.
+- Search changed gameplay text for old misleading references.
+- Run a JavaScript syntax check if possible.
+- Check git status and mention exactly which files changed.
+- For Supabase SQL changes, remind the user to run supabase-setup.sql manually.

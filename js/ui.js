@@ -18,11 +18,35 @@ const UI = {
     const guideButton = document.getElementById('guideButton');
     if (guideButton) guideButton.onclick = () => this.showGuide();
 
-    window.addEventListener('keydown', event => {
-      if (event.key === 'Escape') this.closeGuide();
-    });
+    window.addEventListener('keydown', event => this.handleKeydown(event));
   },
 
+  handleKeydown(event) {
+    if (event.key === 'Escape') {
+      this.closeGuide();
+      return;
+    }
+
+    if (event.ctrlKey || event.altKey || event.metaKey || this.isTypingTarget(event.target)) return;
+
+    const sitesByKey = {
+      1: 'game',
+      2: 'upgrades',
+      3: 'gambling'
+    };
+
+    const site = sitesByKey[event.key];
+    if (!site) return;
+
+    event.preventDefault();
+    this.showSite(site);
+  },
+
+  isTypingTarget(target) {
+    if (!target) return false;
+    const tag = target.tagName;
+    return target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(tag);
+  },
 
   showSite(site) {
     ['game', 'upgrades', 'gambling'].forEach(name => {

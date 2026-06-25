@@ -1,8 +1,10 @@
-Villisika-Sepon juomapeli — versio 0.4.8-eurouhkapelit
+Villisika-Sepon juomapeli — versio 0.4.9-24pack-pikanapit
 
 Avaa index.html selaimessa.
 
 Uutta tässä versiossa:
+- Olutkauppaan lisätty 24-packit isommalla bulkkialennuksella.
+- Ylävälilehtiä voi vaihtaa näppäimistöllä: 1 peruspeli, 2 parannukset, 3 uhkapelit.
 - Uhkapelit käyttävät nyt euroja panoksina ja voittoina ryypyn sijaan.
 - Vasemman reunan Peli-painike vie takaisin sivun yläreunaan.
 - Kolmen kupin katastrofin kupit vaihdettu pois pillimukeista.

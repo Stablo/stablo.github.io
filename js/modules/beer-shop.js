@@ -41,8 +41,9 @@ const BeerShop = {
 
   createPackages() {
     this.packages = [];
-    this.brands.forEach(brand => [1, 6, 12].forEach(cans => {
-      const discount = cans === 1 ? 1 : cans === 6 ? .88 : .80;
+    const packageDiscounts = { 1: 1, 6: .88, 12: .80, 24: .72 };
+    this.brands.forEach(brand => [1, 6, 12, 24].forEach(cans => {
+      const discount = packageDiscounts[cans] ?? 1;
       const basePrice = Number((brand.single * cans * discount).toFixed(2));
       this.packages.push({
         name: brand.name,
