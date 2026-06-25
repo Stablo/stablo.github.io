@@ -12,20 +12,42 @@
       <h2>🍺 Seppo</h2>
       <button id="guideButton" class="guideButton" type="button">📖 Peliopas</button>
       <div class="navDivider"></div>
-      <button data-target="mainContent">Peli</button>
-      <button data-target="stressContent">Stressi</button>
-      <button data-target="collapseContent">Romahdus</button>
-      <button data-target="timeContent">Aika</button>
-      <button data-target="economyContent">Talous</button>
-      <button data-target="beerShopContent">Olutkauppa</button>
-      <button data-target="marketContent">Supermarket</button>
-      <button data-target="eventContent">Tapahtumat</button>
-      <button data-target="helpersContent">Apurit</button>
-      <button data-target="upgradesContent">Pysyvät parannukset</button>
-      <button data-target="moneyContent">Palautukset</button>
-      <button data-target="jobsContent">Pikkukeikat</button>
-      <button data-target="kelaContent">Kela</button>
-      <button data-target="accountContent">Tili ja tallennus</button>
+
+      <div class="navGroup navGroupDaily activeNavGroup">
+        <div class="navGroupTitle">1. Arki</div>
+        <button data-target="mainContent">Peli</button>
+        <button data-target="stressContent">Stressi</button>
+        <button data-target="collapseContent">Romahdus</button>
+        <button data-target="timeContent">Aika</button>
+        <button data-target="eventContent">Tapahtumat</button>
+        <button data-target="statsPanel">Pikatilastot</button>
+      </div>
+
+      <div class="navGroup navGroupMoney">
+        <div class="navGroupTitle">2. Raha & ostokset</div>
+        <button data-target="economyContent">Talous</button>
+        <button data-target="beerShopContent">Olutkauppa</button>
+        <button data-target="marketContent">Supermarket</button>
+        <button data-target="moneyContent">Palautukset</button>
+        <button data-target="jobsContent">Pikkukeikat</button>
+        <button data-target="kelaContent">Kela</button>
+      </div>
+
+      <div class="navGroup navGroupProgress">
+        <div class="navGroupTitle">3. Apurit & kehitys</div>
+        <button data-target="helpersContent">Apurit</button>
+        <button data-target="upgradesContent">Pysyvät parannukset</button>
+      </div>
+
+      <div class="navGroup navGroupGambling">
+        <div class="navGroupTitle">4. Uhkapelit</div>
+        <button data-target="gamblingContent">Uhkapelit</button>
+      </div>
+
+      <div class="navGroup navGroupAccount">
+        <div class="navGroupTitle">5. Tili</div>
+        <button data-target="accountContent">Tili ja tallennus</button>
+      </div>
     </aside>
 
     <div class="pageWrap">
@@ -62,7 +84,7 @@
         <main id="accountMain" class="siteSingleColumn"></main>
       </section>
 
-      <footer>Villisika-Sepon juomapeli — versio 0.4.16-karaokeaani</footer>
+      <footer>Villisika-Sepon juomapeli — versio 0.4.17-opasjajarjestys</footer>
     </div>
   </div>
 

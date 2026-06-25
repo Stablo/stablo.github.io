@@ -1,10 +1,18 @@
 const UI = {
   sites: ['daily', 'money', 'progress', 'gambling', 'account'],
+  siteNavGroups: {
+    daily: 'navGroupDaily',
+    money: 'navGroupMoney',
+    progress: 'navGroupProgress',
+    gambling: 'navGroupGambling',
+    account: 'navGroupAccount'
+  },
   sectionSites: {
     mainContent: 'daily',
     stressContent: 'daily',
     collapseContent: 'daily',
     timeContent: 'daily',
+    statsPanel: 'daily',
     economyContent: 'money',
     eventContent: 'daily',
     beerShopContent: 'money',
@@ -84,6 +92,10 @@ const UI = {
       if (button) button.classList.toggle('active', name === site);
     });
 
+    document.querySelectorAll('.navGroup').forEach(group => {
+      group.classList.toggle('activeNavGroup', group.classList.contains(this.siteNavGroups[site]));
+    });
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
   },
 
@@ -110,70 +122,75 @@ const UI = {
         <h2 id="guideTitle">📖 Villisika-Sepon pikaopas</h2>
 
         <p>
-          Tavoitteena on pitää Seppo jotenkin toimintakykyisenä: hanki ryyppyjä,
-          osta olutta, palauta tölkkejä, selvitä Kela-sotkuja ja yritä olla romahtamatta
-          krapulan ja stressin alle.
+          Tavoitteena on kasvattaa juotujen oluiden määrää ilman, että arki kaatuu
+          krapulaan, stressiin, rahapulaan tai kolmanteen Romahdukseen.
         </p>
+
+        <h3>Sivut</h3>
+        <ul>
+          <li><strong>1. Arki</strong>: juominen, stressi, Romahdus, aika, tapahtumat ja pikatilastot.</li>
+          <li><strong>2. Raha & ostokset</strong>: Talous, Olutkauppa, Supermarket, palautukset, pikkukeikat ja Kela.</li>
+          <li><strong>3. Apurit & kehitys</strong>: apurit ja pysyvät parannukset.</li>
+          <li><strong>4. Uhkapelit</strong>: kuppipeli, karaoke ja korttipakka.</li>
+          <li><strong>5. Tili</strong>: kirjautuminen, pilvitallennus, salasanan palautus ja pistetaulu.</li>
+        </ul>
 
         <h3>Peruskierto</h3>
         <ol>
-          <li>Osta olutta Olutkaupasta, kun hinta on siedettävä.</li>
-          <li>Juo tölkkejä saadaksesi ryyppyjä ja tyhjiä tölkkejä.</li>
-          <li>Palauta tyhjät tölkit euroiksi Puulantorilla tai Kilinäkoneessa.</li>
-          <li>Pidä ruokaa, tupakkaa ja stressinlievitystä varalla pahojen päivien varalta.</li>
+          <li>Hanki euroja palautuksilla, pikkukeikoilla, Kelalla tai varovaisella uhkapelillä.</li>
+          <li>Osta olutta, kun hinta ja taloustilanne ovat siedettäviä.</li>
+          <li>Juo täysiä tölkkejä: saat ryyppyjä, tyhjiä tölkkejä ja juodut oluet -pisteitä.</li>
+          <li>Palauta tyhjät tölkit euroiksi ja pidä ruokaa, tupakkaa tai stressinlievitystä varalla.</li>
         </ol>
 
-        <h3>Tärkeimmät mittarit</h3>
+        <h3>Mittarit</h3>
         <ul>
-          <li><strong>Ryypyt</strong> ovat päävaluuttaa apureihin, parannuksiin ja tapahtumiin.</li>
-          <li><strong>Eurot</strong> tarvitaan olueen, markettiostoksiin, uhkapeleihin ja selviytymiseen. Talousindeksi vaikuttaa vain eurohintoihin ja euromaksuihin.</li>
-          <li><strong>Krapula</strong> hidastaa päivän kulkua. Ruoka ja sauna auttavat.</li>
-          <li><strong>Stressi</strong> vaikeuttaa minipelejä ja voi aiheuttaa sekoilutapahtumia.</li>
+          <li><strong>Juodut oluet</strong> on nykyinen pistetaulun tulos. Myös apurien juomat oluet lasketaan.</li>
+          <li><strong>Ryypyt</strong> ovat etenemisvaluuttaa apureihin, parannuksiin ja satunnaisiin tapahtumiin.</li>
+          <li><strong>Eurot</strong> tarvitaan ostoksiin, palautusten ja tukien rytmittämään selviytymiseen sekä uhkapeleihin.</li>
+          <li><strong>Krapula</strong> hidastaa päiviä. <strong>Stressi</strong> vaikeuttaa minipelejä ja voi pahentaa tilanteita.</li>
         </ul>
 
-        <h3>Pysyvät parannukset</h3>
+        <h3>Talous</h3>
         <ul>
-          <li>Parannukset ostetaan ryypyillä Apurit & kehitys -sivulla.</li>
-          <li>Ne ovat kalliita, mutta pysyviä. Osta niitä vasta kun perusarki ei kaadu joka päivä.</li>
-          <li>Teräsmaksan tiiviste vahvistuu hitaasti: se vaatii 50 itse juotua olutta ennen pysyvää +1 ryyppyä per olut.</li>
-          <li>Apuriparannukset voivat säästää tölkkejä tai kasvattaa tuotantoa, joten ne sopivat pitkään peliin.</li>
+          <li>Talousindeksi on pilvestä haettava yhteinen arvo, joten sama taloustilanne koskee kaikkia pelaajia.</li>
+          <li>Se muuttuu yleensä kerran päivässä noin klo 06.00 Suomen aikaa.</li>
+          <li>Indeksi vaikuttaa vain eurohintoihin ja euromaksuihin: olueen, markettiin, Kelaan ja pikkukeikkoihin.</li>
+          <li>Ryypyt, apurit, pysyvät parannukset, tapahtumien ryyppyhinnat ja pistetaulu eivät seuraa inflaatiota.</li>
+        </ul>
+
+        <h3>Apurit ja parannukset</h3>
+        <ul>
+          <li>Apurit juovat täysiä tölkkejä puolestasi ja tuottavat ryyppyjä, jos varasto riittää.</li>
+          <li>Pysyvät parannukset ostetaan ryypyillä. Ne auttavat pitkää peliä, mutta eivät korvaa toimivaa arkea.</li>
+          <li>Teräsmaksan tiiviste vahvistuu hitaasti itse juoduista oluista.</li>
+          <li>Apuriparannukset voivat säästää tölkkejä, parantaa tuotantoa tai tehdä apureista vähemmän arvaamattomia.</li>
         </ul>
 
         <h3>Minipeleistä</h3>
         <ul>
-          <li>Puulantorilla jokainen tölkkiosuma palauttaa yhden tölkin. Hutiklikki lukitsee Puulantorin hetkeksi.</li>
-          <li>Kilinäkoneessa valitse järkevin toiminta. Väärät päätökset nostavat stressiä ja voivat maksaa tölkkejä.</li>
-          <li>Pikkukeikoissa paina nuolinäppäimet oikeassa järjestyksessä. Stressi lisää askelia ja lyhentää aikaa.</li>
-          <li>Karaokessa nuolet liikkuvat kohti keskimerkkiä. Paina oikea nuoli merkin kohdalla; vaikeammat tasot maksavat enemmän mutta ovat usein huono idea spammata.</li>
-          <li>Kuppipelissä näet kupit sekoittuvan. Lopputulos voi olla 0x, 1x tai 2x panos.</li>
-          <li>Korttipakka on kaoottinen: hyvä merkki voi palkita euroilla, paha merkki voi viedä panoksen tai pahentaa oloa.</li>
+          <li>Puulantorilla osumat palauttavat tölkkejä, mutta huti lukitsee sen hetkeksi.</li>
+          <li>Kilinäkoneessa valitse järkevin toiminta. Huonot päätökset voivat maksaa tölkkejä ja nostaa stressiä.</li>
+          <li>Pikkukeikoissa paina nuolinäppäimet oikeassa järjestyksessä. Stressi lisää vaikeutta.</li>
+          <li>Karaokessa paina oikea nuoli keskimerkin kohdalla. Äänet voi laittaa päälle tai pois karaokeikkunasta.</li>
+          <li>Uhkapelit käyttävät euroja panoksina ja voittoina, eivät ryyppyjä.</li>
         </ul>
 
-        <h3>Romahdus ja pelin loppu</h3>
+        <h3>Romahdus</h3>
         <ul>
-          <li>Romahdus voi tapahtua, kun stressi on 100, krapula on 100, euroja on alle 1 € ja täysiä tölkkejä ei ole.</li>
-          <li>Ensimmäinen ja toinen romahdus eivät lopeta peliä, mutta vievät puolet euroista ja ryypyistä. Saat samalla pienen säälivaraston takaisin.</li>
-          <li>Kolmas romahdus on varsinainen game over: Seppo siirtyy taustatarinaksi.</li>
-          <li>Pidä aina ainakin yksi pelastusreitti hengissä: hieman euroja, muutama tölkki, matalampi stressi tai matalampi krapula.</li>
+          <li>Romahdus voi tapahtua, kun stressi ja krapula ovat 100, euroja on alle 1 € eikä täysiä tölkkejä ole.</li>
+          <li>Ensimmäinen ja toinen Romahdus eivät lopeta peliä, mutta vievät puolet euroista ja ryypyistä.</li>
+          <li>Kolmas Romahdus päättää nykyisen selainistunnon pelin.</li>
+          <li>Pidä aina ainakin yksi pelastusreitti hengissä: euroja, täysiä tölkkejä, alempi stressi tai alempi krapula.</li>
         </ul>
 
-        <h3>Hyödyllisiä vinkkejä</h3>
+        <h3>Tili</h3>
         <ul>
-          <li>Älä polta kaikkia euroja kalliiseen olueen; hinnat vaihtuvat muutaman päivän välein.</li>
-          <li>Puulantori on helppo ja nopea, mutta hutiklikki lukitsee sen hetkeksi.</li>
-          <li>Kilinäkone palauttaa kaiken, mutta Panttikoneen raivo voi kostautua.</li>
-          <li>Kela-hakemukset kannattaa laittaa vetämään ajoissa, koska ongelmat venyttävät arkea.</li>
-          <li>Apurit tekevät ryyppyjä, jos täysiä tölkkejä riittää. Pidä varasto hengissä.</li>
-          <li>Kun stressi nousee, käytä Stressi-osion rauhoittavia toimintoja ennen vaikeita minipelejä.</li>
-          <li>Supermarketin ostokset eivät ole loistava sijoitus, mutta voivat pelastaa krapulapäivän.</li>
-          <li>Tallenna välillä, varsinkin ennen kuin alat kokeilla outoja tapahtumia.</li>
+          <li>Pilvitallennus toimii kirjautuneena Supabasen kautta.</li>
+          <li>Nimimerkki tarvitaan pistetaululle näkymiseen.</li>
+          <li>Salasanan palautus lähettää sähköpostilinkin, jos osoitteella on tili.</li>
+          <li>Tallenna ennen isoja riskejä ja lataa pilvestä vain, kun haluat korvata nykyisen selainistunnon.</li>
         </ul>
-
-        <h3>Pieni selviytymissääntö</h3>
-        <p>
-          Jos kaikki menee pieleen: palauta tölkkejä, hae halpaa ruokaa, laske stressiä,
-          hanki täysiä tölkkejä ja vasta sitten tee vaikeampia keikkoja tai uhkapelejä.
-        </p>
       </div>
     `;
 

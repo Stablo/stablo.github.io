@@ -10,7 +10,7 @@ private tokens, personal account details, or other secrets in this file.
 
 Current version
 ---------------
-Game.version is currently 0.4.16-karaokeaani.
+Game.version is currently 0.4.17-opasjajarjestys.
 
 README.txt should always mirror the actual Game.version in js/core.js whenever
 the core game version is changed.
@@ -68,6 +68,18 @@ Main file map
 
 Recent version notes
 --------------------
+0.4.17-opasjajarjestys
+- Peliopas was rewritten to reflect the current five-page structure, shared
+  Talousindeksi, beer-score leaderboard, euro gambling, karaoke sound toggle,
+  and cloud save behavior.
+- The left sidebar is now grouped by the same five top sites:
+  Arki, Raha & ostokset, Apurit & kehitys, Uhkapelit, and Tili.
+- Added the missing left-sidebar Uhkapelit button and a Pikatilastot shortcut.
+- Left-sidebar groups now highlight the active top site.
+- Site/module color themes were made more uniform:
+  warm Arki, blue/teal Raha, green Apurit, pink Uhkapelit, teal Tili.
+- This is UI/documentation only; no Supabase or save schema changes.
+
 0.4.16-karaokeaani
 - Fixed the generated karaoke beat so it waits for the browser AudioContext to
   resume before scheduling the loop.
@@ -138,7 +150,7 @@ Recent version notes
   1 Arki, 2 Raha & ostokset, 3 Apurit & kehitys, 4 Uhkapelit, 5 Tili.
 - Module homes:
   Arki = Peli, Stressi, Romahdus, Aika, Satunnaiset tapahtumat, Pikatilastot.
-  Raha & ostokset = Olutkauppa, Supermarket, Palautukset, Pikkukeikat, Kela.
+  Raha & ostokset = Talous, Olutkauppa, Supermarket, Palautukset, Pikkukeikat, Kela.
   Apurit & kehitys = Apurit, Pysyvät parannukset.
   Uhkapelit = gambling minigames.
   Tili = account, cloud save, password reset, scoreboard.

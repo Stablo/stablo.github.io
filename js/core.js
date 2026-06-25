@@ -1,5 +1,5 @@
 const Game = {
-  version: "0.4.16-karaokeaani",
+  version: "0.4.17-opasjajarjestys",
   modules: [],
   config: {
     canValue: 0.20,

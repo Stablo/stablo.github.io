@@ -1,8 +1,12 @@
-Villisika-Sepon juomapeli — versio 0.4.16-karaokeaani
+Villisika-Sepon juomapeli — versio 0.4.17-opasjajarjestys
 
 Avaa index.html selaimessa.
 
 Uutta tässä versiossa:
+- Peliopas päivitetty vastaamaan nykyistä viisisivuista rakennetta, pilvitaloutta ja olutpisteitä.
+- Vasemman reunan navigaatio on nyt ryhmitelty samassa järjestyksessä kuin ylävalikon sivut.
+- Vasempaan navigaatioon lisätty erillinen Uhkapelit-painike.
+- Sivujen ja moduulien väriteemoja yhtenäistetty: Arki, Raha, Apurit, Uhkapelit ja Tili erottuvat selkeämmin.
 - Korjattu karaokebiitin käynnistys odottamaan selaimen äänikontekstin avautumista.
 - Karaokebiitti on nyt selvästi kuuluvampi ja siinä on kevyt syntikkapulssi rummun tukena.
 - Karaoketuomioon lisätty kevyt selaimessa luotu biitti, joka vaihtuu vaikeustason mukaan.
@@ -27,7 +31,6 @@ Uutta tässä versiossa:
 - 24-packien hintavaihtelu on nostettu korkeammalle, jotta varastointi ei ole automaattisesti paras valinta.
 - Kolmen kupin katastrofissa on nyt punaiset muovikupit, jotka kääntyvät sekoituksen jälkeen.
 - Olutkauppaan lisätty 24-packit.
-- Ylävälilehtiä voi vaihtaa näppäimistöllä: 1 peruspeli, 2 parannukset, 3 uhkapelit.
 - Uhkapelit käyttävät nyt euroja panoksina ja voittoina ryypyn sijaan.
 - Vasemman reunan Peli-painike vie takaisin sivun yläreunaan.
 - Kolmen kupin katastrofin kupit vaihdettu pois pillimukeista.
