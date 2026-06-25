@@ -1,5 +1,5 @@
 const Game = {
-  version: "0.4.14-pilvitalous",
+  version: "0.4.15-karaokebiitti",
   modules: [],
   config: {
     canValue: 0.20,

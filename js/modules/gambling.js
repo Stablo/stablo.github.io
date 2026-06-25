@@ -11,12 +11,17 @@ const Gambling = {
   karaoke: null,
   karaokeRaf: null,
   karaokeKeyHandler: null,
+  karaokeSoundEnabled: true,
+  karaokeAudioContext: null,
+  karaokeBeatTimer: null,
+  karaokeBeatStep: 0,
 
   karaokeDifficulties: {
     double: {
       name: 'Kellarikaraoke',
       label: '2x panos',
       multiplier: 2,
+      bpm: 92,
       notes: 12,
       speed: 215,
       interval: 650,
@@ -29,6 +34,7 @@ const Gambling = {
       name: 'Räkälän semifinaali',
       label: '3x panos',
       multiplier: 3,
+      bpm: 116,
       notes: 16,
       speed: 265,
       interval: 520,
@@ -41,6 +47,7 @@ const Gambling = {
       name: 'Kansallinen tuomioilta',
       label: '4x panos',
       multiplier: 4,
+      bpm: 140,
       notes: 21,
       speed: 320,
       interval: 430,
@@ -254,6 +261,12 @@ const Gambling = {
         color: #ffe1f1;
       }
 
+      .karaokeSoundToggle {
+        padding: 5px 9px;
+        min-width: 112px;
+        font-size: 12px;
+      }
+
       .karaokeLane {
         position: relative;
         height: 170px;
@@ -322,6 +335,20 @@ const Gambling = {
         color: #ff9999;
       }
 
+      .karaokeHitRipple {
+        position: absolute;
+        width: 22px;
+        height: 22px;
+        border: 2px solid rgba(186, 255, 186, .84);
+        border-radius: 50%;
+        transform: translate(-50%, -50%) scale(.55);
+        opacity: .72;
+        box-shadow: 0 0 12px rgba(186, 255, 186, .32);
+        pointer-events: none;
+        z-index: 5;
+        animation: karaokeHitRipple .42s ease-out forwards;
+      }
+
       .karaokeFeedbackLayer {
         position: absolute;
         right: 28px;
@@ -363,6 +390,11 @@ const Gambling = {
         0% { opacity: 0; transform: translateY(16px) scale(.8); }
         18% { opacity: 1; transform: translateY(0) scale(1.05); }
         100% { opacity: 0; transform: translateY(-28px) scale(1); }
+      }
+
+      @keyframes karaokeHitRipple {
+        0% { opacity: .72; transform: translate(-50%, -50%) scale(.55); }
+        100% { opacity: 0; transform: translate(-50%, -50%) scale(2.35); }
       }
 
 
@@ -794,6 +826,136 @@ const Gambling = {
     }
   },
 
+  getKaraokeAudioContext() {
+    if (!this.karaokeSoundEnabled || typeof window === 'undefined') return null;
+
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return null;
+
+    try {
+      if (!this.karaokeAudioContext) {
+        this.karaokeAudioContext = new AudioContextClass();
+      }
+
+      if (this.karaokeAudioContext.state === 'suspended') {
+        const resume = this.karaokeAudioContext.resume();
+        if (resume && typeof resume.catch === 'function') resume.catch(() => {});
+      }
+    } catch (error) {
+      return null;
+    }
+
+    return this.karaokeAudioContext;
+  },
+
+  startKaraokeBeat(config) {
+    this.stopKaraokeBeat();
+    this.renderKaraokeSoundButton();
+    if (!this.karaokeSoundEnabled) return;
+
+    const context = this.getKaraokeAudioContext();
+    if (!context) return;
+
+    this.karaokeBeatStep = 0;
+    const stepMs = Math.max(90, 60000 / config.bpm / 2);
+    this.playKaraokeBeatStep(config);
+    this.karaokeBeatTimer = setInterval(() => this.playKaraokeBeatStep(config), stepMs);
+  },
+
+  stopKaraokeBeat() {
+    if (this.karaokeBeatTimer) {
+      clearInterval(this.karaokeBeatTimer);
+      this.karaokeBeatTimer = null;
+    }
+  },
+
+  toggleKaraokeSound() {
+    this.karaokeSoundEnabled = !this.karaokeSoundEnabled;
+    if (!this.karaokeSoundEnabled) {
+      this.stopKaraokeBeat();
+    } else if (this.karaokeActive && this.karaoke && !this.karaoke.ended) {
+      this.startKaraokeBeat(this.karaoke.config);
+    }
+    this.renderKaraokeSoundButton();
+  },
+
+  renderKaraokeSoundButton() {
+    const button = document.getElementById('karaokeSoundToggle');
+    if (button) button.textContent = this.karaokeSoundEnabled ? 'Äänet: päällä' : 'Äänet: pois';
+  },
+
+  playKaraokeBeatStep(config) {
+    const context = this.getKaraokeAudioContext();
+    if (!context) return;
+
+    const step = this.karaokeBeatStep % 8;
+    const intensity = Game.clamp((config.multiplier - 1) * 0.018, 0.018, 0.06);
+
+    this.playKaraokeNoise(context, 0.018, 0.010 + intensity * 0.18, 'highpass', 5600);
+    if (step === 0 || step === 4) this.playKaraokeKick(context, 0.055 + intensity);
+    if (step === 2 || step === 6) this.playKaraokeNoise(context, 0.070, 0.026 + intensity * 0.35, 'bandpass', 1450);
+
+    this.karaokeBeatStep++;
+  },
+
+  playKaraokeKick(context, volume) {
+    const now = context.currentTime;
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(112, now);
+    oscillator.frequency.exponentialRampToValueAtTime(44, now + 0.12);
+
+    gain.gain.setValueAtTime(volume, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.15);
+
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.start(now);
+    oscillator.stop(now + 0.16);
+  },
+
+  playKaraokeNoise(context, duration, volume, filterType, frequency) {
+    const frameCount = Math.max(1, Math.floor(context.sampleRate * duration));
+    const buffer = context.createBuffer(1, frameCount, context.sampleRate);
+    const data = buffer.getChannelData(0);
+
+    for (let i = 0; i < frameCount; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+
+    const now = context.currentTime;
+    const source = context.createBufferSource();
+    const filter = context.createBiquadFilter();
+    const gain = context.createGain();
+
+    source.buffer = buffer;
+    filter.type = filterType;
+    filter.frequency.value = frequency;
+
+    gain.gain.setValueAtTime(volume, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+    source.connect(filter);
+    filter.connect(gain);
+    gain.connect(context.destination);
+    source.start(now);
+    source.stop(now + duration);
+  },
+
+  showKaraokeHitPop(note) {
+    const lane = document.getElementById('karaokeLane');
+    if (!lane || !note) return;
+
+    const ripple = document.createElement('div');
+    ripple.className = 'karaokeHitRipple';
+    ripple.style.left = `${note.x}px`;
+    ripple.style.top = `${(note.element.offsetTop || 72) + 23}px`;
+    lane.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 500);
+  },
+
   startKaraoke(level) {
     if (this.karaokeActive || this.cupActive || this.cardActive) return;
     const config = this.karaokeDifficulties[level];
@@ -815,6 +977,7 @@ const Gambling = {
           <span>Voitto onnistuessa: <strong>${this.formatEuros(paidBet * config.multiplier)}</strong></span>
           <span>Virheet: <strong id="karaokeMisses">0</strong>/${config.allowedMisses}</span>
           <span>Osumat: <strong id="karaokeHits">0</strong>/${config.notes}</span>
+          <button id="karaokeSoundToggle" class="karaokeSoundToggle" type="button" onclick="Gambling.toggleKaraokeSound()"></button>
         </div>
         <div class="karaokeLane" id="karaokeLane">
           <div class="karaokeMarker"></div>
@@ -857,6 +1020,7 @@ const Gambling = {
     this.karaokeKeyHandler = event => this.keyKaraoke(event);
     window.addEventListener('keydown', this.karaokeKeyHandler);
 
+    this.startKaraokeBeat(config);
     this.karaokeLoop();
     Game.update();
   },
@@ -918,6 +1082,7 @@ const Gambling = {
       note.state = 'hit';
       note.element.classList.add('hit');
       state.hits++;
+      this.showKaraokeHitPop(note);
       this.showKaraokeFeedback('HIT!', 'hitText');
       return;
     }
@@ -946,6 +1111,8 @@ const Gambling = {
   },
 
   cleanupKaraoke() {
+    this.stopKaraokeBeat();
+
     if (this.karaokeRaf) {
       cancelAnimationFrame(this.karaokeRaf);
       this.karaokeRaf = null;

@@ -10,7 +10,7 @@ private tokens, personal account details, or other secrets in this file.
 
 Current version
 ---------------
-Game.version is currently 0.4.14-pilvitalous.
+Game.version is currently 0.4.15-karaokebiitti.
 
 README.txt should always mirror the actual Game.version in js/core.js whenever
 the core game version is changed.
@@ -68,6 +68,17 @@ Main file map
 
 Recent version notes
 --------------------
+0.4.15-karaokebiitti
+- Karaoketuomio now has a lightweight generated Web Audio beat during the
+  minigame. No audio files were added.
+- Each karaoke difficulty has its own BPM:
+  Kellarikaraoke 92, Räkälän semifinaali 116, Kansallinen tuomioilta 140.
+- The karaoke overlay has an Äänet päälle/pois toggle. If Web Audio is blocked
+  or unavailable, karaoke still plays silently.
+- Good hits now spawn a subtle expanding circular ripple at the note position.
+  Keep this effect restrained so it supports rhythm feedback without covering
+  the lane.
+
 0.4.14-pilvitalous
 - Talousindeksi is now a shared Supabase-backed cloud economy rather than a
   per-save local roll.

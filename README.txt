@@ -1,8 +1,11 @@
-Villisika-Sepon juomapeli — versio 0.4.14-pilvitalous
+Villisika-Sepon juomapeli — versio 0.4.15-karaokebiitti
 
 Avaa index.html selaimessa.
 
 Uutta tässä versiossa:
+- Karaoketuomioon lisätty kevyt selaimessa luotu biitti, joka vaihtuu vaikeustason mukaan.
+- Karaokebiitille lisätty pieni äänet päälle/pois -painike karaokeikkunaan.
+- Onnistunut karaokeosuma tekee nyt hillityn laajenevan rengas-efektin nuolen kohdalle.
 - Talousindeksi on nyt Supabase-pohjainen pilvitalous, eli sama arvo koskee kaikkia pelaajia.
 - Pilvitalous päivittyy noin kerran päivässä klo 06.00 Suomen aikaa.
 - Päivittäinen indeksiliike on yleensä noin -4 % - +5 %, harvinaisilla isommilla heilunnoilla.
