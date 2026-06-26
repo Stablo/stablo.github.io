@@ -22,7 +22,9 @@ const UI = {
     helpersContent: 'progress',
     upgradesContent: 'progress',
     gamblingContent: 'gambling',
-    accountContent: 'account'
+    accountContent: 'account',
+    prestigeContent: 'account',
+    scoreboardContent: 'account'
   },
   eventAlertsEnabled: false,
   eventAlertStorageKey: 'villisikaSeppoEventAlerts',
@@ -151,12 +153,14 @@ const UI = {
     const type = ['good', 'bad', 'karaoke', 'kela'].includes(options.type) ? options.type : 'event';
     const item = document.createElement('div');
     item.className = `eventTickerItem ${type}`;
+    if (options.id) item.dataset.eventId = String(options.id);
 
     const time = document.createElement('span');
     time.className = 'eventTickerTime';
     time.textContent = this.eventTimeLabel();
 
     const body = document.createElement('span');
+    body.className = 'eventTickerBody';
     body.textContent = message;
 
     item.appendChild(time);
@@ -165,6 +169,25 @@ const UI = {
     this.trimEventTicker();
 
     if (options.sound !== false) this.playEventAlert(type);
+  },
+
+  resolveEvent(id, resolution = 'ratkaistu') {
+    const list = document.getElementById('eventTickerList');
+    const targetId = String(id || '');
+    if (!list || !targetId) return;
+
+    const items = list.querySelectorAll('.eventTickerItem[data-event-id]');
+    for (const item of items) {
+      if (item.dataset.eventId !== targetId) continue;
+
+      item.classList.add('eventTickerResolved');
+      if (!item.dataset.resolutionAdded) {
+        const body = item.querySelector('.eventTickerBody');
+        if (body) body.textContent = `${body.textContent} (${resolution})`;
+        item.dataset.resolutionAdded = 'true';
+      }
+      return;
+    }
   },
 
   eventTimeLabel() {
@@ -307,7 +330,7 @@ const UI = {
           <li><strong>2. Raha & ostokset</strong>: Talous, Olutkauppa, Supermarket, palautukset, pikkukeikat ja Kela.</li>
           <li><strong>3. Apurit & kehitys</strong>: apurit ja pysyvät parannukset.</li>
           <li><strong>4. Uhkapelit</strong>: kuppipeli, karaoke ja korttipakka.</li>
-          <li><strong>5. Tili</strong>: kirjautuminen, pilvitallennus, salasanan palautus ja pistetaulu.</li>
+          <li><strong>5. Tili</strong>: kirjautuminen, pilvitallennus, salasanan palautus, prestige ja pistetaulu.</li>
         </ul>
 
         <h3>Peruskierto</h3>

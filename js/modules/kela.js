@@ -258,7 +258,17 @@ const Kela = {
     Game.state.eventLog = text;
 
     if (typeof UI !== 'undefined' && typeof UI.announceEvent === 'function') {
-      UI.announceEvent(text, { sound: true, type: 'kela' });
+      UI.announceEvent(text, { sound: true, type: 'kela', id: this.problemNoticeId(problem) });
+    }
+  },
+
+  problemNoticeId(problem) {
+    return `kela-problem-${problem?.id ?? ''}`;
+  },
+
+  resolveProblemNotice(problem) {
+    if (typeof UI !== 'undefined' && typeof UI.resolveEvent === 'function') {
+      UI.resolveEvent(this.problemNoticeId(problem), 'ratkaistu');
     }
   },
 
@@ -420,6 +430,7 @@ const Kela = {
 
     const type = this.activeProblem.benefitType;
     const b = this.normalizeBenefit(type);
+    this.resolveProblemNotice(p);
     b.problems = b.problems.filter(problem => problem.id !== p.id);
 
     if (b.applied && b.payDay !== null) {

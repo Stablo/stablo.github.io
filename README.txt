@@ -1,8 +1,13 @@
-Villisika-Sepon juomapeli — versio 0.4.24-karaokeilta
+Villisika-Sepon juomapeli — versio 0.4.25-ui-polish
 
 Avaa index.html selaimessa.
 
 Uutta tässä versiossa:
+- Palautukset-moduulin otsikko vastaa nyt vasemman reunan navigaatiota.
+- Vasemman reunan moduulipainikkeet jättävät hypätessä tilaa ylävalikolle, jotta otsikko ei jää piiloon.
+- Tili-sivulla Tili ja tallennus, Prestige sekä Pistetaulu ovat nyt erilliset moduulit.
+- Vasempaan Tili-ryhmään lisätty omat pikapainikkeet Prestigelle ja Pistetaululle.
+- Kela-ongelmat vedetään tapahtumasyötteessä yli, kun ongelma on ratkaistu.
 - Karaoketuomio on nyt ajastettu karaokeilta: se avautuu keskimäärin 2-3 kertaa tunnissa reaaliajassa.
 - Karaokeilta pysyy auki 5 pelipäivää ja sen ajastus tallentuu autosaveen, jotta sivun lataus ei arvo sitä uusiksi.
 - Karaokevoittoja tasapainotettu: tasot maksavat nyt 1.5x, 2.1x ja 3x panoksen.

@@ -16,7 +16,10 @@
 
 * { box-sizing: border-box; }
 
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 96px;
+}
 
 body {
   font-family: monospace;
@@ -224,6 +227,7 @@ h1 {
   border-left: 7px solid var(--theme-1);
   padding: 15px;
   margin: 15px 0;
+  scroll-margin-top: 96px;
   background:
     linear-gradient(145deg, color-mix(in srgb, var(--theme-3) 72%, #141114), rgba(18,16,20,.96)),
     radial-gradient(circle at top right, var(--theme-glow), transparent 18rem);
@@ -438,6 +442,20 @@ footer {
   --theme-2: #145b50;
   --theme-3: #061a17;
   --theme-glow: rgba(114, 242, 208, .18);
+}
+
+#section-prestigeContent {
+  --theme-1: #e9fdff;
+  --theme-2: #3e5970;
+  --theme-3: #06131a;
+  --theme-glow: rgba(134, 216, 255, .18);
+}
+
+#section-scoreboardContent {
+  --theme-1: #ffd65c;
+  --theme-2: #5f4510;
+  --theme-3: #1c1305;
+  --theme-glow: rgba(255, 214, 92, .18);
 }
 
 
@@ -740,6 +758,12 @@ body.statsDockMinimized .statsDock {
 .eventTickerItem.bad { color: #ffd0d0; }
 .eventTickerItem.karaoke { color: #ffc5ec; }
 .eventTickerItem.kela { color: #bfe2ff; }
+.eventTickerItem.eventTickerResolved {
+  opacity: .62;
+}
+.eventTickerItem.eventTickerResolved .eventTickerBody {
+  text-decoration: line-through;
+}
 
 .sitePanel { width: 100%; }
 .hiddenSite { display: none; }

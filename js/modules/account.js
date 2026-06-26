@@ -73,10 +73,12 @@ const Account = {
             <button id="accountResetButton" onclick="SaveLoad.reset()">Aloita selainpeli alusta</button>
           </div>
           <p id="saveStatus" class="smallHint">Automaattitallennus käynnistyy.</p>
-
-          <hr>
-
-          <h3>Prestige</h3>
+        `
+      )
+      + Game.section(
+        'Prestige',
+        'prestigeContent',
+        `
           <p id="prestigeStatus" class="prestigeStatus smallHint">Kirjaudu sisään ja kerää juotuja oluita avataksesi prestigen.</p>
           <div class="prestigeMeter" aria-hidden="true">
             <div id="prestigeProgressFill" class="prestigeProgressFill"></div>
@@ -84,10 +86,12 @@ const Account = {
           <div class="accountActions">
             <button id="accountPrestigeButton" onclick="Account.showPrestigeWarning()">Tee prestige</button>
           </div>
-
-          <hr>
-
-          <h3>Pistetaulu</h3>
+        `
+      )
+      + Game.section(
+        'Pistetaulu',
+        'scoreboardContent',
+        `
           <p class="smallHint">Pistetaulu näyttää prestige-tason ja nykyisen prestige-kierroksen parhaat juodut oluet.</p>
           <ol id="scoreboardList" class="scoreboardList"></ol>
           <button id="accountRefreshScoreboardButton" onclick="Account.refreshScoreboard()">Päivitä pistetaulu</button>

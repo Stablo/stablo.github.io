@@ -10,7 +10,7 @@ private tokens, personal account details, or other secrets in this file.
 
 Current version
 ---------------
-Game.version is currently 0.4.24-karaokeilta.
+Game.version is currently 0.4.25-ui-polish.
 
 README.txt should always mirror the actual Game.version in js/core.js whenever
 the core game version is changed.
@@ -72,6 +72,19 @@ Main file map
 
 Recent version notes
 --------------------
+0.4.25-ui-polish
+- Renamed the Returns module heading from "Eurojen tienaaminen" to
+  "Palautukset" so it matches the left navigation.
+- Left-sidebar module jumps now use scroll padding/margins so the sticky top
+  site buttons do not cover the target module heading.
+- Account page content was split into separate modules:
+  Tili ja tallennus, Prestige, and Pistetaulu. The Supabase account/prestige/
+  scoreboard logic is unchanged; only the visible section layout changed.
+- The left Tili nav group now has direct buttons for Prestige and Pistetaulu.
+- Kela problem notices in the event ticker now get stable event IDs and are
+  crossed out when the corresponding problem is solved.
+- This is local UI only; no Supabase SQL/schema change is needed.
+
 0.4.24-karaokeilta
 - Karaoketuomio is now gated behind a timed Karaokeilta event. It opens on a
   real-time schedule with a random 20-30 minute delay between windows, which is

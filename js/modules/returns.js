@@ -10,7 +10,7 @@ const Returns = {
     document.getElementById('moneyMain').insertAdjacentHTML(
       'beforeend',
       Game.section(
-        'Eurojen tienaaminen',
+        'Palautukset',
         'moneyContent',
         `
           <p>Palautusarvo: <span id="canValue">0.20</span> € / tölkki</p>
