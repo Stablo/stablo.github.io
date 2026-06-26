@@ -1,5 +1,5 @@
 const Game = {
-  version: "0.4.26-pikkukeikat",
+  version: "0.4.27-satunnaiset",
   modules: [],
   config: {
     canValue: 0.20,

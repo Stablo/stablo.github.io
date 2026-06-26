@@ -1,8 +1,14 @@
-Villisika-Sepon juomapeli — versio 0.4.26-pikkukeikat
+Villisika-Sepon juomapeli — versio 0.4.27-satunnaiset
 
 Avaa index.html selaimessa.
 
 Uutta tässä versiossa:
+- Satunnaiset tapahtumat on uudistettu kolmen tason kaaosvalikoksi: Pieni säätö, Kunnon hässäkkä ja Täysi katastrofi.
+- Kela-aiheiset hyödyttömät tyhjät tapahtumat poistettu nykyisestä pääpoolista.
+- Tapahtumat antavat nyt pieniä yleishyödyllisiä palkintoja: tölkkejä, pikkueuroja, stressiapua, krapulavaihtoja, markettitavaraa ja resurssien muuntoa.
+- Täysi katastrofi on käytettävissä vain kerran pelipäivässä ja sen käyttö tallentuu autosaveen.
+- Tapahtumien ryyppyhinnat ovat nyt ennustettavampia ja selvästi aiempaa maltillisempia.
+- Tämä versio ei lisää uusia Supabase SQL -muutoksia.
 - Pikkukeikat on uudistettu kolmen keikan vaihtuvaksi työlistaksi.
 - Keikat voivat nyt olla nuolirutiineja, lomakkeen kirjoittamista, OSU-tyylisiä klikkikeikkoja tai kulman säätämistä.
 - Työlista vaihtuu muutaman pelipäivän välein, ja tehty keikka korvautuu uudella cooldownin jälkeen.

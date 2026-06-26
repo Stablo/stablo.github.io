@@ -10,7 +10,7 @@ private tokens, personal account details, or other secrets in this file.
 
 Current version
 ---------------
-Game.version is currently 0.4.26-pikkukeikat.
+Game.version is currently 0.4.27-satunnaiset.
 
 README.txt should always mirror the actual Game.version in js/core.js whenever
 the core game version is changed.
@@ -73,6 +73,22 @@ Main file map
 
 Recent version notes
 --------------------
+0.4.27-satunnaiset
+- Reworked Satunnaiset tapahtumat into three predictable chaos levels:
+  Pieni säätö, Kunnon hässäkkä, and Täysi katastrofi.
+- Removed Kela-specific event outcomes from the main pool because Kela
+  problems are currently rare and those rolls felt useless.
+- New events focus on always-relevant small rewards and tradeoffs:
+  empty/full cans, tiny euro gains, stress relief, hangover changes,
+  supermarket items, and small resource conversions.
+- Costs are ryyppy-based but much more predictable than the old 20 + 35-65 %
+  of current ryypyt formula. Täysi katastrofi is limited to once per in-game
+  day and SaveLoad stores eventLastMajorDay.
+- Keep event rewards below Pikkukeikat on average. The intent is useful silly
+  nudges, not a primary euro source.
+- This is local gameplay/UI/save packaging only; no Supabase SQL/schema change
+  is needed.
+
 0.4.26-pikkukeikat
 - Reworked Pikkukeikat from a five-button arrow-only list into a rotating
   three-job board. The board refreshes every 3 in-game days, and completed/

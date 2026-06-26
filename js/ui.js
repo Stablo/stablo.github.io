@@ -347,7 +347,7 @@ const UI = {
           <li><strong>Tapahtumasyöte</strong> näyttää karaokeillat, satunnaistapahtumat ja Kela-ongelmat. Hälytysäänen voi kytkeä päälle syötteen omasta painikkeesta.</li>
           <li><strong>Juodut oluet</strong> on nykyinen pistetaulun tulos. Myös apurien juomat oluet lasketaan.</li>
           <li><strong>Prestige</strong> nollaa nykyisen kierroksen, mutta lisää nimimerkin viereen pysyvän tähden pistetaululla.</li>
-          <li><strong>Ryypyt</strong> ovat etenemisvaluuttaa apureihin, parannuksiin ja satunnaisiin tapahtumiin.</li>
+          <li><strong>Ryypyt</strong> ovat etenemisvaluuttaa apureihin, parannuksiin ja satunnaisiin tapahtumiin. Tapahtumat ovat pieniä arjen sekoiluja, eivät pääasiallinen rahalähde.</li>
           <li><strong>Eurot</strong> tarvitaan ostoksiin, palautusten ja tukien rytmittämään selviytymiseen sekä uhkapeleihin.</li>
           <li><strong>Krapula</strong> hidastaa päiviä. <strong>Stressi</strong> vaikeuttaa minipelejä ja voi pahentaa tilanteita.</li>
         </ul>

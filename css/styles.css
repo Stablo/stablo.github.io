@@ -409,6 +409,24 @@ footer {
   --theme-glow: rgba(255, 156, 95, .18);
 }
 
+.eventChoiceGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.eventChoiceGrid button {
+  min-height: 74px;
+  margin: 0;
+  text-align: center;
+}
+
+.eventChoiceGrid span {
+  color: #fff0c4;
+  font-weight: bold;
+}
+
 #section-helpersContent {
   --theme-1: #a7f06f;
   --theme-2: #2f5b18;

@@ -80,6 +80,7 @@ const SaveLoad = {
 
     if (Array.isArray(clean.jobs)) clean.jobs = clean.jobs.slice(0, 3);
     clean.jobsNextBoardRefreshDay = this.clampInteger(clean.jobsNextBoardRefreshDay, 0, maxResource, 0);
+    clean.eventLastMajorDay = this.clampInteger(clean.eventLastMajorDay, 0, maxResource, 0);
 
     if (clean.cooldowns && typeof clean.cooldowns === 'object') {
       Object.keys(clean.cooldowns).forEach(key => {
@@ -120,6 +121,7 @@ const SaveLoad = {
       kelaBenefits: Kela.benefits,
       kelaActive: Kela.activeProblem,
       eventCost: Events.cost,
+      eventLastMajorDay: Events.lastMajorDay,
       jobs: Jobs.jobs,
       cooldowns: Jobs.cooldowns,
       jobsNextBoardRefreshDay: Jobs.nextBoardRefreshDay,
@@ -152,6 +154,7 @@ const SaveLoad = {
     if (data.kelaBenefits) Kela.benefits = data.kelaBenefits;
     Kela.activeProblem = data.kelaActive ?? null;
     Events.cost = data.eventCost ?? 20;
+    Events.lastMajorDay = data.eventLastMajorDay ?? 0;
     if (data.jobs) Jobs.jobs = data.jobs;
     if (data.cooldowns) Jobs.cooldowns = data.cooldowns;
     Jobs.nextBoardRefreshDay = data.jobsNextBoardRefreshDay ?? Jobs.nextBoardRefreshDay;
