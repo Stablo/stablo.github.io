@@ -10,7 +10,7 @@ private tokens, personal account details, or other secrets in this file.
 
 Current version
 ---------------
-Game.version is currently 0.4.30-sidebar-cleanup.
+Game.version is currently 0.4.31-event-dock-layout.
 
 README.txt should always mirror the actual Game.version in js/core.js whenever
 the core game version is changed.
@@ -74,8 +74,23 @@ Main file map
   autosave, and save/load state packaging.
 - supabase-setup.sql: database tables, RLS, triggers, scoreboard view.
 
+Standalone prototypes
+---------------------
+- pontikankeitto-preview.html: self-contained Prestige 5 Pontikankeitto
+  sandbox. It previews raw materials, brewing/distilling days, danger rolls,
+  heat, quality, selling pontikka, and module-specific upgrades. It is not
+  loaded by index.html and does not touch Game.version, SaveLoad, Account, or
+  Supabase. Use it to tune the design before integrating a real module.
+
 Recent version notes
 --------------------
+0.4.31-event-dock-layout
+- Fixed the right-side dock layout so Aktiiviset tapahtumat sits below the
+  maximized Pikatilastot panel instead of overlapping it.
+- The dock content now uses a fixed available height with Pikatilastot as the
+  top scrolling region and the active event tracker as a separate lower panel.
+- This is local UI/CSS only; no Supabase SQL/schema change is needed.
+
 0.4.30-sidebar-cleanup
 - Removed the left sidebar Pikatilastot shortcut because Pikatilastot is now
   always available in the persistent right-side dock.

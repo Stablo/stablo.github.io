@@ -1,5 +1,5 @@
 const Game = {
-  version: "0.4.30-sidebar-cleanup",
+  version: "0.4.31-event-dock-layout",
   modules: [],
   config: {
     canValue: 0.20,

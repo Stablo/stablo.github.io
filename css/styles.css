@@ -758,20 +758,22 @@ footer {
   z-index: 900;
   height: 100vh;
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   gap: 8px;
   padding: 16px 16px 16px 0;
   overflow: hidden;
 }
 
 .rightDockContent {
+  flex: 1 1 auto;
   width: 100%;
   min-width: 0;
-  max-height: calc(100vh - 32px);
+  height: calc(100vh - 32px);
   min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  overflow: hidden;
 }
 
 .eventTrackerPanel {
@@ -779,7 +781,7 @@ footer {
   --theme-2: #134856;
   --theme-3: #06161b;
   --theme-glow: rgba(154, 240, 255, .16);
-  flex: 0 1 280px;
+  flex: 0 0 auto;
   max-height: 280px;
   margin: 0;
   overflow: hidden;
@@ -913,7 +915,7 @@ body.statsDockMinimized .statsDock {
     top: 92px;
     right: 0;
     width: min(320px, calc(100vw - 16px));
-    height: auto;
+    height: calc(100vh - 108px);
     max-height: calc(100vh - 108px);
     padding: 0 10px 0 0;
     transform: translateX(0);
@@ -923,7 +925,7 @@ body.statsDockMinimized .statsDock {
     transform: translateX(calc(100% - 44px));
   }
   .rightDockContent {
-    max-height: calc(100vh - 108px);
+    height: calc(100vh - 108px);
   }
   .eventTrackerPanel {
     max-height: 230px;

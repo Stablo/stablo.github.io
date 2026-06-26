@@ -1,8 +1,13 @@
-Villisika-Sepon juomapeli — versio 0.4.30-sidebar-cleanup
+Villisika-Sepon juomapeli — versio 0.4.31-event-dock-layout
 
 Avaa index.html selaimessa.
 
+Erilliset esikatselut:
+- pontikankeitto-preview.html on standalone-prototyyppi Prestige 5 -Pontikankeitosta. Se ei ole vielä osa varsinaista peliä, tallennusta tai Supabase-yhteyttä.
+
 Uutta tässä versiossa:
+- Korjattu oikean reunan Pikatilastot/Aktiiviset tapahtumat -asettelu: aktiiviset tapahtumat pysyvät nyt Pikatilastot-paneelin alla eivätkä kasaudu sen päälle.
+- Tämä versio ei lisää uusia Supabase SQL -muutoksia.
 - Vasemman sivupalkin erillinen Pikatilastot-painike poistettu, koska Pikatilastot näkyy jo jatkuvasti oikean reunan paneelissa.
 - Tämä versio ei lisää uusia Supabase SQL -muutoksia.
 - Lauri-sedän Thai-hulluus kestää nyt 30 pelipäivää ja toimii aktiivisena 5x Lauri-juomakertoimena yhden kertarysäyksen sijaan.
