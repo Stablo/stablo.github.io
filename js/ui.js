@@ -372,7 +372,7 @@ const UI = {
         <ul>
           <li>Puulantorilla osumat palauttavat tölkkejä, mutta huti lukitsee sen hetkeksi.</li>
           <li>Kilinäkoneessa valitse järkevin toiminta. Huonot päätökset voivat maksaa tölkkejä ja nostaa stressiä.</li>
-          <li>Pikkukeikoissa paina nuolinäppäimet oikeassa järjestyksessä. Stressi lisää vaikeutta.</li>
+          <li>Pikkukeikoissa tehtävä vaihtuu: joskus painetaan nuolia, joskus kirjoitetaan, klikataan kohteita tai säädetään kulmaa. Stressi lisää vaikeutta.</li>
           <li>Karaoke avautuu karaokeiltoina. Paina oikea nuoli keskimerkin kohdalla. Äänet voi laittaa päälle tai pois karaokeikkunasta.</li>
           <li>Uhkapelit käyttävät euroja panoksina ja voittoina, eivät ryyppyjä.</li>
         </ul>

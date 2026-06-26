@@ -430,6 +430,135 @@ footer {
   --theme-glow: rgba(139, 223, 255, .16);
 }
 
+.jobBoard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.jobCard {
+  min-height: 230px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid color-mix(in srgb, var(--theme-1) 48%, #333);
+  border-radius: 8px;
+  padding: 12px;
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--theme-3) 74%, #101014), rgba(7, 21, 34, .78));
+}
+
+.jobCard h3 {
+  margin: 0;
+  color: color-mix(in srgb, var(--theme-1) 86%, #fff);
+  font-size: 15px;
+  line-height: 1.25;
+}
+
+.jobCard p {
+  margin: 0;
+  color: #d8eaf6;
+  font-size: 12px;
+}
+
+.jobCard button {
+  margin-top: auto;
+}
+
+.jobTag,
+.jobMeta {
+  color: #a9d8f0;
+  font-size: 12px;
+}
+
+.jobTag {
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.jobMissionBox {
+  width: min(760px, 94vw);
+}
+
+.jobTypingPhrase {
+  padding: 12px;
+  border: 1px dashed rgba(139, 223, 255, .42);
+  border-radius: 8px;
+  color: #ffffff;
+  background: rgba(0, 0, 0, .24);
+  font-size: 16px;
+}
+
+.jobTypingInput {
+  font-size: 17px;
+}
+
+.jobClickField {
+  position: relative;
+  height: min(340px, 48vh);
+  min-height: 240px;
+  margin-top: 10px;
+  border: 1px solid rgba(139, 223, 255, .42);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(23, 69, 101, .34), rgba(0, 0, 0, .18)),
+    repeating-linear-gradient(45deg, rgba(255,255,255,.04) 0 1px, transparent 1px 18px);
+  overflow: hidden;
+}
+
+.jobClickTarget {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  padding: 0;
+  border-radius: 50%;
+  text-align: center;
+  font-weight: bold;
+  box-shadow: 0 0 18px rgba(139, 223, 255, .28);
+}
+
+.jobRotateStage {
+  position: relative;
+  height: 260px;
+  margin: 12px 0;
+  border: 1px solid rgba(139, 223, 255, .38);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at center, rgba(139, 223, 255, .12), transparent 10rem),
+    rgba(0, 0, 0, .22);
+  overflow: hidden;
+}
+
+.jobAngleTarget,
+.jobRotatingObject {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform-origin: center;
+}
+
+.jobAngleTarget {
+  width: 180px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .22);
+}
+
+.jobRotatingObject {
+  width: 142px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #8bdfff;
+  border-radius: 6px;
+  color: #ffffff;
+  background: linear-gradient(135deg, #174565, #0d1b2a);
+  box-shadow: 0 0 20px rgba(139, 223, 255, .24);
+  font-weight: bold;
+}
+
 #section-kelaContent {
   --theme-1: #78b9ff;
   --theme-2: #174565;

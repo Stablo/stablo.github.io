@@ -1,8 +1,14 @@
-Villisika-Sepon juomapeli — versio 0.4.25-ui-polish
+Villisika-Sepon juomapeli — versio 0.4.26-pikkukeikat
 
 Avaa index.html selaimessa.
 
 Uutta tässä versiossa:
+- Pikkukeikat on uudistettu kolmen keikan vaihtuvaksi työlistaksi.
+- Keikat voivat nyt olla nuolirutiineja, lomakkeen kirjoittamista, OSU-tyylisiä klikkikeikkoja tai kulman säätämistä.
+- Työlista vaihtuu muutaman pelipäivän välein, ja tehty keikka korvautuu uudella cooldownin jälkeen.
+- Pikkukeikkojen palkkiot pidetty maltillisina: ne seuraavat yhä Talousindeksiä, mutta eivät ohita Kelaa tai riskimpiä rahalähteitä.
+- Vanhojen tallennusten Pikkukeikat normalisoidaan uuteen työlistaan automaattisesti.
+- Tämä versio ei lisää uusia Supabase SQL -muutoksia.
 - Palautukset-moduulin otsikko vastaa nyt vasemman reunan navigaatiota.
 - Vasemman reunan moduulipainikkeet jättävät hypätessä tilaa ylävalikolle, jotta otsikko ei jää piiloon.
 - Tili-sivulla Tili ja tallennus, Prestige sekä Pistetaulu ovat nyt erilliset moduulit.

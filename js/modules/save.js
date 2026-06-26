@@ -78,6 +78,15 @@ const SaveLoad = {
       });
     }
 
+    if (Array.isArray(clean.jobs)) clean.jobs = clean.jobs.slice(0, 3);
+    clean.jobsNextBoardRefreshDay = this.clampInteger(clean.jobsNextBoardRefreshDay, 0, maxResource, 0);
+
+    if (clean.cooldowns && typeof clean.cooldowns === 'object') {
+      Object.keys(clean.cooldowns).forEach(key => {
+        clean.cooldowns[key] = this.clampInteger(clean.cooldowns[key], 0, 3600, 0);
+      });
+    }
+
     if (clean.economy) {
       clean.economy.index = this.clampNumber(clean.economy.index, 0.85, 1.40, 1);
       clean.economy.delta = this.clampNumber(clean.economy.delta, -1, 1, 0);
@@ -113,6 +122,7 @@ const SaveLoad = {
       eventCost: Events.cost,
       jobs: Jobs.jobs,
       cooldowns: Jobs.cooldowns,
+      jobsNextBoardRefreshDay: Jobs.nextBoardRefreshDay,
       returnsCooldown: Returns.puulantoriCooldown,
       upgradesPurchased: typeof Upgrades !== 'undefined' ? Upgrades.purchased : {},
       gamblingBet: typeof Gambling !== 'undefined' ? Gambling.bet : 25,
@@ -144,6 +154,8 @@ const SaveLoad = {
     Events.cost = data.eventCost ?? 20;
     if (data.jobs) Jobs.jobs = data.jobs;
     if (data.cooldowns) Jobs.cooldowns = data.cooldowns;
+    Jobs.nextBoardRefreshDay = data.jobsNextBoardRefreshDay ?? Jobs.nextBoardRefreshDay;
+    if (typeof Jobs.normalizeJobs === 'function') Jobs.normalizeJobs();
     Returns.puulantoriCooldown = data.returnsCooldown ?? 0;
 
     if (typeof Upgrades !== 'undefined' && data.upgradesPurchased) {

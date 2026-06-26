@@ -1,5 +1,5 @@
 const Game = {
-  version: "0.4.25-ui-polish",
+  version: "0.4.26-pikkukeikat",
   modules: [],
   config: {
     canValue: 0.20,

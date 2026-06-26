@@ -10,7 +10,7 @@ private tokens, personal account details, or other secrets in this file.
 
 Current version
 ---------------
-Game.version is currently 0.4.25-ui-polish.
+Game.version is currently 0.4.26-pikkukeikat.
 
 README.txt should always mirror the actual Game.version in js/core.js whenever
 the core game version is changed.
@@ -57,7 +57,8 @@ Main file map
   index, with local fallback when the cloud is unavailable.
 - js/modules/supermarket.js: food/drinks/cigarettes and hangover/stress relief.
 - js/modules/returns.js: can return minigames and euro income.
-- js/modules/jobs.js: odd jobs minigame and euro income.
+- js/modules/jobs.js: rotating Pikkukeikat job board, mixed mission minigames,
+  and economy-scaled euro income.
 - js/modules/kela.js: benefit applications, delays, paperwork/calls.
 - js/modules/stress.js: stress state and relief actions.
 - js/modules/collapse.js: Romahdus and game-over flow.
@@ -72,6 +73,21 @@ Main file map
 
 Recent version notes
 --------------------
+0.4.26-pikkukeikat
+- Reworked Pikkukeikat from a five-button arrow-only list into a rotating
+  three-job board. The board refreshes every 3 in-game days, and completed/
+  failed jobs are replaced with a new job after a cooldown.
+- Added four mission types:
+  sequence arrow routines, typing forms, click-target jobs, and rotation/
+  alignment jobs.
+- Job rewards stay modest, roughly 1.40-7.30 euros before Talousindeksi
+  scaling, so Pikkukeikat remain useful but should not overtake Kela, returns,
+  or high-risk gambling.
+- SaveLoad now stores jobsNextBoardRefreshDay and normalizes restored jobs so
+  old saved job boards continue working in the new system.
+- This is local gameplay/UI/save packaging only; no Supabase SQL/schema change
+  is needed.
+
 0.4.25-ui-polish
 - Renamed the Returns module heading from "Eurojen tienaaminen" to
   "Palautukset" so it matches the left navigation.
