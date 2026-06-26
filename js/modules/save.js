@@ -82,6 +82,14 @@ const SaveLoad = {
     clean.jobsNextBoardRefreshDay = this.clampInteger(clean.jobsNextBoardRefreshDay, 0, maxResource, 0);
     clean.eventLastMajorDay = this.clampInteger(clean.eventLastMajorDay, 0, maxResource, 0);
 
+    if (clean.lauriThai && typeof clean.lauriThai === 'object') {
+      clean.lauriThai.scheduleDate = typeof clean.lauriThai.scheduleDate === 'string' ? clean.lauriThai.scheduleDate.slice(0, 16) : '';
+      clean.lauriThai.scheduledAt = this.clampNumber(clean.lauriThai.scheduledAt, 0, 9999999999999, 0);
+      clean.lauriThai.triggeredDate = typeof clean.lauriThai.triggeredDate === 'string' ? clean.lauriThai.triggeredDate.slice(0, 16) : '';
+      clean.lauriThai.startedDay = this.clampInteger(clean.lauriThai.startedDay, 0, maxResource, 0);
+      clean.lauriThai.activeUntilDay = this.clampInteger(clean.lauriThai.activeUntilDay, 0, maxResource, 0);
+    }
+
     if (clean.cooldowns && typeof clean.cooldowns === 'object') {
       Object.keys(clean.cooldowns).forEach(key => {
         clean.cooldowns[key] = this.clampInteger(clean.cooldowns[key], 0, 3600, 0);
@@ -122,6 +130,7 @@ const SaveLoad = {
       kelaActive: Kela.activeProblem,
       eventCost: Events.cost,
       eventLastMajorDay: Events.lastMajorDay,
+      lauriThai: typeof LauriThaiMadness !== 'undefined' ? LauriThaiMadness.stateForSave() : null,
       jobs: Jobs.jobs,
       cooldowns: Jobs.cooldowns,
       jobsNextBoardRefreshDay: Jobs.nextBoardRefreshDay,
@@ -155,6 +164,7 @@ const SaveLoad = {
     Kela.activeProblem = data.kelaActive ?? null;
     Events.cost = data.eventCost ?? 20;
     Events.lastMajorDay = data.eventLastMajorDay ?? 0;
+    if (typeof LauriThaiMadness !== 'undefined') LauriThaiMadness.restoreState(data.lauriThai);
     if (data.jobs) Jobs.jobs = data.jobs;
     if (data.cooldowns) Jobs.cooldowns = data.cooldowns;
     Jobs.nextBoardRefreshDay = data.jobsNextBoardRefreshDay ?? Jobs.nextBoardRefreshDay;

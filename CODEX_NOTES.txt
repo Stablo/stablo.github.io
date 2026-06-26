@@ -10,7 +10,7 @@ private tokens, personal account details, or other secrets in this file.
 
 Current version
 ---------------
-Game.version is currently 0.4.27-satunnaiset.
+Game.version is currently 0.4.30-sidebar-cleanup.
 
 README.txt should always mirror the actual Game.version in js/core.js whenever
 the core game version is changed.
@@ -46,10 +46,11 @@ Main file map
 -------------
 - index.html: page shell, navigation, script loading, visible footer version.
 - assets/seppo-logo.jpeg: sidebar logo shown at the top-left of the app.
+- assets/tupe.png: background image for the Lauri-sedän Thai-hulluus splash.
 - css/styles.css: shared page layout and visual styling.
 - js/core.js: Game object, version, base state, module registration/update loop.
 - js/ui.js: side navigation, guide overlay, top site switching, event ticker,
-  optional event alarm sound, and quick stats.
+  optional event alarm sound, quick stats, and active event tracker.
 - js/supabase-config.js: public Supabase client config.
 - js/modules/player.js: drinking beer, producing ryypyt and empty cans.
 - js/modules/beer-shop.js: beer prices, pack buying, price graphs.
@@ -63,6 +64,8 @@ Main file map
 - js/modules/stress.js: stress state and relief actions.
 - js/modules/collapse.js: Romahdus and game-over flow.
 - js/modules/helpers.js: Lauri, Jarski, Tuomas helper drinking/ryyppy output.
+- js/modules/lauri-thai.js: real-time nightly Lauri-sedän Thai-hulluus event,
+  splash overlay, fireworks, and 30-day 5x Lauri drinking modifier.
 - js/modules/upgrades.js: permanent upgrades bought with ryypyt.
 - js/modules/gambling.js: euro-based gambling minigames, including timed
   Karaokeilta availability for Karaoketuomio.
@@ -73,6 +76,42 @@ Main file map
 
 Recent version notes
 --------------------
+0.4.30-sidebar-cleanup
+- Removed the left sidebar Pikatilastot shortcut because Pikatilastot is now
+  always available in the persistent right-side dock.
+- This is local UI cleanup only; no Supabase SQL/schema change is needed.
+
+0.4.29-active-events
+- Lauri-sedän Thai-hulluus now lasts 30 in-game days instead of being an
+  immediate one-time drink burst.
+- While active, it multiplies Lauri helper drinking by 5x. Helper estimates,
+  daily helper processing, and ryyppy/day estimates all include the modifier.
+- Added an Aktiiviset tapahtumat panel under the always-visible right-side
+  Pikatilastot dock. It can be collapsed separately and lists active events
+  with name, effect, and timer.
+- The active tracker currently reads Karaokeilta from js/modules/gambling.js
+  and Lauri-sedän Thai-hulluus from js/modules/lauri-thai.js.
+- SaveLoad now stores LauriThaiMadness.startedDay and activeUntilDay so the
+  active event duration survives browser autosave/cloud save restore.
+- This is local gameplay/UI/save packaging only; no Supabase SQL/schema change
+  is needed.
+
+0.4.28-lauri-thai
+- Added Lauri-sedän Thai-hulluus as a real local-time nightly event. It
+  schedules once per real night between 00:00 and 06:00 in the browser's local
+  time while the game is open.
+- The event uses assets/tupe.png as a large splash background, with animated
+  fireworks and rainbow Comic Sans text requested by the user.
+- Gameplay effect: if Lauris exist, the event immediately makes them drink
+  5x their current Lauri per-helper amount, capped by full cans in stock.
+  Consumed beers become empty cans, count toward juodut oluet, and produce
+  ryypyt normally. If no Lauris/full cans exist, the splash still appears but
+  reports the missing condition.
+- SaveLoad stores LauriThaiMadness state so the nightly schedule and already
+  triggered night survive autosave/cloud save restore.
+- This is local gameplay/UI/save packaging only; no Supabase SQL/schema change
+  is needed.
+
 0.4.27-satunnaiset
 - Reworked Satunnaiset tapahtumat into three predictable chaos levels:
   Pieni säätö, Kunnon hässäkkä, and Täysi katastrofi.
@@ -160,8 +199,8 @@ Recent version notes
 0.4.21-pikatilastot
 - Moved Pikatilastot out of the Arki page layout into a persistent right-side
   stats dock that is visible across all top-level pages.
-- The dock can be minimized to a narrow side handle. The old left-sidebar
-  Pikatilastot button now reopens the minimized dock.
+- The dock can be minimized to a narrow side handle. A left-sidebar shortcut
+  existed in this version but was removed later in 0.4.30-sidebar-cleanup.
 - Daily page layout now uses dailyMain as a normal single-column page because
   statsPanel is no longer inside site-daily.
 - The Peliopas was adjusted to describe Pikatilastot as a global side panel.

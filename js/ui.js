@@ -34,11 +34,6 @@ const UI = {
     document.querySelectorAll('.leftNav button[data-target]').forEach(button => {
       button.onclick = () => {
         const id = button.dataset.target;
-        if (id === 'statsPanel') {
-          this.setStatsDock(false);
-          return;
-        }
-
         this.showSite(this.sectionSites[id] || 'daily');
         if (id === 'mainContent') {
           setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 40);
@@ -57,6 +52,7 @@ const UI = {
     const statsDockToggle = document.getElementById('statsDockToggle');
     if (statsDockToggle) statsDockToggle.onclick = () => this.toggleStatsDock();
     this.setStatsDock(window.matchMedia('(max-width: 900px)').matches);
+    this.initEventTracker();
 
     this.initVolumeControl();
     this.initEventTicker();
@@ -76,6 +72,81 @@ const UI = {
     button.textContent = minimized ? 'Pikatilastot' : 'Piilota';
     button.setAttribute('aria-expanded', String(!minimized));
     button.setAttribute('aria-label', minimized ? 'Näytä pikatilastot' : 'Piilota pikatilastot');
+  },
+
+  initEventTracker() {
+    const button = document.getElementById('eventTrackerToggle');
+    if (button) button.onclick = () => this.toggleEventTracker();
+    this.setEventTracker(false);
+  },
+
+  toggleEventTracker() {
+    this.setEventTracker(!document.body.classList.contains('eventTrackerMinimized'));
+  },
+
+  setEventTracker(minimized) {
+    document.body.classList.toggle('eventTrackerMinimized', minimized);
+
+    const button = document.getElementById('eventTrackerToggle');
+    if (!button) return;
+
+    button.textContent = minimized ? 'Näytä' : 'Piilota';
+    button.setAttribute('aria-expanded', String(!minimized));
+    button.setAttribute('aria-label', minimized ? 'Näytä aktiiviset tapahtumat' : 'Piilota aktiiviset tapahtumat');
+  },
+
+  collectActiveEvents() {
+    const events = [];
+
+    if (typeof Gambling !== 'undefined' && typeof Gambling.activeEventInfo === 'function') {
+      const event = Gambling.activeEventInfo();
+      if (event) events.push(event);
+    }
+
+    if (typeof LauriThaiMadness !== 'undefined' && typeof LauriThaiMadness.activeEventInfo === 'function') {
+      const event = LauriThaiMadness.activeEventInfo();
+      if (event) events.push(event);
+    }
+
+    return events;
+  },
+
+  renderEventTracker() {
+    const list = document.getElementById('eventTrackerList');
+    if (!list) return;
+
+    const events = this.collectActiveEvents();
+    const previousScrollTop = list.scrollTop;
+    list.innerHTML = '';
+
+    if (!events.length) {
+      const empty = document.createElement('div');
+      empty.className = 'eventTrackerEmpty';
+      empty.textContent = 'Ei aktiivisia tapahtumia.';
+      list.appendChild(empty);
+      return;
+    }
+
+    events.forEach(event => {
+      const item = document.createElement('div');
+      item.className = 'eventTrackerItem';
+
+      const title = document.createElement('strong');
+      title.textContent = event.name;
+
+      const effect = document.createElement('span');
+      effect.textContent = event.effect;
+
+      const timer = document.createElement('span');
+      timer.className = 'eventTrackerTimer';
+      timer.textContent = event.timer;
+
+      item.appendChild(title);
+      item.appendChild(effect);
+      item.appendChild(timer);
+      list.appendChild(item);
+    });
+    list.scrollTop = previousScrollTop;
   },
 
   initVolumeControl() {
@@ -150,7 +221,7 @@ const UI = {
     const message = String(text || '').trim();
     if (!list || !message) return;
 
-    const type = ['good', 'bad', 'karaoke', 'kela'].includes(options.type) ? options.type : 'event';
+    const type = ['good', 'bad', 'karaoke', 'kela', 'lauri'].includes(options.type) ? options.type : 'event';
     const item = document.createElement('div');
     item.className = `eventTickerItem ${type}`;
     if (options.id) item.dataset.eventId = String(options.id);
@@ -228,8 +299,8 @@ const UI = {
     const now = context.currentTime;
     const gain = context.createGain();
     const level = Math.max(0.0001, volume * 0.16);
-    const base = type === 'kela' || type === 'bad' ? 430 : type === 'karaoke' ? 660 : 540;
-    const peak = type === 'karaoke' ? 990 : base * 1.25;
+    const base = type === 'kela' || type === 'bad' ? 430 : type === 'karaoke' || type === 'lauri' ? 660 : 540;
+    const peak = type === 'karaoke' || type === 'lauri' ? 990 : base * 1.25;
 
     gain.gain.setValueAtTime(0.0001, now);
     gain.gain.exponentialRampToValueAtTime(level, now + 0.018);
@@ -343,7 +414,7 @@ const UI = {
 
         <h3>Mittarit</h3>
         <ul>
-          <li><strong>Pikatilastot</strong> näkyvät oikeassa reunassa kaikilla sivuilla ja ne voi pienentää sivuun.</li>
+          <li><strong>Pikatilastot</strong> näkyvät oikeassa reunassa kaikilla sivuilla. Niiden alla oleva aktiivisten tapahtumien seuranta näyttää käynnissä olevat ajastetut tapahtumat.</li>
           <li><strong>Tapahtumasyöte</strong> näyttää karaokeillat, satunnaistapahtumat ja Kela-ongelmat. Hälytysäänen voi kytkeä päälle syötteen omasta painikkeesta.</li>
           <li><strong>Juodut oluet</strong> on nykyinen pistetaulun tulos. Myös apurien juomat oluet lasketaan.</li>
           <li><strong>Prestige</strong> nollaa nykyisen kierroksen, mutta lisää nimimerkin viereen pysyvän tähden pistetaululla.</li>

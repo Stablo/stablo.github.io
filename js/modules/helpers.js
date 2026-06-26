@@ -104,6 +104,12 @@ const Helpers = {
     return typeof Upgrades !== 'undefined' && Upgrades.has('mestariJattiPienet') ? 6 : 3;
   },
 
+  lauriDrinkMultiplier() {
+    return typeof LauriThaiMadness !== 'undefined' && LauriThaiMadness.lauriMultiplier
+      ? LauriThaiMadness.lauriMultiplier()
+      : 1;
+  },
+
   jarskiDrinksPerHelper() {
     return typeof Upgrades !== 'undefined' && Upgrades.has('eiKyllaLahtenNytKotia') ? 15 : 20;
   },
@@ -133,7 +139,7 @@ const Helpers = {
 
   getFixedHelperDrinksPerDay() {
     this.normalize();
-    return this.helpers.lauri.count * this.lauriDrinksPerHelper()
+    return this.helpers.lauri.count * this.lauriDrinksPerHelper() * this.lauriDrinkMultiplier()
       + this.helpers.jarski.count * this.jarskiDrinksPerHelper();
   },
 
@@ -153,7 +159,7 @@ const Helpers = {
   getFixedRyypytPerDay() {
     this.normalize();
     const s = Game.state;
-    const lauriOutput = this.helpers.lauri.count * this.lauriDrinksPerHelper() * s.ryypytPerOlut;
+    const lauriOutput = this.helpers.lauri.count * this.lauriDrinksPerHelper() * this.lauriDrinkMultiplier() * s.ryypytPerOlut;
     const jarskiOutput = this.helpers.jarski.count * this.jarskiOutputPerHelper() * s.ryypytPerOlut;
     return lauriOutput + jarskiOutput;
   },
@@ -209,7 +215,7 @@ const Helpers = {
       tuomasParts.push(`${Math.round(percent * 100)} % → ${drunk} tölkkiä, ${Math.round(rate * 100)} % → ${ryypyt} ryyppyä`);
     }
 
-    const lauriWanted = this.helpers.lauri.count * this.lauriDrinksPerHelper();
+    const lauriWanted = this.helpers.lauri.count * this.lauriDrinksPerHelper() * this.lauriDrinkMultiplier();
     const lauriDrunk = Math.min(s.fullCans, lauriWanted);
     if (lauriDrunk > 0) {
       const lauriRyypyt = lauriDrunk * s.ryypytPerOlut;
@@ -271,10 +277,14 @@ const Helpers = {
     document.getElementById('tuomakset').textContent = this.helpers.tuomas.count;
     document.getElementById('tuomasCost').textContent = this.helpers.tuomas.cost;
 
+    const lauriBaseDescription = this.lauriDrinksPerHelper() === 6
+      ? 'Lauri on päivitetty: hän juo 6 täyttä tölkkiä per päivä.'
+      : 'Lauri juo 3 täyttä tölkkiä per päivä.';
+    const lauriMultiplier = this.lauriDrinkMultiplier();
     document.getElementById('lauriDescription').textContent =
-      this.lauriDrinksPerHelper() === 6
-        ? 'Lauri on päivitetty: hän juo 6 täyttä tölkkiä per päivä.'
-        : 'Lauri juo 3 täyttä tölkkiä per päivä.';
+      lauriMultiplier > 1
+        ? `${lauriBaseDescription} Thai-hulluus päällä: ${this.lauriDrinksPerHelper() * lauriMultiplier} tölkkiä per Lauri per päivä.`
+        : lauriBaseDescription;
 
     document.getElementById('jarskiDescription').textContent =
       this.jarskiDrinksPerHelper() === 15

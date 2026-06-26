@@ -1,8 +1,23 @@
-Villisika-Sepon juomapeli — versio 0.4.27-satunnaiset
+Villisika-Sepon juomapeli — versio 0.4.30-sidebar-cleanup
 
 Avaa index.html selaimessa.
 
 Uutta tässä versiossa:
+- Vasemman sivupalkin erillinen Pikatilastot-painike poistettu, koska Pikatilastot näkyy jo jatkuvasti oikean reunan paneelissa.
+- Tämä versio ei lisää uusia Supabase SQL -muutoksia.
+- Lauri-sedän Thai-hulluus kestää nyt 30 pelipäivää ja toimii aktiivisena 5x Lauri-juomakertoimena yhden kertarysäyksen sijaan.
+- Oikean reunan Pikatilastot-paneelin alle lisätty Aktiiviset tapahtumat -seuranta.
+- Tapahtumaseuranta näyttää aktiivisten tapahtumien nimen, vaikutuksen ja jäljellä olevan ajan.
+- Tapahtumaseuranta seuraa tällä hetkellä Karaokeiltaa ja Lauri-sedän Thai-hulluutta, ja sen listaus on vieritettävä.
+- Tapahtumaseurannan voi piilottaa omasta Piilota/Näytä-painikkeestaan.
+- Lauri-sedän Thai-hulluuden aktiivinen kesto tallentuu autosaveen ja pilvitallennuksen save_dataan.
+- Tämä versio ei lisää uusia Supabase SQL -muutoksia.
+- Lisätty realiaikainen yöeventti "Lauri-sedän Thai-hulluus", joka ajoittuu kerran yössä satunnaisesti klo 00.00-06.00 välille.
+- Eventti näyttää suuren taustakuvallisen splash-ikkunan, ilotulitukset ja rainbow Comic Sans -tekstin.
+- Thai-hulluuden aikana Lauri juo viiden kertoimen määrän täysiä tölkkejä.
+- Lisätty assets/tupe.png yöeventin splash-taustaksi.
+- Yöeventin ajastus ja saman yön käyttötieto tallentuvat autosaveen.
+- Tämä versio ei lisää uusia Supabase SQL -muutoksia.
 - Satunnaiset tapahtumat on uudistettu kolmen tason kaaosvalikoksi: Pieni säätö, Kunnon hässäkkä ja Täysi katastrofi.
 - Kela-aiheiset hyödyttömät tyhjät tapahtumat poistettu nykyisestä pääpoolista.
 - Tapahtumat antavat nyt pieniä yleishyödyllisiä palkintoja: tölkkejä, pikkueuroja, stressiapua, krapulavaihtoja, markettitavaraa ja resurssien muuntoa.
@@ -35,7 +50,6 @@ Uutta tässä versiossa:
 - Supabase-tietokanta tarvitsee päivitetyn supabase-setup.sql-ajon prestigeä varten.
 - Pikatilastot näkyy nyt omana oikean reunan paneelinaan kaikilla pääsivuilla.
 - Pikatilastot-paneelin voi pienentää sivuun Piilota/Pikatilastot-kahvasta.
-- Vasemman reunan Pikatilastot-painike avaa pienennetyn tilastopaneelin takaisin näkyviin.
 - Vasemman yläkulman Seppo-teksti korvattu uudella Villisika-Sepon juomapeli -logolla.
 - Logo lisätty paikalliseksi tiedostoksi assets/seppo-logo.jpeg ja sovitettu sivupalkkiin CSS:llä.
 - Peli tallentuu nyt automaattisesti selaimeen aina taustalla.
@@ -92,6 +106,7 @@ Tiedostorakenne:
 - index.html
 - css/styles.css
 - assets/seppo-logo.jpeg
+- assets/tupe.png
 - js/core.js
 - js/ui.js
 - js/modules/*.js

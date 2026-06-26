@@ -1,5 +1,5 @@
 const Game = {
-  version: "0.4.27-satunnaiset",
+  version: "0.4.30-sidebar-cleanup",
   modules: [],
   config: {
     canValue: 0.20,
@@ -81,6 +81,7 @@ const Game = {
   update() {
     this.modules.forEach(module => module.render && module.render());
     UI.renderStats();
+    UI.renderEventTracker();
     if (typeof SaveLoad !== 'undefined' && SaveLoad.requestAutoSave) {
       SaveLoad.requestAutoSave('update');
     }

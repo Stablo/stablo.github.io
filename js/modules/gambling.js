@@ -206,6 +206,18 @@ const Gambling = {
     return `Karaokeilta kiinni. Seuraava arvio: ${this.formatKaraokeDelay(this.karaokeEvent.nextCheckAt - Date.now())}.`;
   },
 
+  activeEventInfo() {
+    this.updateKaraokeEvent();
+    if (!this.karaokeEvent.active) return null;
+
+    const daysLeft = Math.max(1, this.karaokeEvent.activeUntilDay - Game.state.day);
+    return {
+      name: 'Karaokeilta',
+      effect: 'Karaoketuomio on auki uhkapelisivulla.',
+      timer: `${daysLeft} pelipäivää`
+    };
+  },
+
   formatKaraokeDelay(ms) {
     const minutes = Math.max(0, Math.ceil(Number(ms || 0) / 60000));
     if (minutes <= 1) return 'alle minuutti';

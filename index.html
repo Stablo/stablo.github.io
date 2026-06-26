@@ -22,7 +22,6 @@
         <button data-target="collapseContent">Romahdus</button>
         <button data-target="timeContent">Aika</button>
         <button data-target="eventContent">Tapahtumat</button>
-        <button data-target="statsPanel">Pikatilastot</button>
       </div>
 
       <div class="navGroup navGroupMoney">
@@ -101,18 +100,32 @@
         <main id="accountMain" class="siteSingleColumn"></main>
       </section>
 
-      <footer>Villisika-Sepon juomapeli — versio 0.4.27-satunnaiset</footer>
+      <footer>Villisika-Sepon juomapeli — versio 0.4.30-sidebar-cleanup</footer>
     </div>
 
-    <aside id="statsDock" class="statsDock" aria-label="Pikatilastot">
+    <aside id="statsDock" class="statsDock" aria-label="Pikatilastot ja aktiiviset tapahtumat">
       <button
         id="statsDockToggle"
         class="statsDockToggle"
         type="button"
         aria-expanded="true"
-        aria-controls="statsPanel"
+        aria-controls="statsPanel eventTrackerPanel"
       >Piilota</button>
-      <div id="statsPanel" class="box"></div>
+      <div class="rightDockContent">
+        <div id="statsPanel" class="box"></div>
+        <div id="eventTrackerPanel" class="box eventTrackerPanel">
+          <div class="eventTrackerHeader">
+            <h2>Aktiiviset tapahtumat</h2>
+            <button
+              id="eventTrackerToggle"
+              type="button"
+              aria-expanded="true"
+              aria-controls="eventTrackerList"
+            >Piilota</button>
+          </div>
+          <div id="eventTrackerList" class="eventTrackerList"></div>
+        </div>
+      </div>
     </aside>
   </div>
 
@@ -129,6 +142,7 @@
   <script src="js/modules/supermarket.js"></script>
   <script src="js/modules/events.js"></script>
   <script src="js/modules/helpers.js"></script>
+  <script src="js/modules/lauri-thai.js"></script>
   <script src="js/modules/returns.js"></script>
   <script src="js/modules/jobs.js"></script>
   <script src="js/modules/kela.js"></script>
